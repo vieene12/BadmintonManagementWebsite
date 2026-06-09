@@ -1,0 +1,792 @@
+@{
+    ViewData["Title"] = "Quầy Lễ Tân - Nghiệp Vụ Tại Quầy";
+    ViewData["ActivePage"] = "Receptionist";
+}
+
+<div class="container-fluid px-0">
+    <!-- Header Page Description -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -1px;"><i class="bi bi-laptop me-2 text-primary"></i>Quầy Lễ Tân (Receptionist Hub)</h2>
+            <p class="text-secondary mb-0">Quản lý đặt sân tại quầy, kích hoạt ca chơi, bán dịch vụ gia tăng và thanh toán hóa đơn.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="openQuickBookModal()">
+                <i class="bi bi-plus-circle me-1"></i> Đặt Sân Tại Quầy
+            </button>
+            <button class="btn btn-outline-secondary rounded-pill px-3" onclick="location.reload()" style="background: white;">
+                <i class="bi bi-arrow-clockwise"></i> Đồng Bộ Lịch
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Real-time Court Cards -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Trạng Thái Sân Thời Gian Thực</h5>
+                    <small class="text-muted">Ca trực hiện tại: Hoạt động ổn định</small>
+                </div>
+                
+                <div class="row g-3" id="court-status-container">
+                    @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
+                    {
+                        string statusClass = court.Status.ToLower() switch
+                        {
+                            "inuse" => "status-in-use",
+                            "available" => "status-available",
+                            "maintenance" => "status-maintenance",
+                            _ => "status-available"
+                        };
+
+                        <div class="col-md-6" id="court-card-col-@court.CourtId">
+                            <div class="card border-0 glass-card court-card @statusClass p-3 glow-card">
+                                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <h5 class="fw-bold text-dark mb-0" id="courtName-@court.CourtId" style="font-weight: 800;">@court.CourtName</h5>
+                                        <button class="btn btn-link p-0 text-muted" onclick="openEditCourtModal(@court.CourtId, '@court.CourtName', @((int)court.HourlyPrice))" title="Cấu hình giá sân"><i class="bi bi-gear-fill"></i></button>
+                                    </div>
+                                    @if (court.Status == "InUse")
+                                    {
+                                        <span class="status-badge in-use"><i class="bi bi-activity"></i> Đang Sử Dụng</span>
+                                    }
+                                    else if (court.Status == "Maintenance")
+                                    {
+                                        <span class="status-badge maintenance"><i class="bi bi-wrench"></i> Đang Bảo Trì</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge available"><i class="bi bi-check-circle-fill"></i> Đang Trống</span>
+                                    }
+                                </div>
+                                <!-- Interactive SVG Court Illustration with dynamic status floor -->
+                                <div class="svg-court-container">
+                                    <svg width="240" height="80" viewBox="0 0 240 80">
+                                        @{
+                                            string svgBg = court.Status == "InUse" ? "rgba(99, 102, 241, 0.2)" :
+                                                           court.Status == "Maintenance" ? "rgba(244, 63, 94, 0.15)" :
+                                                           "rgba(16, 185, 129, 0.2)";
+                                        }
+                                        <rect x="10" y="5" width="220" height="70" fill="@svgBg" rx="6" />
+                                        <rect x="10" y="5" width="220" height="70" class="svg-court-lines" />
+                                        <line x1="120" y1="5" x2="120" y2="75" class="svg-court-lines" />
+                                        <line x1="120" y1="5" x2="120" y2="75" class="svg-court-net" />
+                                        <line x1="85" y1="5" x2="85" y2="75" class="svg-court-lines" />
+                                        <line x1="155" y1="5" x2="155" y2="75" class="svg-court-lines" />
+                                        <line x1="10" y1="40" x2="85" y2="40" class="svg-court-lines" />
+                                        <line x1="155" y1="40" x2="230" y2="40" class="svg-court-lines" />
+                                    </svg>
+                                    
+                                    <!-- Dynamic overlay details for SVGs -->
+                                    <div class="position-absolute top-0 end-0 m-2 small font-monospace text-muted" style="font-size: 0.65rem;">
+                                        @if (court.Status == "InUse") {
+                                            <span class="text-primary fw-bold"><i class="bi bi-camera-video"></i> REC</span>
+                                        } else if (court.Status == "Maintenance") {
+                                            <span class="text-danger fw-bold"><i class="bi bi-shield-slash"></i> OFF</span>
+                                        } else {
+                                            <span class="text-success fw-bold"><i class="bi bi-check-circle"></i> RDY</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                @if (court.Status == "InUse")
+                                {
+                                    var customerName = court.CourtId == 1 ? "Nguyễn Văn A" : "Nhóm Trần Minh";
+                                    var customerPhone = court.CourtId == 1 ? "0987654321" : "0912345678";
+                                    var timeRange = court.CourtId == 1 ? "17:00 - 19:00" : "18:00 - 20:00";
+                                    var hours = court.CourtId == 1 ? 2.0 : 2.0;
+                                    var svcMultiplier = court.CourtId == 1 ? 0.5 : 1.0;
+
+                                    <table class="table table-sm table-borderless mb-3 small text-secondary">
+                                        <tbody>
+                                            <tr>
+                                                <td style="width: 35%;" class="fw-semibold text-muted">Khách chơi:</td>
+                                                <td class="text-dark fw-bold">@customerName</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Số điện thoại:</td>
+                                                <td class="text-dark">@customerPhone</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Khung giờ:</td>
+                                                <td class="text-dark"><span class="badge bg-light text-dark border rounded-pill px-2">@timeRange</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Camera:</td>
+                                                <td>
+                                                    <span class="recording-indicator"><span class="recording-dot"></span> Ghi hình trực tiếp</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-outline-primary btn-sm flex-fill rounded-pill py-2" onclick="openServiceOrderModal('@court.CourtName', '@customerName', @svcMultiplier)"><i class="bi bi-cart-plus me-1"></i>Gọi Nước/Vợt</button>
+                                        <button class="btn btn-primary btn-sm flex-fill rounded-pill py-2" onclick="openCheckoutModal(@court.CourtId, '@court.CourtName', '@customerName', @((int)court.HourlyPrice), @hours, @svcMultiplier)"><i class="bi bi-cash-coin me-1"></i>Tính Tiền</button>
+                                    </div>
+                                }
+                                else if (court.Status == "Maintenance")
+                                {
+                                    <table class="table table-sm table-borderless mb-3 small text-secondary">
+                                        <tbody>
+                                            <tr>
+                                                <td style="width: 35%;" class="fw-semibold text-muted">Sự cố:</td>
+                                                <td class="text-danger fw-bold">Thay thảm lưới biên sân</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Hoàn thành:</td>
+                                                <td class="text-dark">21:00 tối nay (Dự kiến)</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Kỹ thuật viên:</td>
+                                                <td class="text-dark">Phạm Văn C</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <button class="btn btn-outline-secondary btn-sm w-100 rounded-pill py-2" onclick="completeMaintenance(@court.CourtId)">
+                                        <i class="bi bi-check2"></i> Xác Nhận Bảo Trì Xong
+                                    </button>
+                                }
+                                else
+                                {
+                                    <table class="table table-sm table-borderless mb-3 small text-secondary">
+                                        <tbody>
+                                            <tr>
+                                                <td style="width: 35%;" class="fw-semibold text-muted">Đơn giá sân:</td>
+                                                <td class="text-success fw-bold"><span class="court-price-label-@court.CourtId">@(((int)court.HourlyPrice).ToString("N0", new System.Globalization.CultureInfo("vi-VN")))đ</span> / giờ</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Lịch chơi tiếp:</td>
+                                                <td class="text-dark">Trống trong 2 giờ tới</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-semibold text-muted">Trạng thái:</td>
+                                                <td>Sẵn sàng đón khách nhận sân</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <button class="btn btn-success btn-sm w-100 rounded-pill py-2" onclick="quickCheckIn(@court.CourtId, '@court.CourtName')">
+                                        <i class="bi bi-box-arrow-in-right me-1"></i> Vào Chơi Trực Tiếp
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Customer Search & Service Catalog -->
+        <div class="col-xl-4 col-lg-5">
+            <!-- Customer search card -->
+            <div class="glass-card p-4 mb-4">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-search me-2 text-primary"></i>Tra Cứu Khách Hàng</h5>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control rounded-start-pill" id="custSearchPhone" placeholder="Nhập số điện thoại (0987...)" value="0987654321">
+                    <button class="btn btn-primary rounded-end-pill px-3" type="button" onclick="searchCustomerInfo()"><i class="bi bi-search"></i></button>
+                </div>
+                
+                <div class="border rounded-4 p-3 bg-light" id="customer-info-box" style="border-left: 4px solid var(--accent-warning) !important;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold text-dark mb-0" id="infoCustName"><i class="bi bi-person-fill me-1"></i> Nguyễn Văn A</h6>
+                        <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.7rem;">Thành Viên Gold</span>
+                    </div>
+                    <hr class="my-2 bg-secondary opacity-25">
+                    <div class="small text-secondary vstack gap-1">
+                        <div class="d-flex justify-content-between">
+                            <span>Số điện thoại:</span>
+                            <span class="text-dark fw-medium" id="infoCustPhone">0987654321</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Điểm tích lũy:</span>
+                            <span class="text-primary fw-bold" id="infoCustPoints">120 điểm</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Lịch sử sử dụng:</span>
+                            <span class="text-dark">12 lượt chơi | 34 dịch vụ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Shift Revenue Audit Card -->
+            <div class="glass-card p-4 mb-4 border-start border-4 border-success bg-white glow-card">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-wallet2 me-2 text-success"></i>Kiểm Kê Doanh Thu Ca</h5>
+                <p class="text-secondary small mb-3">Đối chiếu tổng tiền thuê sân và dịch vụ phát sinh thực tế tại quầy.</p>
+                <div class="vstack gap-2 mb-3 border rounded-3 p-3 audit-log-box">
+                    <div class="d-flex justify-content-between border-bottom pb-1 mb-1 small">
+                        <span class="text-secondary fw-medium">Tiền thuê sân đã thu:</span>
+                        <strong class="text-dark">2.400.000đ</strong>
+                    </div>
+                    <div class="d-flex justify-content-between border-bottom pb-1 mb-1 small">
+                        <span class="text-secondary fw-medium">Tiền nước & dịch vụ:</span>
+                        <strong class="text-dark">850.000đ</strong>
+                    </div>
+                    <div class="d-flex justify-content-between pb-1">
+                        <span class="text-secondary fw-bold text-dark">Tổng thu thực tế:</span>
+                        <strong class="text-success fs-5 fw-extrabold" style="font-weight: 800;">3.250.000đ</strong>
+                    </div>
+                </div>
+                <button class="btn btn-success btn-sm w-100 rounded-pill py-2 fw-bold" onclick="alert('Báo cáo kiểm kê ca đã được ghi nhận vào hệ thống quản trị và in thành công!')">
+                    <i class="bi bi-printer-fill me-1"></i> Chốt Ca & In Bàn Giao
+                </button>
+            </div>
+
+            <!-- List of services price catalog -->
+            <div class="glass-card p-4">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-tags me-2 text-primary"></i>Bảng Giá Dịch Vụ</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle small mb-0">
+                        <thead>
+                            <tr class="table-light">
+                                <th>Tên Dịch Vụ</th>
+                                <th class="text-center">ĐVT</th>
+                                <th class="text-end">Đơn Giá</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in ViewBag.Services as List<AquarSmartCourt.Models.ServiceItem> ?? new List<AquarSmartCourt.Models.ServiceItem>())
+                            {
+                                <tr>
+                                    <td class="fw-medium text-dark">@item.ItemName</td>
+                                    <td class="text-center text-muted">@item.Unit</td>
+                                    <td class="text-end fw-bold text-dark">@(((int)item.UnitPrice).ToString("N0", new System.Globalization.CultureInfo("vi-VN")))đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Service Order at counter -->
+<div class="modal fade" id="serviceOrderModal" tabindex="-1" aria-labelledby="serviceOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="serviceOrderModalLabel"><i class="bi bi-cart-plus me-2"></i>Gọi Dịch Vụ Cho Sân</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="serviceOrderForm" onsubmit="addServiceToBill(event)">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Vị trí sân con</label>
+                        <input type="text" class="form-control rounded-3" id="serviceCourt" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Khách hàng đang chơi</label>
+                        <input type="text" class="form-control rounded-3" id="serviceCust" readonly>
+                    </div>
+                    <hr class="my-3">
+                    <h6 class="fw-bold text-dark mb-2">Chọn dịch vụ & số lượng</h6>
+                    <div class="mb-3 row g-2">
+                        <div class="col-6">
+                            <label class="form-label small mb-1">Danh mục dịch vụ</label>
+                            <select class="form-select rounded-3" id="orderServiceCategorySelect" onchange="filterOrderServices()">
+                                <option value="All">-- Tất cả danh mục --</option>
+                                <option value="Nước uống">Nước uống</option>
+                                <option value="Thuê vợt">Thuê vợt</option>
+                                <option value="Phụ kiện">Phụ kiện</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small mb-1">Tên dịch vụ</label>
+                            <select class="form-select rounded-3" id="orderServiceSelect" onchange="updateServiceUnitPrice()">
+                                @foreach (var item in ViewBag.Services as List<AquarSmartCourt.Models.ServiceItem> ?? new List<AquarSmartCourt.Models.ServiceItem>())
+                                {
+                                    <option value="@((int)item.UnitPrice)" data-id="@item.ServiceItemId" data-category="@item.Category">@item.ItemName - @(((int)item.UnitPrice).ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("vi-VN")))đ/@item.Unit.ToLower()</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-2 row g-3">
+                        <div class="col-6">
+                            <label class="form-label small mb-1">Số lượng</label>
+                            <input type="number" class="form-control rounded-3" id="orderServiceQty" min="1" max="20" value="2">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small mb-1">Đơn giá</label>
+                            <input type="text" class="form-control rounded-3" id="orderServicePrice" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Thêm Vào Hóa Đơn</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Checkout and Invoice billing -->
+<div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-success text-white py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="checkoutModalLabel"><i class="bi bi-wallet2 me-2"></i>Tính Tiền & Thanh Toán</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="checkout-receipt-content">
+                <div class="text-center mb-4">
+                    <h5 class="fw-bold mb-0 text-success" style="letter-spacing: 0.5px;">AQUAR SMASHCOURT RECEIPT</h5>
+                    <small class="text-muted text-uppercase">Hóa đơn dịch vụ tổng hợp</small>
+                </div>
+                <div class="vstack gap-2 small mb-4 border rounded-3 p-3 bg-light">
+                    <div class="d-flex justify-content-between border-bottom pb-1 mb-1">
+                        <span class="text-secondary">Sân chơi:</span>
+                        <strong class="text-dark" id="receiptCourt">Sân Con 01</strong>
+                    </div>
+                    <div class="d-flex justify-content-between border-bottom pb-1 mb-1">
+                        <span class="text-secondary">Khách hàng:</span>
+                        <strong class="text-dark" id="receiptCust">Nguyễn Văn A</strong>
+                    </div>
+                    <div class="d-flex justify-content-between pb-1">
+                        <span class="text-secondary">Thời lượng chơi:</span>
+                        <strong class="text-dark" id="receiptDuration">2.0 giờ</strong>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-dark mb-2">Chi tiết thanh toán</h6>
+                <div class="table-responsive border rounded-3 overflow-hidden">
+                    <table class="table table-hover align-middle small mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mục Thanh Toán</th>
+                                <th class="text-center" style="width: 100px;">Lượng / Giờ</th>
+                                <th class="text-end" style="width: 120px;">Thành Tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="billCourtFeeRow">
+                                <td class="text-dark fw-medium">Tiền thuê sân</td>
+                                <td class="text-center" id="billCourtHours">2.0h</td>
+                                <td class="text-end fw-bold text-dark" id="billCourtFee">160.000đ</td>
+                            </tr>
+                            <!-- Service orders from database will be appended here via JS -->
+                            
+                            <tr class="table-light fw-bold fs-6 text-dark" id="checkout-total-row">
+                                <td>TỔNG CỘNG:</td>
+                                <td></td>
+                                <td class="text-end text-success" id="billTotalAmount">240.000đ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-warning py-2 rounded-3 small mt-3 mb-0">
+                    <i class="bi bi-gift-fill me-1"></i> Điểm thưởng hội viên tích lũy: <strong>+24 điểm</strong>.
+                </div>
+            </div>
+            <div class="modal-footer p-3 bg-light rounded-bottom-4">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-success rounded-pill px-4" onclick="confirmPaymentAndPrint()"><i class="bi bi-check-circle me-1"></i> Đã Thu Tiền</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Quick Booking at Counter -->
+<div class="modal fade" id="quickBookModal" tabindex="-1" aria-labelledby="quickBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="quickBookModalLabel"><i class="bi bi-calendar-plus me-2"></i>Đăng Ký Đặt Sân Tại Quầy</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="quickBookForm" onsubmit="processQuickBook(event)">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Chọn Sân Con</label>
+                        <select class="form-select rounded-3" id="quickBookCourt" required>
+                            @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
+                            {
+                                <option value="@court.CourtId" data-name="@court.CourtName">@court.CourtName @(court.Status == "Available" ? "(Đang trống)" : "")</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3 row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Giờ bắt đầu</label>
+                            <input type="time" class="form-control rounded-3" id="quickBookStart" value="19:00" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Giờ kết thúc</label>
+                            <input type="time" class="form-control rounded-3" id="quickBookEnd" value="21:00" required>
+                        </div>
+                    </div>
+                    <div class="mb-3 row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Họ tên khách</label>
+                            <input type="text" class="form-control rounded-3" id="quickBookName" required placeholder="Tên khách hàng">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Số điện thoại</label>
+                            <input type="tel" class="form-control rounded-3" id="quickBookPhone" required placeholder="Số điện thoại">
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold text-dark mb-1">Ghi chú</label>
+                        <textarea class="form-control rounded-3" id="quickBookNotes" rows="2" placeholder="Ghi chú dịch vụ hoặc thanh toán..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer p-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu Thông Tin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Edit Court Details -->
+<div class="modal fade" id="editCourtModal" tabindex="-1" aria-labelledby="editCourtModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="editCourtModalLabel"><i class="bi bi-gear-fill me-2"></i>Cấu Hình Sân Cầu Lông</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editCourtForm" onsubmit="saveCourtConfig(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editCourtId">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Tên Sân Con</label>
+                        <input type="text" class="form-control rounded-3" id="editCourtName" required placeholder="Ví dụ: Sân Con 01">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Giá thuê theo giờ (đ/h)</label>
+                        <input type="number" class="form-control rounded-3" id="editCourtPrice" min="1000" step="5000" required placeholder="Ví dụ: 80000">
+                    </div>
+                </div>
+                <div class="modal-footer p-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu Cấu Hình</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let serviceModalObj = null;
+        let checkoutModalObj = null;
+        let quickBookModalObj = null;
+        let editCourtModalObj = null;
+        let courtHourlyPrices = {
+            @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
+            {
+                @:@court.CourtId: @((int)court.HourlyPrice),
+            }
+        };
+
+        $(document).ready(function() {
+            serviceModalObj = new bootstrap.Modal(document.getElementById('serviceOrderModal'));
+            checkoutModalObj = new bootstrap.Modal(document.getElementById('checkoutModal'));
+            quickBookModalObj = new bootstrap.Modal(document.getElementById('quickBookModal'));
+            editCourtModalObj = new bootstrap.Modal(document.getElementById('editCourtModal'));
+            updateServiceUnitPrice();
+        });
+
+        function openQuickBookModal() {
+            quickBookModalObj.show();
+        }
+
+        function processQuickBook(e) {
+            e.preventDefault();
+            const courtId = parseInt(document.getElementById('quickBookCourt').value);
+            const selectEl = document.getElementById('quickBookCourt');
+            const courtName = selectEl.options[selectEl.selectedIndex].getAttribute('data-name');
+            const start = document.getElementById('quickBookStart').value;
+            const end = document.getElementById('quickBookEnd').value;
+            const name = document.getElementById('quickBookName').value;
+            const phone = document.getElementById('quickBookPhone').value;
+
+            $.ajax({
+                url: '/api/CourtApi/book',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    courtId: courtId,
+                    customerName: name,
+                    customerPhone: phone,
+                    startTime: start,
+                    endTime: end
+                }),
+                success: function() {
+                    alert(`Đăng ký đặt sân thành công!\nSân: ${courtName}\nThời gian: ${start} - ${end}\nKhách hàng: ${name}`);
+                    quickBookModalObj.hide();
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Lỗi đặt sân: ' + xhr.responseText);
+                }
+            });
+        }
+
+        function quickCheckIn(id, courtName) {
+            const clientName = prompt("Nhập tên khách hàng muốn vào chơi:");
+            if (clientName) {
+                $.ajax({
+                    url: `/api/CourtApi/${id}`,
+                    type: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        courtId: parseInt(id),
+                        courtName: courtName,
+                        hourlyPrice: courtHourlyPrices[id],
+                        status: "InUse"
+                    }),
+                    success: function() {
+                        alert(`Đã nhận sân và bắt đầu tính giờ!\nSân: ${courtName}\nKhách chơi: ${clientName}\nCamera sân đã kích hoạt chế độ ghi hình.`);
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        alert('Lỗi: ' + xhr.responseText);
+                    }
+                });
+            }
+        }
+
+        function completeMaintenance(id) {
+            const courtName = document.getElementById(`courtName-${id}`).innerText;
+            $.ajax({
+                url: `/api/CourtApi/${id}`,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    courtId: parseInt(id),
+                    courtName: courtName,
+                    hourlyPrice: courtHourlyPrices[id],
+                    status: "Available"
+                }),
+                success: function() {
+                    alert('Đã hoàn tất sửa chữa sân. Trạng thái chuyển về Đang Trống!');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Lỗi: ' + xhr.responseText);
+                }
+            });
+        }
+
+        function openServiceOrderModal(court, cust, serviceFactor) {
+            document.getElementById('serviceCourt').value = court;
+            document.getElementById('serviceCust').value = cust;
+            serviceModalObj.show();
+        }
+
+        function updateServiceUnitPrice() {
+            const select = document.getElementById('orderServiceSelect');
+            if (select && select.value) {
+                document.getElementById('orderServicePrice').value = parseInt(select.value).toLocaleString('vi-VN') + 'đ';
+            } else {
+                document.getElementById('orderServicePrice').value = '0đ';
+            }
+        }
+
+        function filterOrderServices() {
+            const selectedCategory = document.getElementById('orderServiceCategorySelect').value;
+            const serviceSelect = document.getElementById('orderServiceSelect');
+            const options = serviceSelect.querySelectorAll('option');
+
+            let firstVisibleIndex = -1;
+            options.forEach((opt, idx) => {
+                const cat = opt.getAttribute('data-category');
+                if (selectedCategory === "All" || cat === selectedCategory) {
+                    opt.style.display = '';
+                    if (firstVisibleIndex === -1) {
+                        firstVisibleIndex = idx;
+                    }
+                } else {
+                    opt.style.display = 'none';
+                }
+            });
+
+            if (firstVisibleIndex !== -1) {
+                serviceSelect.selectedIndex = firstVisibleIndex;
+            } else {
+                serviceSelect.selectedIndex = -1;
+            }
+            updateServiceUnitPrice();
+        }
+
+        function addServiceToBill(e) {
+            e.preventDefault();
+            const courtName = document.getElementById('serviceCourt').value;
+            const selectEl = document.getElementById('orderServiceSelect');
+            const itemId = parseInt(selectEl.options[selectEl.selectedIndex].getAttribute('data-id'));
+            const qty = parseInt(document.getElementById('orderServiceQty').value);
+            const itemName = selectEl.options[selectEl.selectedIndex].text;
+
+            // Map court name to ID
+            let courtId = 1;
+            if (courtName.includes("2")) courtId = 2;
+            else if (courtName.includes("3")) courtId = 3;
+            else if (courtName.includes("4")) courtId = 4;
+
+            $.ajax({
+                url: '/api/CourtApi/order',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    courtId: courtId,
+                    serviceItemId: itemId,
+                    quantity: qty
+                }),
+                success: function() {
+                    alert(`Đã thêm dịch vụ thành công vào cơ sở dữ liệu!\n${itemName}\nSố lượng: ${qty}`);
+                    serviceModalObj.hide();
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Lỗi thêm dịch vụ: ' + xhr.responseText);
+                }
+            });
+        }
+
+        function openCheckoutModal(id, court, cust, hourlyPrice, hours, serviceFeeMultiplier) {
+            document.getElementById('receiptCourt').innerText = court;
+            document.getElementById('receiptCust').innerText = cust;
+            document.getElementById('receiptDuration').innerText = `${hours} giờ`;
+            document.getElementById('billCourtHours').innerText = `${hours}h`;
+            
+            const currentPrice = courtHourlyPrices[id] || hourlyPrice;
+            const calculatedCourtFee = hours * currentPrice;
+            document.getElementById('billCourtFee').innerText = `${calculatedCourtFee.toLocaleString('vi-VN')}đ`;
+
+            // Call API to fetch actual ordered services from database
+            $.ajax({
+                url: `/api/CourtApi/orders/${id}`,
+                type: 'GET',
+                success: function(orders) {
+                    let servicesHtml = '';
+                    let serviceTotal = 0;
+                    
+                    orders.forEach(ord => {
+                        servicesHtml += `
+                            <tr class="service-bill-row">
+                                <td class="text-dark fw-medium">${ord.itemName} (${ord.unitPrice.toLocaleString('vi-VN')}đ/${ord.unit.toLowerCase()})</td>
+                                <td class="text-center">x ${ord.quantity}</td>
+                                <td class="text-end fw-bold text-dark">${ord.total.toLocaleString('vi-VN')}đ</td>
+                            </tr>
+                        `;
+                        serviceTotal += ord.total;
+                    });
+                    
+                    // Remove any existing dynamic service rows
+                    document.querySelectorAll('.service-bill-row').forEach(el => el.remove());
+                    
+                    // Insert before the total row (last row)
+                    const totalRow = document.querySelector('#checkout-total-row');
+                    $(servicesHtml).insertBefore(totalRow);
+                    
+                    const grandTotal = calculatedCourtFee + serviceTotal;
+                    document.getElementById('billTotalAmount').innerText = `${grandTotal.toLocaleString('vi-VN')}đ`;
+                    
+                    // Store checkout details on modal
+                    document.getElementById('checkoutModal').setAttribute('data-checkout-id', id);
+                    document.getElementById('checkoutModal').setAttribute('data-court-name', court);
+                    
+                    checkoutModalObj.show();
+                },
+                error: function(xhr) {
+                    alert('Lỗi tải danh sách dịch vụ: ' + xhr.responseText);
+                }
+            });
+        }
+
+        function confirmPaymentAndPrint() {
+            const id = document.getElementById('checkoutModal').getAttribute('data-checkout-id');
+            const courtName = document.getElementById('checkoutModal').getAttribute('data-court-name');
+            
+            // 1. Clear database active service orders for this court
+            $.ajax({
+                url: `/api/CourtApi/orders/${id}`,
+                type: 'DELETE',
+                success: function() {
+                    // 2. Set court back to Available
+                    $.ajax({
+                        url: `/api/CourtApi/${id}`,
+                        type: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            courtId: parseInt(id),
+                            courtName: courtName,
+                            hourlyPrice: courtHourlyPrices[id],
+                            status: "Available"
+                        }),
+                        success: function() {
+                            alert("Thanh toán thành công! Hóa đơn đã chuyển sang trạng thái [ĐÃ THANH TOÁN] và dịch vụ đã được ghi nhận ca.");
+                            checkoutModalObj.hide();
+                            location.reload();
+                        },
+                        error: function(xhr) {
+                            alert('Lỗi cập nhật trạng thái sân: ' + xhr.responseText);
+                        }
+                    });
+                },
+                error: function(xhr) {
+                    alert('Lỗi xóa dịch vụ hóa đơn: ' + xhr.responseText);
+                }
+            });
+        }
+
+        function searchCustomerInfo() {
+            const phone = document.getElementById('custSearchPhone').value;
+            if (phone === "0987654321") {
+                document.getElementById('infoCustName').innerText = "Nguyễn Văn A";
+                document.getElementById('infoCustPoints').innerText = "120 điểm";
+                alert("Đã tìm thấy thông tin khách hàng thành viên!");
+            } else {
+                document.getElementById('infoCustName').innerText = "Khách vãng lai mới";
+                document.getElementById('infoCustPoints').innerText = "0 điểm";
+                alert("Số điện thoại chưa đăng ký thành viên. Hệ thống tự động tạo hồ sơ khách hàng vãng lai mới.");
+            }
+        }
+        
+        function openEditCourtModal(id, currentName, fallbackPrice) {
+            document.getElementById('editCourtId').value = id;
+            document.getElementById('editCourtName').value = document.getElementById(`courtName-${id}`).innerText;
+            document.getElementById('editCourtPrice').value = courtHourlyPrices[id] || fallbackPrice;
+            editCourtModalObj.show();
+        }
+
+        function saveCourtConfig(e) {
+            e.preventDefault();
+            const id = document.getElementById('editCourtId').value;
+            const newName = document.getElementById('editCourtName').value;
+            const newPrice = parseInt(document.getElementById('editCourtPrice').value);
+            
+            $.ajax({
+                url: `/api/CourtApi/${id}`,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    courtId: parseInt(id),
+                    courtName: newName,
+                    hourlyPrice: newPrice
+                }),
+                success: function() {
+                    courtHourlyPrices[id] = newPrice;
+                    document.getElementById(`courtName-${id}`).innerText = newName;
+                    
+                    const priceLabel = document.querySelector(`.court-price-label-${id}`);
+                    if (priceLabel) {
+                        priceLabel.innerText = `${newPrice.toLocaleString('vi-VN')}đ`;
+                    }
+                    
+                    alert(`Cập nhật cấu hình thành công!\nTên mới: ${newName}\nGiá thuê mới: ${newPrice.toLocaleString('vi-VN')}đ/giờ\nHệ thống đã đồng bộ bảng danh mục sân.`);
+                    editCourtModalObj.hide();
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Lỗi: ' + xhr.responseText);
+                }
+            });
+        }
+    </script>
+}
