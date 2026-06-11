@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Aquar SmashCourt</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/AquarSmartCourt.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom navbar-custom py-2">
+            <div class="container-fluid px-4">
+                <a class="navbar-brand navbar-brand-custom" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-lightning-charge-fill"></i> Aquar SmashCourt
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarColor01">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                        <li class="nav-item">
+                            <a class="nav-link py-2 px-3 fw-semibold @(ViewData["ActivePage"]?.ToString() == "Customer" ? "text-primary active" : "text-secondary")" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-people-fill me-1"></i> Khách Hàng
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link py-2 px-3 fw-semibold @(ViewData["ActivePage"]?.ToString() == "Receptionist" ? "text-primary active" : "text-secondary")" asp-controller="Receptionist" asp-action="Index">
+                                <i class="bi bi-laptop me-1"></i> Quầy Lễ Tân
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link py-2 px-3 fw-semibold @(ViewData["ActivePage"]?.ToString() == "Manager" ? "text-primary active" : "text-secondary")" asp-controller="Manager" asp-action="Index">
+                                <i class="bi bi-graph-up-arrow me-1"></i> Ban Quản Lý
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="text-end d-none d-sm-block">
+                            <small class="text-muted d-block" style="font-size: 0.75rem;">Nhân viên hiện tại</small>
+                            <span class="fw-semibold text-dark" id="current-user-tag">Lễ tân: Nguyễn Văn A</span>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border: 1px solid #e2e8f0;">
+                                <i class="bi bi-person-circle"></i> Đổi Vai Trò
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-md border-0 mt-2 rounded-4">
+                                <li><a class="dropdown-item py-2 fw-medium" href="#" onclick="switchRole('Receptionist', 'Nguyễn Văn A (Lễ tân)')"><i class="bi bi-laptop me-2 text-primary"></i>Nhân viên Lễ tân</a></li>
+                                <li><a class="dropdown-item py-2 fw-medium" href="#" onclick="switchRole('Manager', 'Trần Thị B (Quản lý)')"><i class="bi bi-shield-lock me-2 text-success"></i>Quản trị viên (Admin)</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item py-2 text-danger fw-medium" href="#"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="main-wrapper">
+        <div class="container-fluid px-4 py-2">
+            <div class="content-area">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <!-- Nút Chatbot Toggler & Cửa sổ Chatbot chung -->
+    <button class="chatbot-toggler" onclick="toggleChatbot()">
+        <i class="bi bi-chat-dots-fill fs-4"></i>
+    </button>
+
+    <div class="chatbot-window glass-card" id="chatbot-window">
+        <div class="chat-header">
+            <div class="d-flex align-items-center gap-2">
+                <div class="position-relative">
+                    <i class="bi bi-robot fs-4 text-white"></i>
+                    <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" style="width: 8px; height: 8px;"></span>
+                </div>
+                <div>
+                    <h6 class="mb-0 fw-bold">Trợ Lý Aquar AI</h6>
+                    <small class="opacity-75" id="chatbot-context" style="font-size: 0.72rem;">Phân hệ: Khách hàng</small>
+                </div>
+            </div>
+            <button type="button" class="btn-close btn-close-white btn-sm" onclick="toggleChatbot()"></button>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="chat-message bot">
+                Xin chào! Tôi là trợ lý ảo Aquar SmashCourt. Tôi có thể giúp bạn kiểm tra lịch sân trống, tư vấn phụ kiện thể thao phù hợp, gợi ý nhóm ghép sân.
+            </div>
+        </div>
+        <!-- Quick Action Suggestion Chips -->
+        <div class="chat-chips-container" id="chat-chips-container">
+            <span class="chat-chip" onclick="clickChatChip('Sân trống tối nay')"><i class="bi bi-calendar3 me-1 text-primary"></i>Sân trống</span>
+            <span class="chat-chip" onclick="clickChatChip('Tìm nhóm ghép sân')"><i class="bi bi-people me-1 text-success"></i>Tìm bạn ghép</span>
+            <span class="chat-chip" onclick="clickChatChip('Tư vấn mua vợt')"><i class="bi bi-bag me-1 text-warning"></i>Vợt khuyên dùng</span>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chat-input" placeholder="Nhập câu hỏi của bạn..." onkeypress="handleChatKeyPress(event)">
+            <button class="chat-send-btn" onclick="sendChatMessage()">
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        function clickChatChip(query) {
+            document.getElementById('chat-input').value = query;
+            sendChatMessage();
+        }
+
+        function switchRole(role, name) {
+            document.getElementById('current-user-tag').innerText = name;
+            // Cập nhật phân hệ chatbot
+            const contextText = role === 'Manager' ? 'Phân hệ: Quản trị (Admin)' : 'Phân hệ: Khách hàng';
+            document.getElementById('chatbot-context').innerText = contextText;
+            
+            // Cập nhật các chip gợi ý của chatbot phù hợp với vai trò
+            const chipsContainer = document.getElementById('chat-chips-container');
+            if (role === 'Manager') {
+                chipsContainer.innerHTML = `
+                    <span class="chat-chip" onclick="clickChatChip('Báo cáo doanh thu')"><i class="bi bi-cash-coin me-1"></i>Xem doanh thu</span>
+                    <span class="chat-chip" onclick="clickChatChip('Công suất sử dụng sân')"><i class="bi bi-percent me-1"></i>Công suất sân</span>
+                    <span class="chat-chip" onclick="clickChatChip('Nhân viên ca trực')"><i class="bi bi-people me-1"></i>Ca trực lễ tân</span>
+                `;
+            } else {
+                chipsContainer.innerHTML = `
+                    <span class="chat-chip" onclick="clickChatChip('Sân trống tối nay')"><i class="bi bi-calendar3 me-1"></i>Sân trống</span>
+                    <span class="chat-chip" onclick="clickChatChip('Tìm nhóm ghép sân')"><i class="bi bi-people me-1"></i>Tìm bạn ghép</span>
+                    <span class="chat-chip" onclick="clickChatChip('Tư vấn mua vợt')"><i class="bi bi-bag me-1"></i>Vợt khuyên dùng</span>
+                `;
+            }
+
+            // Xóa tin nhắn cũ và chào lại phù hợp với vai trò
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML = '';
+            if (role === 'Manager') {
+                chatMessages.innerHTML = `
+                    <div class="chat-message bot">
+                        Xin chào Quản lý! Hệ thống đã xác thực tài khoản Admin. Tôi có thể hỗ trợ tra cứu báo cáo doanh thu, công suất khai thác sân, lịch sử vận hành nhanh qua ngôn ngữ tự nhiên.
+                    </div>
+                `;
+            } else {
+                chatMessages.innerHTML = `
+                    <div class="chat-message bot">
+                        Xin chào! Tôi là trợ lý ảo Aquar SmashCourt. Tôi có thể giúp bạn kiểm tra lịch sân trống, tư vấn phụ kiện thể thao phù hợp, gợi ý nhóm ghép sân.
+                    </div>
+                `;
+            }
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

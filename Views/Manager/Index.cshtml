@@ -1,0 +1,797 @@
+@{
+    ViewData["Title"] = "Ban Quản Lý - Quản Trị Hệ Thống";
+    ViewData["ActivePage"] = "Manager";
+}
+
+<div class="container-fluid px-0">
+    <!-- Header Administrative Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -1px;"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Hệ Thống Quản Trị (Admin Panel)</h2>
+            <p class="text-secondary mb-0">Theo dõi doanh thu kinh doanh chuyên sâu, kiểm soát bảo mật nhân sự và cấu hình sân.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="alert('Đã xuất báo cáo tài chính thành công (Excel)!')">
+                <i class="bi bi-download me-1"></i> Xuất Báo Cáo
+            </button>
+            <button class="btn btn-outline-secondary rounded-pill px-3" onclick="location.reload()" style="background: white;">
+                <i class="bi bi-arrow-clockwise"></i> Làm Mới Dữ Liệu
+            </button>
+        </div>
+    </div>
+
+    <!-- KPI Summary Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="glass-card p-3 bg-white d-flex align-items-center gap-3 border-start border-4 border-primary glow-card kpi-card">
+                <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle" style="font-size: 1.5rem; line-height: 1;">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Doanh thu hôm nay</small>
+                    <div class="kpi-num">4.850.000đ</div>
+                    <span class="text-success small fw-bold"><i class="bi bi-arrow-up-short"></i> +12% hôm qua</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="glass-card p-3 bg-white d-flex align-items-center gap-3 border-start border-4 border-success glow-card kpi-card">
+                <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle" style="font-size: 1.5rem; line-height: 1;">
+                    <i class="bi bi-percent"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Công suất khai thác</small>
+                    <div class="kpi-num">82.5%</div>
+                    <span class="text-success small fw-bold"><i class="bi bi-arrow-up-short"></i> +4.2% tuần trước</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="glass-card p-3 bg-white d-flex align-items-center gap-3 border-start border-4 border-info glow-card kpi-card">
+                <div class="bg-info bg-opacity-10 text-info p-3 rounded-circle" style="font-size: 1.5rem; line-height: 1;">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Tổng giờ chơi ca</small>
+                    <div class="kpi-num">26.5 giờ</div>
+                    <span class="text-secondary small fw-medium">Đang hoạt động hôm nay</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="glass-card p-3 bg-white d-flex align-items-center gap-3 border-start border-4 border-warning glow-card kpi-card">
+                <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-circle" style="font-size: 1.5rem; line-height: 1;">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Nhân sự ca trực</small>
+                    <div class="kpi-num">2 Lễ Tân</div>
+                    <span class="text-secondary small fw-medium">Hệ thống vận hành an toàn</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Tables -->
+    <div class="row g-4 mb-4">
+        <!-- Revenue Chart mock -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="glass-card p-4 bg-white glow-card">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                    <h5 class="fw-bold text-dark mb-0" style="font-weight: 800;"><i class="bi bi-bar-chart-line-fill me-2 text-primary"></i>Biểu Đồ Doanh Thu Tuần</h5>
+                    <select class="form-select form-select-sm w-auto">
+                        <option>7 Ngày qua (Tuần này)</option>
+                        <option>Tháng này</option>
+                    </select>
+                </div>
+                <!-- Simulated SVG chart for elegant visuals -->
+                <div class="p-3 border rounded-4 bg-light text-center position-relative" style="height: 250px; overflow: visible;">
+                    <svg viewBox="0 0 600 200" class="w-100 h-100" style="overflow: visible;">
+                        <defs>
+                            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.3"/>
+                                <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.0"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Grid lines -->
+                        <line x1="40" y1="20" x2="560" y2="20" stroke="#e2e8f0" stroke-dasharray="4"/>
+                        <line x1="40" y1="70" x2="560" y2="70" stroke="#e2e8f0" stroke-dasharray="4"/>
+                        <line x1="40" y1="120" x2="560" y2="120" stroke="#e2e8f0" stroke-dasharray="4"/>
+                        <line x1="40" y1="170" x2="560" y2="170" stroke="#cbd5e1" stroke-width="1.5"/>
+                        
+                        <!-- Area Chart path -->
+                        <path d="M 50 170 L 120 110 L 190 130 L 260 80 L 330 90 L 400 50 L 470 60 L 540 40 L 540 170 Z" fill="url(#chartGrad)"/>
+                        
+                        <!-- Line Chart path -->
+                        <path d="M 50 170 L 120 110 L 190 130 L 260 80 L 330 90 L 400 50 L 470 60 L 540 40" fill="none" stroke="#4f46e5" stroke-width="3" stroke-linecap="round"/>
+                        
+                        <!-- Points and Tooltips with custom data attributes -->
+                        <circle cx="50" cy="170" r="5.5" fill="#4f46e5" stroke="#fff" stroke-width="2" data-val="250.000đ" data-day="Thứ 2"/>
+                        <circle cx="120" cy="110" r="5.5" fill="#4f46e5" stroke="#fff" stroke-width="2" data-val="650.000đ" data-day="Thứ 3"/>
+                        <circle cx="190" cy="130" r="5.5" fill="#4f46e5" stroke="#fff" stroke-width="2" data-val="550.000đ" data-day="Thứ 4"/>
+                        <circle cx="260" cy="80" r="5.5" fill="#4f46e5" stroke="#fff" stroke-width="2" data-val="900.000đ" data-day="Thứ 5"/>
+                        <circle cx="330" cy="90" r="5.5" fill="#4f46e5" stroke="#fff" stroke-width="2" data-val="820.000đ" data-day="Thứ 6"/>
+                        <circle cx="400" cy="50" r="5.5" fill="#4f46e5" stroke="#fff" stroke-width="2" data-val="1.250.000đ" data-day="Thứ 7"/>
+                        <circle cx="470" cy="60" r="5.5" fill="#4f46e5" stroke="#fff" stroke-width="2" data-val="1.100.000đ" data-day="Chủ Nhật"/>
+                        <circle cx="540" cy="40" r="6.5" fill="#10b981" stroke="#fff" stroke-width="2.5" data-val="1.450.000đ" data-day="Hôm nay"/>
+                        
+                        <!-- X-Axis Labels -->
+                        <text x="50" y="190" font-size="10" fill="#64748b" text-anchor="middle" font-weight="600">T2</text>
+                        <text x="120" y="190" font-size="10" fill="#64748b" text-anchor="middle" font-weight="600">T3</text>
+                        <text x="190" y="190" font-size="10" fill="#64748b" text-anchor="middle" font-weight="600">T4</text>
+                        <text x="260" y="190" font-size="10" fill="#64748b" text-anchor="middle" font-weight="600">T5</text>
+                        <text x="330" y="190" font-size="10" fill="#64748b" text-anchor="middle" font-weight="600">T6</text>
+                        <text x="400" y="190" font-size="10" fill="#64748b" text-anchor="middle" font-weight="600">T7</text>
+                        <text x="470" y="190" font-size="10" fill="#64748b" text-anchor="middle" font-weight="600">CN</text>
+                        <text x="540" y="190" font-size="10" fill="#10b981" text-anchor="middle" font-weight="800">Hôm nay</text>
+
+                        <!-- Dynamic Tooltip Element inside SVG -->
+                        <g id="chart-tooltip-group" opacity="0" style="transition: opacity 0.15s ease-out; pointer-events: none;">
+                            <rect width="90" height="34" rx="6" fill="#0f172a" />
+                            <text id="tooltip-day" x="45" y="13" font-size="8" fill="#94a3b8" text-anchor="middle" font-weight="600">Thứ 7</text>
+                            <text id="tooltip-val" x="45" y="25" font-size="10" fill="#34d399" text-anchor="middle" font-weight="800">1.250.000đ</text>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Court Catalog Management Card -->
+            <div class="glass-card p-4 bg-white mt-4 glow-card">
+                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                    <h5 class="fw-bold text-dark mb-0" style="font-weight: 800;"><i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i>Danh Mục Sân Con</h5>
+                    <button class="btn btn-primary btn-sm rounded-pill px-3 py-2" onclick="openAddCourtModal()"><i class="bi bi-plus-circle me-1"></i>Thêm Sân Mới</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-custom align-middle small mb-0" id="admin-courts-table">
+                        <thead>
+                            <tr>
+                                <th>Mã Sân</th>
+                                <th>Tên Sân</th>
+                                <th class="text-end">Giá Thuê / Giờ</th>
+                                <th class="text-center">Trạng Thái</th>
+                                <th class="text-center">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
+                            {
+                                string statusBadge = court.Status.ToLower() switch
+                                {
+                                    "inuse" => "<span class='status-badge in-use'>Đang sử dụng</span>",
+                                    "available" => "<span class='status-badge available'>Đang trống</span>",
+                                    "maintenance" => "<span class='status-badge maintenance'>Bảo trì</span>",
+                                    _ => "<span class='status-badge available'>Đang trống</span>"
+                                };
+
+                                <tr id="admin-court-row-@court.CourtId">
+                                    <td><strong>@court.CourtCode</strong></td>
+                                    <td class="fw-bold text-dark court-name-val">@court.CourtName</td>
+                                    <td class="text-end fw-bold text-dark court-price-val">@(((int)court.HourlyPrice).ToString("N0", new System.Globalization.CultureInfo("vi-VN")))đ</td>
+                                    <td class="text-center">
+                                        @Html.Raw(statusBadge)
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-outline-primary btn-sm py-1 px-3 rounded-pill" onclick="openAdminEditCourtModal(@court.CourtId, '@court.CourtName', @((int)court.HourlyPrice))"><i class="bi bi-pencil"></i> Sửa</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Accompanying Services Management Card -->
+            <div class="glass-card p-4 bg-white mt-4 glow-card">
+                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                    <h5 class="fw-bold text-dark mb-0" style="font-weight: 800;"><i class="bi bi-tags-fill me-2 text-primary"></i>Danh Mục Dịch Vụ Đi Kèm</h5>
+                    <div class="d-flex gap-2">
+                        <select class="form-select form-select-sm rounded-pill px-3" id="adminServiceCategoryFilter" onchange="filterAdminServicesTable()" style="width: 160px; font-size: 0.8rem; border: 1px solid #e2e8f0;">
+                            <option value="All">Tất cả danh mục</option>
+                            <option value="Nước uống">Nước uống</option>
+                            <option value="Thuê vợt">Thuê vợt</option>
+                            <option value="Phụ kiện">Phụ kiện</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm rounded-pill px-3 py-2" onclick="openAddServiceModal()"><i class="bi bi-plus-circle me-1"></i>Thêm Dịch Vụ Mới</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-custom align-middle small mb-0" id="admin-services-table">
+                        <thead>
+                            <tr>
+                                <th>Tên Dịch Vụ</th>
+                                <th class="text-center">Danh Mục</th>
+                                <th class="text-center">Đơn Vị Tính</th>
+                                <th class="text-end">Đơn Giá</th>
+                                <th class="text-center">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in ViewBag.Services as List<AquarSmartCourt.Models.ServiceItem> ?? new List<AquarSmartCourt.Models.ServiceItem>())
+                            {
+                                <tr id="admin-service-row-@item.ServiceItemId" class="admin-service-row" data-category="@item.Category">
+                                    <td class="fw-bold text-dark service-name-val">@item.ItemName</td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border service-category-val">@item.Category</span></td>
+                                    <td class="text-center service-unit-val">@item.Unit</td>
+                                    <td class="text-end fw-bold text-primary service-price-val">@(((int)item.UnitPrice).ToString("N0", new System.Globalization.CultureInfo("vi-VN")))đ</td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-outline-primary btn-sm py-1 px-3 rounded-pill" onclick="openAdminEditServiceModal(@item.ServiceItemId, '@item.ItemName', '@item.Unit', @((int)item.UnitPrice), '@item.Category')"><i class="bi bi-pencil"></i> Sửa</button>
+                                            <button class="btn btn-outline-danger btn-sm py-1 px-3 rounded-pill" onclick="deleteServiceItem(@item.ServiceItemId, '@item.ItemName')"><i class="bi bi-trash"></i> Xóa</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security and Staff Management -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="glass-card p-4 bg-white glow-card">
+                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                    <h5 class="fw-bold text-dark mb-0" style="font-weight: 800;"><i class="bi bi-shield-lock-fill me-2 text-primary"></i>Nhân Sự Hệ Thống</h5>
+                    <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="openAddStaffModal()" title="Thêm nhân sự">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </button>
+                </div>
+                <div class="vstack gap-3" id="staff-list-container">
+                    <div class="border rounded-4 p-3 bg-light d-flex justify-content-between align-items-center glow-card">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="avatar-img text-primary fw-bold" style="background-color: rgba(99, 102, 241, 0.1); width: 42px; height: 42px; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-left: 0;">A</div>
+                            <div>
+                                <div class="fw-bold text-dark mb-0">Nguyễn Văn A</div>
+                                <small class="text-secondary d-block">Mã NV: <strong class="text-dark">NV001</strong> | Ca sáng</small>
+                                <span class="badge bg-primary bg-opacity-10 text-primary mt-1" style="font-size: 0.65rem;">Lễ tân</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="status-badge available" style="font-size: 0.65rem;">Hoạt động</span>
+                        </div>
+                    </div>
+                    
+                    <div class="border rounded-4 p-3 bg-light d-flex justify-content-between align-items-center glow-card">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="avatar-img text-success fw-bold" style="background-color: rgba(16, 185, 129, 0.1); width: 42px; height: 42px; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-left: 0;">N</div>
+                            <div>
+                                <div class="fw-bold text-dark mb-0">Lê Hoàng Nam</div>
+                                <small class="text-secondary d-block">Mã NV: <strong class="text-dark">NV002</strong> | Ca chiều</small>
+                                <span class="badge bg-primary bg-opacity-10 text-primary mt-1" style="font-size: 0.65rem;">Lễ tân</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="status-badge available" style="font-size: 0.65rem;">Hoạt động</span>
+                        </div>
+                    </div>
+                    
+                    <div class="border rounded-4 p-3 d-flex justify-content-between align-items-center border-primary border-opacity-25 glow-card" style="background: rgba(99, 102, 241, 0.03);">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="avatar-img text-danger fw-bold" style="background-color: rgba(244, 63, 94, 0.1); width: 42px; height: 42px; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-left: 0;">B</div>
+                            <div>
+                                <div class="fw-bold text-dark mb-0">Trần Thị B</div>
+                                <small class="text-secondary d-block">Mã NV: <strong class="text-dark">AD001</strong> (Admin)</small>
+                                <span class="badge bg-dark text-white mt-1" style="font-size: 0.65rem; background-color: #0f172a !important;">Quản lý</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="status-badge available" style="background: hsla(var(--primary-hsl), 0.1); color: var(--primary-color); border-color: hsla(var(--primary-hsl), 0.2); font-size: 0.65rem;">Chủ sở hữu</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active surveillance list -->
+    <div class="glass-card p-4">
+        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-camera-video-fill me-2 text-danger"></i>Kho Lưu Trữ Camera Giám Sát Sân Con</h5>
+        <div class="table-responsive">
+            <table class="table table-hover table-custom align-middle small mb-0">
+                <thead>
+                    <tr>
+                        <th>Mã Video</th>
+                        <th>Vị Trí Sân</th>
+                        <th>Thời Gian Ghi Hình</th>
+                        <th>Khách Hàng Đăng Ký</th>
+                        <th>Trạng Thái Bản Ghi</th>
+                        <th>Thao Tác File</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>CAM_VID_1092</strong></td>
+                        <td><span class="badge bg-light text-dark border">Sân Con 01</span></td>
+                        <td>08/06/2026 17:00 - 19:00</td>
+                        <td>Nguyễn Văn A (0987654321)</td>
+                        <td><span class="badge bg-info bg-opacity-12 text-info fw-bold">Chờ khách xác nhận</span></td>
+                        <td>
+                            <button class="btn btn-xs btn-outline-primary py-1 px-3 rounded-pill" onclick="alert('Đang tải xuống tệp tin gốc MP4... (Dung lượng: 840MB)')">
+                                <i class="bi bi-download me-1"></i> Tải file gốc
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>CAM_VID_1091</strong></td>
+                        <td><span class="badge bg-light text-dark border">Sân Con 03</span></td>
+                        <td>08/06/2026 18:00 - 20:00</td>
+                        <td>Trần Minh (0912345678)</td>
+                        <td><span class="badge bg-success bg-opacity-12 text-success fw-bold">Đã lưu trữ (Saved)</span></td>
+                        <td>
+                            <button class="btn btn-xs btn-outline-primary py-1 px-3 rounded-pill" onclick="alert('Đang tải xuống tệp tin gốc MP4... (Dung lượng: 920MB)')">
+                                <i class="bi bi-download me-1"></i> Tải file gốc
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>CAM_VID_1090</strong></td>
+                        <td><span class="badge bg-light text-dark border">Sân Con 02</span></td>
+                        <td>07/06/2026 20:00 - 21:00</td>
+                        <td>Khách vãng lai (0966554433)</td>
+                        <td><span class="badge bg-secondary bg-opacity-12 text-muted fw-bold">Đã hủy tự động (No Save)</span></td>
+                        <td>
+                            <button class="btn btn-xs btn-outline-secondary py-1 px-3 rounded-pill" disabled>
+                                <i class="bi bi-trash-fill"></i> Đã hủy bỏ
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add New Staff -->
+<div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="addStaffModalLabel"><i class="bi bi-person-plus me-2"></i>Thêm Mới Nhân Sự</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addStaffForm" onsubmit="processAddStaff(event)">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Mã nhân viên (StaffCode)</label>
+                        <input type="text" class="form-control rounded-3" id="staffCode" required placeholder="Ví dụ: NV003">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Họ tên nhân viên</label>
+                        <input type="text" class="form-control rounded-3" id="staffName" required placeholder="Nhập đầy đủ họ tên">
+                    </div>
+                    <div class="mb-3 row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Ngày sinh</label>
+                            <input type="date" class="form-control rounded-3" id="staffBirth" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Chức vụ</label>
+                            <select class="form-select rounded-3" id="staffRole" required>
+                                <option value="Receptionist">Lễ Tân</option>
+                                <option value="Manager">Quản Lý</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Số điện thoại</label>
+                        <input type="tel" class="form-control rounded-3" id="staffPhone" required placeholder="Số liên hệ">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Tài khoản đăng nhập</label>
+                        <input type="text" class="form-control rounded-3" id="staffUser" required placeholder="Tên đăng nhập">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold text-dark mb-1">Mật khẩu</label>
+                        <input type="password" class="form-control rounded-3" id="staffPass" required placeholder="Mật khẩu bảo mật">
+                    </div>
+                </div>
+                <div class="modal-footer p-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu Nhân Viên</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Admin Edit Court -->
+<div class="modal fade" id="adminEditCourtModal" tabindex="-1" aria-labelledby="adminEditCourtModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="adminEditCourtModalLabel"><i class="bi bi-pencil-square me-2"></i>Thay Đổi Thông Tin Sân</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="adminEditCourtForm" onsubmit="saveAdminCourtConfig(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="adminEditCourtId">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Tên Sân Con</label>
+                        <input type="text" class="form-control rounded-3" id="adminEditCourtName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Đơn giá thuê theo giờ (đ/h)</label>
+                        <input type="number" class="form-control rounded-3" id="adminEditCourtPrice" min="1000" step="5000" required>
+                    </div>
+                </div>
+                <div class="modal-footer p-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Admin Add Court -->
+<div class="modal fade" id="adminAddCourtModal" tabindex="-1" aria-labelledby="adminAddCourtModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-success text-white py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="adminAddCourtModalLabel"><i class="bi bi-plus-circle me-2"></i>Thêm Sân Con Mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="adminAddCourtForm" onsubmit="addNewCourt(event)">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Mã Sân (Ví dụ: S05)</label>
+                        <input type="text" class="form-control rounded-3" id="adminAddCourtId" required placeholder="Nhập mã sân duy nhất">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Tên Sân Con</label>
+                        <input type="text" class="form-control rounded-3" id="adminAddCourtName" required placeholder="Nhập tên sân">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Đơn giá thuê / giờ (đ/h)</label>
+                        <input type="number" class="form-control rounded-3" id="adminAddCourtPrice" min="1000" step="5000" value="80000" required>
+                    </div>
+                </div>
+                <div class="modal-footer p-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4">Thêm Sân</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Admin Add Service Item -->
+<div class="modal fade" id="adminAddServiceModal" tabindex="-1" aria-labelledby="adminAddServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-success text-white py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="adminAddServiceModalLabel"><i class="bi bi-plus-circle me-2"></i>Thêm Mới Dịch Vụ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="adminAddServiceForm" onsubmit="addNewService(event)">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Tên Dịch Vụ / Nước uống</label>
+                        <input type="text" class="form-control rounded-3" id="adminAddServiceName" required placeholder="Ví dụ: Nước uống Revive">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Danh Mục Dịch Vụ</label>
+                        <select class="form-select rounded-3" id="adminAddServiceCategory" required>
+                            <option value="Nước uống">Nước uống</option>
+                            <option value="Thuê vợt">Thuê vợt</option>
+                            <option value="Phụ kiện">Phụ kiện</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Đơn Vị Tính</label>
+                            <input type="text" class="form-control rounded-3" id="adminAddServiceUnit" required placeholder="Ví dụ: Chai, Cái, Lon">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Đơn Giá Thuê/Bán (đ)</label>
+                            <input type="number" class="form-control rounded-3" id="adminAddServicePrice" min="0" step="1000" value="15000" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4">Thêm Dịch Vụ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Admin Edit Service Item -->
+<div class="modal fade" id="adminEditServiceModal" tabindex="-1" aria-labelledby="adminEditServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="adminEditServiceModalLabel"><i class="bi bi-pencil-square me-2"></i>Chỉnh Sửa Dịch Vụ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="adminEditServiceForm" onsubmit="saveAdminServiceConfig(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="adminEditServiceId">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Tên Dịch Vụ</label>
+                        <input type="text" class="form-control rounded-3" id="adminEditServiceName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Danh Mục Dịch Vụ</label>
+                        <select class="form-select rounded-3" id="adminEditServiceCategory" required>
+                            <option value="Nước uống">Nước uống</option>
+                            <option value="Thuê vợt">Thuê vợt</option>
+                            <option value="Phụ kiện">Phụ kiện</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Đơn Vị Tính</label>
+                            <input type="text" class="form-control rounded-3" id="adminEditServiceUnit" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Đơn Giá Thuê/Bán (đ)</label>
+                            <input type="number" class="form-control rounded-3" id="adminEditServicePrice" min="0" step="1000" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let addStaffModalObj = null;
+        let adminEditCourtModalObj = null;
+        let adminAddCourtModalObj = null;
+        let adminAddServiceModalObj = null;
+        let adminEditServiceModalObj = null;
+        let adminCourtPrices = {
+            @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
+            {
+                @:@court.CourtId: @((int)court.HourlyPrice),
+            }
+        };
+
+        $(document).ready(function() {
+            addStaffModalObj = new bootstrap.Modal(document.getElementById('addStaffModal'));
+            adminEditCourtModalObj = new bootstrap.Modal(document.getElementById('adminEditCourtModal'));
+            adminAddCourtModalObj = new bootstrap.Modal(document.getElementById('adminAddCourtModal'));
+            adminAddServiceModalObj = new bootstrap.Modal(document.getElementById('adminAddServiceModal'));
+            adminEditServiceModalObj = new bootstrap.Modal(document.getElementById('adminEditServiceModal'));
+
+            // Interactive Revenue Chart Tooltip Logic
+            $('svg circle').hover(function() {
+                const cx = parseFloat($(this).attr('cx'));
+                const cy = parseFloat($(this).attr('cy'));
+                const val = $(this).attr('data-val');
+                const day = $(this).attr('data-day');
+                
+                const tooltip = document.getElementById('chart-tooltip-group');
+                if (tooltip && val && day) {
+                    tooltip.setAttribute('transform', `translate(${cx - 45}, ${cy - 45})`);
+                    tooltip.setAttribute('opacity', '1');
+                    document.getElementById('tooltip-day').textContent = day;
+                    document.getElementById('tooltip-val').textContent = val;
+                }
+            }, function() {
+                const tooltip = document.getElementById('chart-tooltip-group');
+                if (tooltip) {
+                    tooltip.setAttribute('opacity', '0');
+                }
+            });
+        });
+
+        function openAddStaffModal() {
+            addStaffModalObj.show();
+        }
+
+        // Add staff remains mock for security
+        function processAddStaff(e) {
+            e.preventDefault();
+            const code = document.getElementById('staffCode').value;
+            const name = document.getElementById('staffName').value;
+            
+            const container = document.getElementById('staff-list-container');
+            const role = document.getElementById('staffRole').value === 'Manager' ? 'Quản lý' : 'Lễ tân';
+            const roleBadge = document.getElementById('staffRole').value === 'Manager' ? 'bg-dark' : 'bg-primary bg-opacity-10 text-primary';
+            
+            const newStaffDiv = document.createElement('div');
+            newStaffDiv.className = 'border rounded-3 p-3 bg-light d-flex justify-content-between align-items-center';
+            newStaffDiv.innerHTML = `
+                <div>
+                    <div class="fw-bold text-dark">${name}</div>
+                    <small class="text-secondary d-block">Mã NV: ${code} | Vừa thêm mới</small>
+                    <span class="badge ${roleBadge} mt-1">${role}</span>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 small">Hoạt động</span>
+                </div>
+            `;
+            container.appendChild(newStaffDiv);
+            
+            alert(`Thêm mới nhân sự thành công!\nNhân viên: ${name}\nMã NV: ${code}`);
+            addStaffModalObj.hide();
+            document.getElementById('addStaffForm').reset();
+        }
+
+        function openAdminEditCourtModal(id, currentName, fallbackPrice) {
+            document.getElementById('adminEditCourtId').value = id;
+            const nameVal = document.querySelector(`#admin-court-row-${id} .court-name-val`).innerText;
+            const priceVal = adminCourtPrices[id] || fallbackPrice;
+            document.getElementById('adminEditCourtName').value = nameVal;
+            document.getElementById('adminEditCourtPrice').value = priceVal;
+            adminEditCourtModalObj.show();
+        }
+
+        function saveAdminCourtConfig(e) {
+            e.preventDefault();
+            const id = document.getElementById('adminEditCourtId').value;
+            const newName = document.getElementById('adminEditCourtName').value;
+            const newPrice = parseInt(document.getElementById('adminEditCourtPrice').value);
+            
+            $.ajax({
+                url: `/api/CourtApi/${id}`,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    courtId: parseInt(id),
+                    courtName: newName,
+                    hourlyPrice: newPrice
+                }),
+                success: function() {
+                    adminCourtPrices[id] = newPrice;
+                    document.querySelector(`#admin-court-row-${id} .court-name-val`).innerText = newName;
+                    document.querySelector(`#admin-court-row-${id} .court-price-val`).innerText = `${newPrice.toLocaleString('vi-VN')}đ`;
+                    
+                    alert(`Cập nhật thông tin sân thành công!\nTên sân: ${newName}\nĐơn giá: ${newPrice.toLocaleString('vi-VN')}đ/giờ`);
+                    adminEditCourtModalObj.hide();
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Lỗi: ' + xhr.responseText);
+                }
+            });
+        }
+
+        function openAddCourtModal() {
+            adminAddCourtModalObj.show();
+        }
+
+        function addNewCourt(e) {
+            e.preventDefault();
+            const code = document.getElementById('adminAddCourtId').value;
+            const name = document.getElementById('adminAddCourtName').value;
+            const price = parseInt(document.getElementById('adminAddCourtPrice').value);
+            
+            $.ajax({
+                url: '/api/CourtApi',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    courtCode: code,
+                    courtName: name,
+                    hourlyPrice: price,
+                    status: "Available"
+                }),
+                success: function(newCourt) {
+                    alert(`Thêm mới sân con ${name} thành công!\nMã sân: ${code}\nGiá thuê: ${price.toLocaleString('vi-VN')}đ/giờ.`);
+                    adminAddCourtModalObj.hide();
+                    document.getElementById('adminAddCourtForm').reset();
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Lỗi: ' + xhr.responseText);
+                }
+            });
+        }
+
+        // Accompanying Services Management functions
+        function openAddServiceModal() {
+            adminAddServiceModalObj.show();
+        }
+
+        function addNewService(e) {
+            e.preventDefault();
+            const name = document.getElementById('adminAddServiceName').value;
+            const category = document.getElementById('adminAddServiceCategory').value;
+            const unit = document.getElementById('adminAddServiceUnit').value;
+            const price = parseFloat(document.getElementById('adminAddServicePrice').value);
+
+            $.ajax({
+                url: '/api/CourtApi/services',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    itemName: name,
+                    category: category,
+                    unit: unit,
+                    unitPrice: price
+                }),
+                success: function(newService) {
+                    alert(`Thêm mới dịch vụ "${name}" thành công!`);
+                    adminAddServiceModalObj.hide();
+                    document.getElementById('adminAddServiceForm').reset();
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Lỗi khi thêm dịch vụ: ' + xhr.responseText);
+                }
+            });
+        }
+
+        function openAdminEditServiceModal(id, name, unit, price, category) {
+            document.getElementById('adminEditServiceId').value = id;
+            document.getElementById('adminEditServiceName').value = name;
+            document.getElementById('adminEditServiceCategory').value = category || "Khác";
+            document.getElementById('adminEditServiceUnit').value = unit;
+            document.getElementById('adminEditServicePrice').value = price;
+            adminEditServiceModalObj.show();
+        }
+
+        function saveAdminServiceConfig(e) {
+            e.preventDefault();
+            const id = document.getElementById('adminEditServiceId').value;
+            const name = document.getElementById('adminEditServiceName').value;
+            const category = document.getElementById('adminEditServiceCategory').value;
+            const unit = document.getElementById('adminEditServiceUnit').value;
+            const price = parseFloat(document.getElementById('adminEditServicePrice').value);
+
+            $.ajax({
+                url: `/api/CourtApi/services/${id}`,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    serviceItemId: parseInt(id),
+                    itemName: name,
+                    category: category,
+                    unit: unit,
+                    unitPrice: price
+                }),
+                success: function() {
+                    alert(`Cập nhật dịch vụ "${name}" thành công!`);
+                    adminEditServiceModalObj.hide();
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Lỗi khi cập nhật dịch vụ: ' + xhr.responseText);
+                }
+            });
+        }
+
+        function deleteServiceItem(id, name) {
+            if (confirm(`Bạn có chắc chắn muốn xóa dịch vụ "${name}" không?`)) {
+                $.ajax({
+                    url: `/api/CourtApi/services/${id}`,
+                    type: 'DELETE',
+                    success: function() {
+                        alert(`Đã xóa dịch vụ "${name}" thành công!`);
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        alert('Lỗi khi xóa dịch vụ: ' + xhr.responseText);
+                    }
+                });
+            }
+        }
+
+        function filterAdminServicesTable() {
+            const filterVal = document.getElementById('adminServiceCategoryFilter').value;
+            const rows = document.querySelectorAll('.admin-service-row');
+            rows.forEach(row => {
+                const cat = row.getAttribute('data-category');
+                if (filterVal === "All" || cat === filterVal) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
+}

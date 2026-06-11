@@ -1,0 +1,631 @@
+@{
+    ViewData["Title"] = "Trang Chủ Khách Hàng";
+    ViewData["ActivePage"] = "Customer";
+}
+
+<div class="container-fluid px-0">
+    <!-- Hero Banner Section -->
+    <div class="mesh-gradient-banner mb-4 p-5 text-center text-md-start">
+        <div class="row align-items-center">
+            <div class="col-lg-9 col-md-8">
+                <h1 class="display-4 fw-black text-dark mb-2" style="letter-spacing: -2px; font-weight: 900;">Hệ Thống Sân Cầu Lông <span class="text-primary">Aquar SmashCourt</span></h1>
+                <p class="lead text-secondary mb-4" style="max-width: 750px; font-size: 1.1rem; line-height: 1.6;">Quy trình đặt sân trực tuyến tự động, bắt cặp ghép đôi người chơi thông minh, camera trích xuất video thi đấu tự động và hỗ trợ vận hành bằng trợ lý ảo AI.</p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-md-start">
+                    <a href="#booking-section" class="btn btn-primary rounded-pill px-4 py-3 shadow-md"><i class="bi bi-calendar-event me-2"></i>Đặt Sân Trực Tuyến</a>
+                    <a href="#matching-section" class="btn btn-outline-primary rounded-pill px-4 py-3 bg-white"><i class="bi bi-people me-2"></i>Tìm Bạn Ghép Sân</a>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4 d-none d-md-block text-center">
+                <div class="bg-white bg-opacity-60 p-4 rounded-circle d-inline-block shadow-md" style="animation: floatAnim 3s ease-in-out infinite;">
+                    <i class="bi bi-lightning-fill text-primary" style="font-size: 5.5rem; filter: drop-shadow(0 4px 12px hsla(var(--primary-hsl), 0.4));"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Style for float animation in hero -->
+    <style>
+        @@keyframes floatAnim {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+
+    <!-- Main Grid Content -->
+    <div class="row g-4">
+        <!-- Left Column: Booking & Camera -->
+        <div class="col-xl-8 col-lg-7">
+            
+            <!-- 0. Active Play Session Card (Customer Self-Service) -->
+            <div class="card border-0 glass-card active-session-card p-4 mb-4" id="active-session-section">
+                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                    <div>
+                        <h4 class="mb-1 fw-bold text-dark"><i class="bi bi-activity text-success me-2"></i>Phiên Chơi Hiện Tại Của Bạn</h4>
+                        <small class="text-muted">Hệ thống phục vụ tự động chuyển nước uống & dụng cụ đến tận sân chơi</small>
+                    </div>
+                    <span class="status-badge available" style="background: hsla(var(--success-hsl), 0.1); color: var(--accent-success-dark);">
+                        <span class="live-radar-dot d-inline-block me-1"></span> Đang hoạt động
+                    </span>
+                </div>
+                <div class="row align-items-center g-4">
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless mb-3 small text-secondary">
+                            <tbody>
+                                <tr>
+                                    <td style="width: 40%;" class="fw-semibold text-muted">Vị trí sân:</td>
+                                    <td class="text-dark fw-bold"><span class="badge bg-dark text-white rounded-pill px-3 py-1">Sân Con 01</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Thời gian ca:</td>
+                                    <td class="text-dark"><span class="fw-bold text-primary">17:00 - 19:00</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Hội viên đặt:</td>
+                                    <td class="text-dark fw-bold">Nguyễn Văn A</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold text-muted">Trạng thái:</td>
+                                    <td><span class="recording-indicator"><span class="recording-dot"></span> Đang ghi hình HD</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Progress bar simulation -->
+                        <div class="mt-2">
+                            <div class="d-flex justify-content-between small text-muted mb-1" style="font-size: 0.75rem;">
+                                <span>Thời gian trôi qua: 75 phút (62%)</span>
+                                <span>Còn lại: 45 phút</span>
+                            </div>
+                            <div class="session-progress">
+                                <div class="session-progress-bar" style="width: 62.5%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 border-start ps-md-4">
+                        <div class="p-3 rounded-4 bg-light border" style="border-left: 4px solid var(--primary-color) !important;">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-cart-plus me-1 text-primary"></i>Gọi Nước & Phụ Kiện Tại Sân</h6>
+                            <form id="activePlayOrderForm" onsubmit="submitActivePlayOrder(event)" class="vstack gap-2">
+                                <div class="mb-1">
+                                    <select class="form-select form-select-sm" id="activePlayCategorySelect" onchange="filterActivePlayServices()">
+                                        <option value="All">-- Tất cả danh mục --</option>
+                                        <option value="Nước uống">Nước uống</option>
+                                        <option value="Thuê vợt">Thuê vợt</option>
+                                        <option value="Phụ kiện">Phụ kiện</option>
+                                    </select>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-8">
+                                        <select class="form-select form-select-sm" id="activePlayServiceSelect">
+                                            @foreach (var item in ViewBag.Services as List<AquarSmartCourt.Models.ServiceItem> ?? new List<AquarSmartCourt.Models.ServiceItem>())
+                                            {
+                                                <option value="@item.ServiceItemId" data-category="@item.Category">@item.ItemName - @(((int)item.UnitPrice).ToString("N0", new System.Globalization.CultureInfo("vi-VN")))đ</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="number" class="form-control form-control-sm text-center" id="activePlayServiceQty" value="1" min="1" max="10">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm rounded-pill w-100 py-2 fw-bold mt-1">
+                                    <i class="bi bi-send-fill me-1"></i> Gọi Phục Vụ Ngay
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1. Booking Section -->
+            <div class="glass-card p-4 mb-4 glow-card" id="booking-section">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="mb-1 fw-bold"><i class="bi bi-calendar3 me-2 text-primary"></i>Lịch Trình Đặt Sân Hôm Nay</h4>
+                        <small class="text-muted">Nhấp vào khung giờ trống màu xanh để chọn sân và yêu cầu nước uống đi kèm</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <span class="status-badge available" style="font-size: 0.65rem;"><i class="bi bi-check-circle-fill"></i> Trống</span>
+                        <span class="status-badge maintenance" style="background: rgba(148, 163, 184, 0.1); color: #475569; border-color: rgba(148, 163, 184, 0.2); font-size: 0.65rem;"><i class="bi bi-lock-fill"></i> Đã thuê</span>
+                    </div>
+                </div>
+
+                <div class="timetable-container">
+                    <table class="timetable-table">
+                        <thead>
+                            <tr>
+                                <th>Khung Giờ</th>
+                                @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
+                                {
+                                    <th>@court.CourtName</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold text-dark">17:00 - 18:00</td>
+                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
+                                <td class="empty text-success" onclick="openBookingModal(2, 'Sân Con 02', '17:00', '18:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
+                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
+                                <td class="empty text-success" onclick="openBookingModal(4, 'Sân Con 04', '17:00', '18:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-dark">18:00 - 19:00</td>
+                                <td class="empty text-success" onclick="openBookingModal(1, 'Sân Con 01', '18:00', '19:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
+                                <td class="empty text-success" onclick="openBookingModal(2, 'Sân Con 02', '18:00', '19:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
+                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
+                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-dark">19:00 - 20:00</td>
+                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
+                                <td class="empty text-success" onclick="openBookingModal(2, 'Sân Con 02', '19:00', '20:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
+                                <td class="empty text-success" onclick="openBookingModal(3, 'Sân Con 03', '19:00', '20:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
+                                <td class="empty text-success" onclick="openBookingModal(4, 'Sân Con 04', '19:00', '20:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-dark">20:00 - 21:00</td>
+                                <td class="empty text-success" onclick="openBookingModal(1, 'Sân Con 01', '20:00', '21:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
+                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
+                                <td class="empty text-success" onclick="openBookingModal(3, 'Sân Con 03', '20:00', '21:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
+                                <td class="empty text-success" onclick="openBookingModal(4, 'Sân Con 04', '20:00', '21:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-dark">21:00 - 22:00</td>
+                                <td class="empty text-success" onclick="openBookingModal(1, 'Sân Con 01', '21:00', '22:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
+                                <td class="empty text-success" onclick="openBookingModal(2, 'Sân Con 02', '21:00', '22:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
+                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
+                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. Camera surveillance video section -->
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                    <div>
+                        <h4 class="mb-1 fw-bold"><i class="bi bi-camera-reels me-2 text-danger"></i>Video Thi Đấu Tự Động Trích Xuất</h4>
+                        <small class="text-muted">Nhận link tải xuống video trận đấu độ nét cao từ hệ thống Camera AI thông minh</small>
+                    </div>
+                    <span class="status-badge maintenance" style="background: rgba(244, 63, 94, 0.1); color: var(--accent-danger-dark); border-color: rgba(244, 63, 94, 0.2);">
+                        <span class="recording-dot d-inline-block me-1"></span> LIVE CAMERA ACTIVE
+                    </span>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 bg-white shadow-sm d-flex flex-column justify-content-between glow-card" style="min-height: 150px;">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2">Sân Con 01</span>
+                                    <small class="text-muted"><i class="bi bi-clock me-1"></i>Hôm nay: 17:00 - 19:00</small>
+                                </div>
+                                <h6 class="fw-bold mb-1 text-dark">Lượt chơi: Nguyễn Văn A & Đồng Đội</h6>
+                                <small class="text-secondary" style="font-size: 0.8rem;"><i class="bi bi-info-circle me-1"></i>Trạng thái: Sẵn sàng trích xuất</small>
+                            </div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-outline-primary btn-sm flex-fill rounded-pill" onclick="simulateVideoPlay('Lượt chơi Sân 1 (17h - 19h)')"><i class="bi bi-play-circle me-1"></i>Xem Thử</button>
+                                <button class="btn btn-success btn-sm flex-fill rounded-pill" onclick="alert('Đã gửi video qua Zalo/Email đăng ký của bạn!')"><i class="bi bi-send-fill me-1"></i>Nhận Video</button>
+                                <button class="btn btn-light btn-sm text-danger rounded-circle border" onclick="alert('Đã xóa bản ghi video theo yêu cầu!')" title="Yêu cầu xóa bảo mật"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded-4 p-3 bg-white shadow-sm d-flex flex-column justify-content-between glow-card" style="min-height: 150px;">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2">Sân Con 03</span>
+                                    <small class="text-muted"><i class="bi bi-clock me-1"></i>Hôm qua: 19:00 - 21:00</small>
+                                </div>
+                                <h6 class="fw-bold mb-1 text-dark">Lượt chơi: Nguyễn Văn A & CLB Smash</h6>
+                                <small class="text-secondary" style="font-size: 0.8rem;"><i class="bi bi-check-circle me-1 text-success"></i>Trạng thái: Đã gửi thành công</small>
+                            </div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-outline-primary btn-sm flex-fill rounded-pill" onclick="simulateVideoPlay('Lượt chơi Sân 3 (Hôm qua)')"><i class="bi bi-play-circle me-1"></i>Xem Lại</button>
+                                <button class="btn btn-outline-secondary btn-sm flex-fill rounded-pill" disabled><i class="bi bi-check2-all me-1"></i>Đã Nhận Link</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Matchmaking & Affiliate -->
+        <div class="col-xl-4 col-lg-5">
+            <!-- 3. Player Matchmaking Section -->
+            <div class="glass-card p-4 mb-4 glow-card" id="matching-section">
+                <h4 class="mb-1 fw-bold"><i class="bi bi-people-fill me-2 text-success"></i>Bắt Cặp & Ghép Sân Chơi</h4>
+                <p class="text-secondary small mb-4">Kết nối với những người chơi khác phù hợp trình độ và chia sẻ chi phí thuê sân.</p>
+
+                <!-- Create Matching Request Form -->
+                <form id="matchingForm" class="mb-4 p-3 border rounded-4 bg-white" onsubmit="submitMatchingRequest(event)">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-plus-circle me-1 text-success"></i>Tạo Yêu Cầu Ghép Sân</h6>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold text-dark mb-1">Trình độ kỹ thuật</label>
+                        <select class="form-select form-select-sm" id="matchingSkill" required>
+                            <option value="Beginner">Nhập môn (Beginner)</option>
+                            <option value="Intermediate" selected>Trung bình (Intermediate)</option>
+                            <option value="Advanced">Nâng cao (Advanced)</option>
+                        </select>
+                    </div>
+                    <div class="mb-2 row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Bắt đầu</label>
+                            <input type="time" class="form-control form-control-sm" id="matchingStart" value="18:00" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Kết thúc</label>
+                            <input type="time" class="form-control form-control-sm" id="matchingEnd" value="20:00" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Số lượng tay vợt cần thêm</label>
+                        <input type="number" class="form-control form-control-sm" id="matchingNeeded" min="1" max="4" value="2" required>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-sm w-100 rounded-pill py-2 fw-bold">Đăng Đăng Ký Ghép Sân</button>
+                </form>
+
+                <!-- Active matching groups list -->
+                <div class="active-groups">
+                    <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-lightning-fill me-1 text-warning"></i>Nhóm Đang Chờ Thành Viên</h6>
+                    <div class="vstack gap-3">
+                        <div class="border rounded-4 p-3 bg-white shadow-sm glow-card">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="status-badge available" style="font-size: 0.65rem;">Trung Bình</span>
+                                <span class="small text-danger fw-bold"><i class="bi bi-person-fill-exclamation me-1"></i>Cần thêm 2</span>
+                            </div>
+                            <div class="fw-bold text-dark small mb-2"><i class="bi bi-clock me-1 text-primary"></i>18:00 - 20:00 | Sân Con 03</div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="small text-muted" style="font-size: 0.8rem;">Thành viên hiện tại:</span>
+                                <div class="avatar-group">
+                                    <div class="avatar-img" style="background-color: #e0e7ff; color: #4338ca;">T</div>
+                                    <div class="avatar-img" style="background-color: #d1fae5; color: #065f46;">V</div>
+                                </div>
+                            </div>
+                            <div class="text-secondary small mb-3" style="font-size: 0.78rem;"><i class="bi bi-cash me-1 text-muted"></i>Hình thức: Chia đều tiền sân</div>
+                            <button class="btn btn-outline-primary btn-sm w-100 rounded-pill py-2 fw-bold" onclick="alert('Đã gửi yêu cầu tham gia nhóm ghép. Vui lòng chờ duyệt!')">Tham Gia Ngay</button>
+                        </div>
+                        
+                        <div class="border rounded-4 p-3 bg-white shadow-sm glow-card">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="status-badge available" style="background: hsla(var(--warning-hsl), 0.1); color: var(--accent-warning-dark); border-color: hsla(var(--warning-hsl), 0.2); font-size: 0.65rem;">Nâng Cao</span>
+                                <span class="small text-danger fw-bold"><i class="bi bi-person-fill-exclamation me-1"></i>Cần thêm 1</span>
+                            </div>
+                            <div class="fw-bold text-dark small mb-2"><i class="bi bi-clock me-1 text-primary"></i>19:30 - 21:30 | Sân Con 01</div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="small text-muted" style="font-size: 0.8rem;">Thành viên hiện tại:</span>
+                                <div class="avatar-group">
+                                    <div class="avatar-img" style="background-color: #fee2e2; color: #991b1b;">K</div>
+                                    <div class="avatar-img" style="background-color: #fef3c7; color: #92400e;">L</div>
+                                    <div class="avatar-img" style="background-color: #e0f2fe; color: #075985;">H</div>
+                                </div>
+                            </div>
+                            <div class="text-secondary small mb-3" style="font-size: 0.78rem;"><i class="bi bi-gift me-1 text-success"></i>Hình thức: Mời chơi (Không cần chia tiền)</div>
+                            <button class="btn btn-outline-primary btn-sm w-100 rounded-pill py-2 fw-bold" onclick="alert('Đã gửi yêu cầu tham gia nhóm ghép. Vui lòng chờ duyệt!')">Tham Gia Ngay</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Affiliate Section -->
+            <div class="glass-card p-4 glow-card">
+                <h4 class="mb-1 fw-bold"><i class="bi bi-shop me-2 text-primary"></i>Cửa Hàng Phụ Kiện Liên Kết</h4>
+                <p class="text-secondary small mb-4">Trang thiết bị cầu lông chính hãng từ các đối tác phân phối chính thức.</p>
+
+                <div class="vstack gap-3">
+                    <div class="card border-0 shadow-sm rounded-4 affiliate-card bg-white p-3">
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="bg-light p-3 rounded-3 d-flex align-items-center justify-content-center position-relative" style="width: 80px; height: 80px;">
+                                <span class="badge bg-danger position-absolute top-0 start-0 m-1" style="font-size: 0.6rem; font-family: 'Outfit';">HOT</span>
+                                <i class="bi bi-lightning-charge text-primary" style="font-size: 2.2rem;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.92rem;">Vợt Cầu Lông Yonex Astrox 88D Pro</h6>
+                                <p class="card-text text-secondary mb-2" style="font-size: 0.78rem; line-height: 1.3;">Dòng vợt cao cấp hỗ trợ những cú đập smash uy lực mạnh mẽ.</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-primary fw-extrabold" style="font-weight: 800;">3.990.000đ</span>
+                                    <a href="https://shopvnb.com/" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 py-1" style="font-size: 0.78rem;"><i class="bi bi-box-arrow-up-right me-1"></i>Mua Ngay</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm rounded-4 affiliate-card bg-white p-3">
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="bg-light p-3 rounded-3 d-flex align-items-center justify-content-center position-relative" style="width: 80px; height: 80px;">
+                                <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-1" style="font-size: 0.6rem; font-family: 'Outfit';">-15%</span>
+                                <i class="bi bi-shield-shaded text-success" style="font-size: 2.2rem;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.92rem;">Giày Cầu Lông Victor P9200</h6>
+                                <p class="card-text text-secondary mb-2" style="font-size: 0.78rem; line-height: 1.3;">Chống lật cổ chân, đệm lót êm ái, bám sân hoàn hảo.</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-primary fw-extrabold" style="font-weight: 800;">2.150.000đ</span>
+                                    <a href="https://shopvnb.com/" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 py-1" style="font-size: 0.78rem;"><i class="bi bi-box-arrow-up-right me-1"></i>Mua Ngay</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Online Modal Dialog -->
+<div class="modal fade" id="onlineBookingModal" tabindex="-1" aria-labelledby="onlineBookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="onlineBookingModalLabel"><i class="bi bi-calendar-check me-2"></i>Đặt Sân Trực Tuyến</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="onlineBookingForm" onsubmit="processOnlineBooking(event)">
+                <div class="modal-body p-4">
+                    <div class="alert alert-info py-2 rounded-3 small">
+                        <i class="bi bi-info-circle-fill me-1"></i> Giá thuê sân dự kiến: <strong>80.000đ / giờ</strong>. Tích lũy điểm hội viên ngay sau khi thanh toán.
+                    </div>
+                    <input type="hidden" id="bookCourtId">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small mb-1">Sân thi đấu</label>
+                        <input type="text" class="form-control rounded-3" id="bookCourtName" readonly>
+                    </div>
+                    <div class="mb-3 row g-2">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-dark small mb-1">Thời gian bắt đầu</label>
+                            <input type="text" class="form-control rounded-3" id="bookStart" readonly>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-dark small mb-1">Thời gian kết thúc</label>
+                            <input type="text" class="form-control rounded-3" id="bookEnd" readonly>
+                        </div>
+                    </div>
+                    <div class="mb-3 row g-2">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-dark small mb-1">Họ và tên</label>
+                            <input type="text" class="form-control rounded-3" id="bookCustName" value="Nguyễn Văn A" required placeholder="Nhập tên của bạn">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-dark small mb-1">Số điện thoại</label>
+                            <input type="tel" class="form-control rounded-3" id="bookCustPhone" value="0987654321" required placeholder="Số liên hệ">
+                        </div>
+                    </div>
+
+                    <!-- Service Checklist with Quantity Selector -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-semibold text-dark small mb-0">Dịch vụ chọn thêm khi đặt (Tùy chọn)</label>
+                            <div style="width: 150px;">
+                                <select class="form-select form-select-sm" id="bookServiceCategoryFilter" onchange="filterBookingServices()">
+                                    <option value="All">Tất cả</option>
+                                    <option value="Nước uống">Nước uống</option>
+                                    <option value="Thuê vợt">Thuê vợt</option>
+                                    <option value="Phụ kiện">Phụ kiện</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="booking-services-list border rounded-3 p-2 bg-light" style="max-height: 200px; overflow-y: auto;">
+                            @foreach (var item in ViewBag.Services as List<AquarSmartCourt.Models.ServiceItem> ?? new List<AquarSmartCourt.Models.ServiceItem>())
+                            {
+                                <div class="booking-service-item d-flex justify-content-between align-items-center py-2 border-bottom" data-category="@item.Category">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input book-svc-checkbox" type="checkbox" value="@item.ServiceItemId" id="bookSvc-@item.ServiceItemId" onchange="toggleBookSvcQty(@item.ServiceItemId)">
+                                        <label class="form-check-label small text-dark fw-medium" for="bookSvc-@item.ServiceItemId">
+                                            @item.ItemName <span class="text-muted">(@(((int)item.UnitPrice).ToString("N0", new System.Globalization.CultureInfo("vi-VN")))đ/@item.Unit.ToLower())</span>
+                                        </label>
+                                    </div>
+                                    <div style="width: 75px;">
+                                        <input type="number" class="form-control form-control-sm text-center book-svc-qty" id="bookSvcQty-@item.ServiceItemId" min="1" value="1" disabled>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold text-dark small mb-1">Ghi chú thêm</label>
+                        <textarea class="form-control rounded-3" id="bookNotes" rows="2" placeholder="Yêu cầu dịch vụ đặc biệt..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer p-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Xác Nhận Đặt Sân</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Video Simulation Modal Dialog -->
+<div class="modal fade" id="videoPlayModal" tabindex="-1" aria-labelledby="videoPlayModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white py-3 border-0">
+                <h5 class="modal-title fw-bold" id="videoPlayModalLabel"><i class="bi bi-camera-video me-2 text-danger"></i>Giao Diện Video Camera Giám Sát</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 bg-black position-relative" style="height: 400px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                <!-- Simulated Match Video Screen -->
+                <i class="bi bi-camera-video text-muted mb-3" style="font-size: 5rem;"></i>
+                <div class="text-white text-center px-4">
+                    <h5 class="fw-semibold text-primary mb-2" id="simVideoTitle">Đang mô phỏng video thi đấu...</h5>
+                    <p class="text-muted small">Hệ thống đang mô phỏng dòng phát trực tiếp từ camera thông minh của sân con.</p>
+                </div>
+                <!-- Simulated Time Code overlay -->
+                <div class="position-absolute top-0 start-0 m-3 text-danger fw-mono small">
+                    <span class="recording-dot d-inline-block me-1"></span> REC 1080p | 60FPS
+                </div>
+                <div class="position-absolute bottom-0 start-0 m-3 text-white-50 small" id="simTimeCode">
+                    TIME CODE: 08:34:00
+                </div>
+            </div>
+            <div class="modal-footer bg-dark border-0 p-3 d-flex justify-content-between">
+                <span class="text-white-50 small"><i class="bi bi-hdd me-1"></i> Lưu trữ tạm thời trong 24 giờ</span>
+                <div>
+                    <button type="button" class="btn btn-outline-light rounded-pill btn-sm px-3" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-success rounded-pill btn-sm px-3" onclick="alert('Đã tải xuống video thi đấu thành công!')"><i class="bi bi-download me-1"></i>Tải Xuống</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let bookingModalObj = null;
+        let videoModalObj = null;
+
+        $(document).ready(function() {
+            bookingModalObj = new bootstrap.Modal(document.getElementById('onlineBookingModal'));
+            videoModalObj = new bootstrap.Modal(document.getElementById('videoPlayModal'));
+        });
+
+        function toggleBookSvcQty(id) {
+            const checkbox = document.getElementById(`bookSvc-${id}`);
+            const qtyInput = document.getElementById(`bookSvcQty-${id}`);
+            qtyInput.disabled = !checkbox.checked;
+            if (!checkbox.checked) qtyInput.value = 1;
+        }
+
+        function openBookingModal(courtId, courtName, start, end) {
+            document.getElementById('bookCourtId').value = courtId;
+            document.getElementById('bookCourtName').value = courtName;
+            document.getElementById('bookStart').value = start;
+            document.getElementById('bookEnd').value = end;
+            
+            // Reset service checklist checkboxes
+            document.querySelectorAll('.book-svc-checkbox').forEach(cb => {
+                cb.checked = false;
+                toggleBookSvcQty(cb.value);
+            });
+            
+            bookingModalObj.show();
+        }
+
+        function processOnlineBooking(e) {
+            e.preventDefault();
+            const courtId = parseInt(document.getElementById('bookCourtId').value);
+            const court = document.getElementById('bookCourtName').value;
+            const start = document.getElementById('bookStart').value;
+            const end = document.getElementById('bookEnd').value;
+            const cust = document.getElementById('bookCustName').value;
+            const phone = document.getElementById('bookCustPhone').value;
+
+            // Gather service items
+            const services = [];
+            const checkboxes = document.querySelectorAll('.book-svc-checkbox');
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    const id = parseInt(cb.value);
+                    const qty = parseInt(document.getElementById(`bookSvcQty-${id}`).value);
+                    services.push({ serviceItemId: id, quantity: qty });
+                }
+            });
+
+            $.ajax({
+                url: '/api/CourtApi/book',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    courtId: courtId,
+                    customerName: cust,
+                    customerPhone: phone,
+                    startTime: start,
+                    endTime: end,
+                    services: services
+                }),
+                success: function() {
+                    alert(`Đặt sân trực tuyến thành công!\nSân: ${court}\nKhung giờ: ${start} - ${end}\nKhách hàng: ${cust}\nHệ thống tự động đồng bộ và lưu thông tin dịch vụ.`);
+                    bookingModalObj.hide();
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Lỗi đặt sân: ' + xhr.responseText);
+                }
+            });
+        }
+
+        function submitActivePlayOrder(e) {
+            e.preventDefault();
+            const itemId = parseInt(document.getElementById('activePlayServiceSelect').value);
+            const qty = parseInt(document.getElementById('activePlayServiceQty').value);
+            const itemName = document.getElementById('activePlayServiceSelect').options[document.getElementById('activePlayServiceSelect').selectedIndex].text;
+
+            // Simulate active session is Sân Con 01 (CourtId = 1)
+            const courtId = 1;
+
+            $.ajax({
+                url: '/api/CourtApi/order',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    courtId: courtId,
+                    serviceItemId: itemId,
+                    quantity: qty
+                }),
+                success: function() {
+                    alert(`Gửi yêu cầu phục vụ thành công!\nĐã đặt: ${itemName}\nSố lượng: ${qty}\nNhân viên lễ tân sẽ chuyển nước/vợt đến Sân Con 01 ngay cho bạn!`);
+                    document.getElementById('activePlayServiceQty').value = 1;
+                },
+                error: function(xhr) {
+                    alert('Lỗi order dịch vụ: ' + xhr.responseText);
+                }
+            });
+        }
+
+        function submitMatchingRequest(e) {
+            e.preventDefault();
+            const level = document.getElementById('matchingSkill').options[document.getElementById('matchingSkill').selectedIndex].text;
+            const start = document.getElementById('matchingStart').value;
+            const end = document.getElementById('matchingEnd').value;
+            alert(`Đăng ký ghép đôi thành công!\nHệ thống đang quét các người chơi trình độ [${level}] có cùng khu giờ ${start} - ${end}.\nChúng tôi sẽ gửi thông báo xác nhận tự động khi tìm thấy đối tác phù hợp.`);
+            document.getElementById('matchingForm').reset();
+        }
+
+        function filterActivePlayServices() {
+            const selectedCategory = document.getElementById('activePlayCategorySelect').value;
+            const serviceSelect = document.getElementById('activePlayServiceSelect');
+            const options = serviceSelect.querySelectorAll('option');
+
+            let firstVisibleIndex = -1;
+            options.forEach((opt, idx) => {
+                const cat = opt.getAttribute('data-category');
+                if (selectedCategory === "All" || cat === selectedCategory) {
+                    opt.style.display = '';
+                    if (firstVisibleIndex === -1) {
+                        firstVisibleIndex = idx;
+                    }
+                } else {
+                    opt.style.display = 'none';
+                }
+            });
+
+            if (firstVisibleIndex !== -1) {
+                serviceSelect.selectedIndex = firstVisibleIndex;
+            } else {
+                serviceSelect.selectedIndex = -1;
+            }
+        }
+
+        function filterBookingServices() {
+            const filterVal = document.getElementById('bookServiceCategoryFilter').value;
+            const items = document.querySelectorAll('.booking-service-item');
+            items.forEach(item => {
+                const cat = item.getAttribute('data-category');
+                if (filterVal === "All" || cat === filterVal) {
+                    item.style.setProperty('display', 'flex', 'important');
+                } else {
+                    item.style.setProperty('display', 'none', 'important');
+                }
+            });
+        }
+
+        function simulateVideoPlay(title) {
+            document.getElementById('simVideoTitle').innerText = `Xem Lại: ${title}`;
+            const timeCode = new Date().toLocaleTimeString();
+            document.getElementById('simTimeCode').innerText = `TIMESTAMP: ${timeCode} | CAM_ID_01`;
+            videoModalObj.show();
+        }
+    </script>
+}
