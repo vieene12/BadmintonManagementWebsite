@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using AquarSmartCourt.Models;
 
 namespace AquarSmartCourt.Controllers;
 
+[Authorize(Roles = "3")]
 public class ManagerController : Controller
 {
     private readonly ApplicationDbContext _context;

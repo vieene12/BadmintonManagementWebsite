@@ -12,6 +12,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Court> Courts { get; set; } = null!;
     public DbSet<ServiceItem> ServiceItems { get; set; } = null!;
     public DbSet<ServiceOrder> ServiceOrders { get; set; } = null!;
+    public DbSet<User> Users { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,6 +33,44 @@ public class ApplicationDbContext : DbContext
             new ServiceItem { ServiceItemId = 3, ItemName = "Thuê vợt Yonex chính hãng", Unit = "Cặp/Giờ", UnitPrice = 50000, Category = "Thuê vợt" },
             new ServiceItem { ServiceItemId = 4, ItemName = "Ống cầu lông Hải Yến", Unit = "Ống", UnitPrice = 250000, Category = "Phụ kiện" },
             new ServiceItem { ServiceItemId = 5, ItemName = "Quấn cán vợt cao su", Unit = "Cái", UnitPrice = 30000, Category = "Phụ kiện" }
+        );
+
+        // Seed initial users
+        modelBuilder.Entity<User>().HasData(
+            new User
+            {
+                UserId = 1,
+                Username = "customer",
+                Password = "123",
+                FullName = "Nguyễn Văn A",
+                Role = 1,
+                PhoneNumber = "0987654321",
+                Position = "Khách Hàng"
+            },
+            new User
+            {
+                UserId = 2,
+                Username = "staff",
+                Password = "123",
+                FullName = "Lê Hoàng Nam",
+                Role = 2,
+                StaffCode = "NV001",
+                DateOfBirth = new DateTime(1998, 5, 15),
+                PhoneNumber = "0912345678",
+                Position = "Lễ tân"
+            },
+            new User
+            {
+                UserId = 3,
+                Username = "manager",
+                Password = "123",
+                FullName = "Trần Thị B",
+                Role = 3,
+                StaffCode = "AD001",
+                DateOfBirth = new DateTime(1985, 10, 20),
+                PhoneNumber = "0966554433",
+                Position = "Quản lý"
+            }
         );
     }
 }
