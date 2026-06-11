@@ -26,7 +26,56 @@ public class AccountController : Controller
         return View();
     }
 
+    [HttpGet]
+    public IActionResult Register(string? returnUrl = null)
+    {
+        ViewData["ReturnUrl"] = returnUrl;
+        return View(new RegisterViewModel());
+    }
+
     [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(RegisterViewModel model, string? returnUrl = null)
+    {
+        ViewData["ReturnUrl"] = returnUrl;
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var normalizedUsername = model.Username.Trim();
+        var usernameExists = await _context.Users.AnyAsync(u => u.Username == normalizedUsername);
+        if (usernameExists)
+        {
+            ModelState.AddModelError(nameof(model.Username), "Ten dang nhap da ton tai.");
+            return View(model);
+        }
+
+        var user = new User
+        {
+            Username = normalizedUsername,
+            Password = model.Password,
+            FullName = model.FullName.Trim(),
+            PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : model.PhoneNumber.Trim(),
+            Role = 1,
+            Position = "Khach Hang"
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+        await SignInUserAsync(user);
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
+        return RedirectToRoleDashboard(user.Role);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(string username, string password, string? returnUrl = null)
     {
         ViewData["ReturnUrl"] = returnUrl;
