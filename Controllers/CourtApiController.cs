@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using AquarSmartCourt.Models;
 
 namespace AquarSmartCourt.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class CourtApiController : ControllerBase
@@ -35,6 +37,7 @@ public class CourtApiController : ControllerBase
     }
 
     // PUT: api/CourtApi/5
+    [Authorize(Roles = "3")]
     [HttpPut("{id}")]
     public async Task<IActionResult> PutCourt(int id, Court court)
     {
@@ -78,6 +81,7 @@ public class CourtApiController : ControllerBase
     }
 
     // POST: api/CourtApi
+    [Authorize(Roles = "3")]
     [HttpPost]
     public async Task<ActionResult<Court>> PostCourt(Court court)
     {
@@ -94,6 +98,7 @@ public class CourtApiController : ControllerBase
     }
 
     // DELETE: api/CourtApi/5
+    [Authorize(Roles = "3")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCourt(int id)
     {
@@ -117,6 +122,7 @@ public class CourtApiController : ControllerBase
     }
 
     // PUT: api/CourtApi/services/{id}
+    [Authorize(Roles = "3")]
     [HttpPut("services/{id}")]
     public async Task<IActionResult> PutService(int id, ServiceItem item)
     {
@@ -149,6 +155,7 @@ public class CourtApiController : ControllerBase
     }
 
     // POST: api/CourtApi/services
+    [Authorize(Roles = "3")]
     [HttpPost("services")]
     public async Task<ActionResult<ServiceItem>> PostService(ServiceItem item)
     {
@@ -158,6 +165,7 @@ public class CourtApiController : ControllerBase
     }
 
     // DELETE: api/CourtApi/services/{id}
+    [Authorize(Roles = "3")]
     [HttpDelete("services/{id}")]
     public async Task<IActionResult> DeleteService(int id)
     {
@@ -228,6 +236,7 @@ public class CourtApiController : ControllerBase
     }
 
     // DELETE: api/CourtApi/orders/{courtId}
+    [Authorize(Roles = "2,3")]
     [HttpDelete("orders/{courtId}")]
     public async Task<IActionResult> ClearCourtOrders(int courtId)
     {

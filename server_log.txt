@@ -1,0 +1,112 @@
+Using launch settings from D:\LT WEB\BadmintonManagementWebsite\Properties\launchSettings.json...
+Building...
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (8ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      PRAGMA journal_mode = 'wal';
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "Courts" (
+          "CourtId" INTEGER NOT NULL CONSTRAINT "PK_Courts" PRIMARY KEY AUTOINCREMENT,
+          "CourtCode" TEXT NOT NULL,
+          "CourtName" TEXT NOT NULL,
+          "HourlyPrice" TEXT NOT NULL,
+          "Status" TEXT NOT NULL
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "ServiceItems" (
+          "ServiceItemId" INTEGER NOT NULL CONSTRAINT "PK_ServiceItems" PRIMARY KEY AUTOINCREMENT,
+          "ItemName" TEXT NOT NULL,
+          "Unit" TEXT NOT NULL,
+          "UnitPrice" TEXT NOT NULL,
+          "Category" TEXT NOT NULL
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "Users" (
+          "UserId" INTEGER NOT NULL CONSTRAINT "PK_Users" PRIMARY KEY AUTOINCREMENT,
+          "Username" TEXT NOT NULL,
+          "Password" TEXT NOT NULL,
+          "FullName" TEXT NOT NULL,
+          "Role" INTEGER NOT NULL,
+          "StaffCode" TEXT NULL,
+          "DateOfBirth" TEXT NULL,
+          "PhoneNumber" TEXT NULL,
+          "Position" TEXT NULL
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE "ServiceOrders" (
+          "ServiceOrderId" INTEGER NOT NULL CONSTRAINT "PK_ServiceOrders" PRIMARY KEY AUTOINCREMENT,
+          "CourtId" INTEGER NOT NULL,
+          "ServiceItemId" INTEGER NOT NULL,
+          "Quantity" INTEGER NOT NULL,
+          "OrderTime" TEXT NOT NULL,
+          CONSTRAINT "FK_ServiceOrders_Courts_CourtId" FOREIGN KEY ("CourtId") REFERENCES "Courts" ("CourtId") ON DELETE CASCADE,
+          CONSTRAINT "FK_ServiceOrders_ServiceItems_ServiceItemId" FOREIGN KEY ("ServiceItemId") REFERENCES "ServiceItems" ("ServiceItemId") ON DELETE CASCADE
+      );
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "Courts" ("CourtId", "CourtCode", "CourtName", "HourlyPrice", "Status")
+      VALUES (1, 'S01', 'Sân Con 01', '80000.0', 'InUse');
+      SELECT changes();
+      
+      INSERT INTO "Courts" ("CourtId", "CourtCode", "CourtName", "HourlyPrice", "Status")
+      VALUES (2, 'S02', 'Sân Con 02', '80000.0', 'Available');
+      SELECT changes();
+      
+      INSERT INTO "Courts" ("CourtId", "CourtCode", "CourtName", "HourlyPrice", "Status")
+      VALUES (3, 'S03', 'Sân Con 03', '80000.0', 'InUse');
+      SELECT changes();
+      
+      INSERT INTO "Courts" ("CourtId", "CourtCode", "CourtName", "HourlyPrice", "Status")
+      VALUES (4, 'S04', 'Sân Con 04', '80000.0', 'Maintenance');
+      SELECT changes();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "ServiceItems" ("ServiceItemId", "Category", "ItemName", "Unit", "UnitPrice")
+      VALUES (1, 'Nước uống', 'Nước suối Aquafina', 'Chai', '15000.0');
+      SELECT changes();
+      
+      INSERT INTO "ServiceItems" ("ServiceItemId", "Category", "ItemName", "Unit", "UnitPrice")
+      VALUES (2, 'Nước uống', 'Nước tăng lực Sting', 'Chai', '20000.0');
+      SELECT changes();
+      
+      INSERT INTO "ServiceItems" ("ServiceItemId", "Category", "ItemName", "Unit", "UnitPrice")
+      VALUES (3, 'Thuê vợt', 'Thuê vợt Yonex chính hãng', 'Cặp/Giờ', '50000.0');
+      SELECT changes();
+      
+      INSERT INTO "ServiceItems" ("ServiceItemId", "Category", "ItemName", "Unit", "UnitPrice")
+      VALUES (4, 'Phụ kiện', 'Ống cầu lông Hải Yến', 'Ống', '250000.0');
+      SELECT changes();
+      
+      INSERT INTO "ServiceItems" ("ServiceItemId", "Category", "ItemName", "Unit", "UnitPrice")
+      VALUES (5, 'Phụ kiện', 'Quấn cán vợt cao su', 'Cái', '30000.0');
+      SELECT changes();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO "Users" ("UserId", "DateOfBirth", "FullName", "Password", "PhoneNumber", "Position", "Role", "StaffCode", "Username")
+      VALUES (1, NULL, 'Nguyễn Văn A', '123', '0987654321', 'Khách Hàng', 1, NULL, 'customer');
+      SELECT changes();
+      
+      INSERT INTO "Users" ("UserId", "DateOfBirth", "FullName", "Password", "PhoneNumber", "Position", "Role", "StaffCode", "Username")
+      VALUES (2, '1998-05-15 00:00:00', 'Lê Hoàng Nam', '123', '0912345678', 'Lễ tân', 2, 'NV001', 'staff');
+      SELECT changes();
+      
+      INSERT INTO "Users" ("UserId", "DateOfBirth", "FullName", "Password", "PhoneNumber", "Position", "Role", "StaffCode", "Username")
+      VALUES (3, '1985-10-20 00:00:00', 'Trần Thị B', '123', '0966554433', 'Quản lý', 3, 'AD001', 'manager');
+      SELECT changes();
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_ServiceOrders_CourtId" ON "ServiceOrders" ("CourtId");
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX "IX_ServiceOrders_ServiceItemId" ON "ServiceOrders" ("ServiceItemId");
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5275
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: D:\LT WEB\BadmintonManagementWebsite

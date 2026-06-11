@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using AquarSmartCourt.Models;
 
 namespace AquarSmartCourt.Controllers;
 
+[Authorize(Roles = "2,3")]
 public class ReceptionistController : Controller
 {
     private readonly ApplicationDbContext _context;
