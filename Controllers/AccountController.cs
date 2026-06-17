@@ -114,12 +114,6 @@ public class AccountController : Controller
 
     private IActionResult RedirectToRoleDashboard(int role)
     {
-        return role switch
-        {
-            1 => RedirectToAction("Index", "Home"),
-            2 => RedirectToAction("Index", "Receptionist"),
-            3 => RedirectToAction("Index", "Manager"),
-            _ => RedirectToAction("Index", "Home")
-        };
+        return RedirectToAction("Index", "Home");
     }
 }

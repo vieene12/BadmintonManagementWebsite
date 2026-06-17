@@ -5,7 +5,6 @@ using AquarSmartCourt.Models;
 
 namespace AquarSmartCourt.Controllers;
 
-[Authorize]
 public class HomeController : Controller
 {
     private readonly ApplicationDbContext _context;
