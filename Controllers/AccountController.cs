@@ -110,27 +110,7 @@ public class AccountController : Controller
         return View();
     }
 
-    [HttpGet]
-    public async Task<IActionResult> SwitchRole(int role)
-    {
-        // Role mappings: 1 -> customer, 2 -> staff, 3 -> manager
-        string username = role switch
-        {
-            1 => "customer",
-            2 => "staff",
-            3 => "manager",
-            _ => "customer"
-        };
 
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-        if (user != null)
-        {
-            await SignInUserAsync(user);
-            return RedirectToRoleDashboard(user.Role);
-        }
-
-        return RedirectToAction("Login");
-    }
 
     private async Task SignInUserAsync(User user)
     {
@@ -142,6 +122,11 @@ public class AccountController : Controller
             new Claim("UserId", user.UserId.ToString()),
             new Claim("Position", user.Position ?? "Thành viên")
         };
+
+        if (!string.IsNullOrEmpty(user.PhoneNumber))
+        {
+            claims.Add(new Claim("PhoneNumber", user.PhoneNumber));
+        }
 
         if (!string.IsNullOrEmpty(user.StaffCode))
         {

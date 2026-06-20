@@ -1,9 +1,11 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace AquarSmartCourt.Models;
 
 public class SurveillanceVideo
 {
+    [Key]
     public int VideoId { get; set; }
     public string VideoCode { get; set; } = string.Empty; // e.g. CAM_VID_1092
     public int CourtId { get; set; }

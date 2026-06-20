@@ -32,7 +32,20 @@
                 <div class="row g-3" id="court-status-container">
                     @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
                     {
-                        string statusClass = court.Status.ToLower() switch
+                        var now = DateTime.Now;
+                        var activeBooking = (ViewBag.TodayBookings as List<AquarSmartCourt.Models.Booking>)?.FirstOrDefault(b => 
+                            b.CourtId == court.CourtId && 
+                            b.StartTime <= now && 
+                            now <= b.EndTime
+                        );
+
+                        string computedStatus = court.Status;
+                        if (court.Status != "Maintenance")
+                        {
+                            computedStatus = activeBooking != null ? "InUse" : "Available";
+                        }
+
+                        string statusClass = computedStatus.ToLower() switch
                         {
                             "inuse" => "status-in-use",
                             "available" => "status-available",
@@ -45,13 +58,21 @@
                                 <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
                                     <div class="d-flex align-items-center gap-2">
                                         <h5 class="fw-bold text-dark mb-0" id="courtName-@court.CourtId" style="font-weight: 800;">@court.CourtName</h5>
-                                        <button class="btn btn-link p-0 text-muted" onclick="openEditCourtModal(@court.CourtId, '@court.CourtName', @((int)court.HourlyPrice))" title="Cấu hình giá sân"><i class="bi bi-gear-fill"></i></button>
+                                        <button class="btn btn-link p-0 text-muted btn-edit-court" 
+                                                data-id="@court.CourtId" 
+                                                data-name="@court.CourtName" 
+                                                data-price="@((int)court.HourlyPrice)" 
+                                                data-status="@court.Status" 
+                                                onclick="openEditCourtModal(this)" 
+                                                title="Cấu hình giá sân">
+                                            <i class="bi bi-gear-fill"></i>
+                                        </button>
                                     </div>
-                                    @if (court.Status == "InUse")
+                                    @if (computedStatus == "InUse")
                                     {
                                         <span class="status-badge in-use"><i class="bi bi-activity"></i> Đang Sử Dụng</span>
                                     }
-                                    else if (court.Status == "Maintenance")
+                                    else if (computedStatus == "Maintenance")
                                     {
                                         <span class="status-badge maintenance"><i class="bi bi-wrench"></i> Đang Bảo Trì</span>
                                     }
@@ -64,8 +85,8 @@
                                 <div class="svg-court-container">
                                     <svg width="240" height="80" viewBox="0 0 240 80">
                                         @{
-                                            string svgBg = court.Status == "InUse" ? "rgba(99, 102, 241, 0.2)" :
-                                                           court.Status == "Maintenance" ? "rgba(244, 63, 94, 0.15)" :
+                                            string svgBg = computedStatus == "InUse" ? "rgba(99, 102, 241, 0.2)" :
+                                                           computedStatus == "Maintenance" ? "rgba(244, 63, 94, 0.15)" :
                                                            "rgba(16, 185, 129, 0.2)";
                                         }
                                         <rect x="10" y="5" width="220" height="70" fill="@svgBg" rx="6" />
@@ -80,9 +101,9 @@
                                     
                                     <!-- Dynamic overlay details for SVGs -->
                                     <div class="position-absolute top-0 end-0 m-2 small font-monospace text-muted" style="font-size: 0.65rem;">
-                                        @if (court.Status == "InUse") {
+                                        @if (computedStatus == "InUse") {
                                             <span class="text-primary fw-bold"><i class="bi bi-camera-video"></i> REC</span>
-                                        } else if (court.Status == "Maintenance") {
+                                        } else if (computedStatus == "Maintenance") {
                                             <span class="text-danger fw-bold"><i class="bi bi-shield-slash"></i> OFF</span>
                                         } else {
                                             <span class="text-success fw-bold"><i class="bi bi-check-circle"></i> RDY</span>
@@ -90,12 +111,13 @@
                                     </div>
                                 </div>
 
-                                @if (court.Status == "InUse")
+                                @if (computedStatus == "InUse" && activeBooking != null)
                                 {
-                                    var customerName = court.CourtId == 1 ? "Nguyễn Văn A" : "Nhóm Trần Minh";
-                                    var customerPhone = court.CourtId == 1 ? "0987654321" : "0912345678";
-                                    var timeRange = court.CourtId == 1 ? "17:00 - 19:00" : "18:00 - 20:00";
-                                    var hours = court.CourtId == 1 ? 2.0 : 2.0;
+                                    var customerName = activeBooking.CustomerName;
+                                    var customerPhone = activeBooking.CustomerPhone;
+                                    var timeRange = $"{activeBooking.StartTime.ToString("HH:mm")} - {activeBooking.EndTime.ToString("HH:mm")}";
+                                    var hours = (activeBooking.EndTime - activeBooking.StartTime).TotalHours;
+                                    if (hours <= 0) hours = 1.0;
                                     var svcMultiplier = court.CourtId == 1 ? 0.5 : 1.0;
 
                                     <table class="table table-sm table-borderless mb-3 small text-secondary">
@@ -125,24 +147,12 @@
                                         <button class="btn btn-primary btn-sm flex-fill rounded-pill py-2" onclick="openCheckoutModal(@court.CourtId, '@court.CourtName', '@customerName', @((int)court.HourlyPrice), @hours, @svcMultiplier)"><i class="bi bi-cash-coin me-1"></i>Tính Tiền</button>
                                     </div>
                                 }
-                                else if (court.Status == "Maintenance")
+                                else if (computedStatus == "Maintenance")
                                 {
-                                    <table class="table table-sm table-borderless mb-3 small text-secondary">
-                                        <tbody>
-                                            <tr>
-                                                <td style="width: 35%;" class="fw-semibold text-muted">Sự cố:</td>
-                                                <td class="text-danger fw-bold">Thay thảm lưới biên sân</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-semibold text-muted">Hoàn thành:</td>
-                                                <td class="text-dark">21:00 tối nay (Dự kiến)</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-semibold text-muted">Kỹ thuật viên:</td>
-                                                <td class="text-dark">Phạm Văn C</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                    <div class="alert alert-danger border-0 rounded-4 p-3 mb-3 text-center text-danger small">
+                                        <i class="bi bi-exclamation-triangle-fill fs-4 d-block mb-1"></i>
+                                        Sân đang tạm khóa để bảo trì.
+                                    </div>
                                     <button class="btn btn-outline-secondary btn-sm w-100 rounded-pill py-2" onclick="completeMaintenance(@court.CourtId)">
                                         <i class="bi bi-check2"></i> Xác Nhận Bảo Trì Xong
                                     </button>
@@ -165,13 +175,138 @@
                                             </tr>
                                         </tbody>
                                     </table>
-                                    <button class="btn btn-success btn-sm w-100 rounded-pill py-2" onclick="quickCheckIn(@court.CourtId, '@court.CourtName')">
+                                    <button class="btn btn-success btn-sm w-100 rounded-pill py-2" onclick="openQuickBookModal(@court.CourtId, '@court.CourtName')">
                                         <i class="bi bi-box-arrow-in-right me-1"></i> Vào Chơi Trực Tiếp
                                     </button>
                                 }
                             </div>
                         </div>
                     }
+                </div>
+            </div>
+
+            <!-- Daily Timetable Grid (Visual Schedule) -->
+            <div class="glass-card p-4 mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-1"><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Sơ Đồ Đặt Sân Theo Khung Giờ (Hôm Nay)</h5>
+                        <small class="text-muted">Nhấp vào ô trống màu xanh để hỗ trợ đặt sân và tư vấn khung giờ cho khách tại quầy</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <span class="status-badge available" style="font-size: 0.65rem;"><i class="bi bi-check-circle-fill"></i> Trống</span>
+                        <span class="status-badge maintenance" style="background: rgba(244, 63, 94, 0.1); color: var(--accent-danger-dark); border-color: rgba(244, 63, 94, 0.2); font-size: 0.65rem;"><i class="bi bi-wrench"></i> Bảo trì</span>
+                        <span class="status-badge in-use" style="font-size: 0.65rem; background: rgba(99, 102, 241, 0.1); color: var(--primary-color); border-color: rgba(99, 102, 241, 0.2);"><i class="bi bi-lock-fill"></i> Đã đặt</span>
+                    </div>
+                </div>
+
+                <div class="timetable-container">
+                    <table class="timetable-table">
+                        <thead>
+                            <tr>
+                                <th>Khung Giờ</th>
+                                @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
+                                {
+                                    <th>
+                                        @court.CourtName
+                                        @if (court.Status == "Maintenance")
+                                        {
+                                            <br/><small class="text-danger" style="font-size: 0.65rem; text-transform: none;"><i class="bi bi-wrench"></i> Bảo trì</small>
+                                        }
+                                    </th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                var slots = new List<(string Start, string End)>
+                                {
+                                    ("05:00", "06:00"),
+                                    ("06:00", "07:00"),
+                                    ("07:00", "08:00"),
+                                    ("08:00", "09:00"),
+                                    ("09:00", "10:00"),
+                                    ("10:00", "11:00"),
+                                    ("11:00", "12:00"),
+                                    ("12:00", "13:00"),
+                                    ("13:00", "14:00"),
+                                    ("14:00", "15:00"),
+                                    ("15:00", "16:00"),
+                                    ("16:00", "17:00"),
+                                    ("17:00", "18:00"),
+                                    ("18:00", "19:00"),
+                                    ("19:00", "20:00"),
+                                    ("20:00", "21:00"),
+                                    ("21:00", "22:00")
+                                };
+                                var courts = ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>();
+                                var todayBookings = ViewBag.TodayBookings as List<AquarSmartCourt.Models.Booking> ?? new List<AquarSmartCourt.Models.Booking>();
+                            }
+                            @foreach (var slot in slots)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-dark">@slot.Start - @slot.End</td>
+                                    @foreach (var court in courts)
+                                    {
+                                        var startParts = slot.Start.Split(':');
+                                        var endParts = slot.End.Split(':');
+                                        var slotStart = DateTime.Today.AddHours(int.Parse(startParts[0])).AddMinutes(int.Parse(startParts[1]));
+                                        var slotEnd = DateTime.Today.AddHours(int.Parse(endParts[0])).AddMinutes(int.Parse(endParts[1]));
+
+                                        var booking = todayBookings.FirstOrDefault(b => 
+                                            b.CourtId == court.CourtId && 
+                                            b.StartTime < slotEnd && 
+                                            slotStart < b.EndTime
+                                        );
+
+                                        if (court.Status == "Maintenance")
+                                        {
+                                            <td class="maintenance text-danger text-center bg-danger-subtle fw-semibold" style="cursor: not-allowed;" onclick="alert('Sân này đang trong thời gian bảo trì!')">
+                                                <i class="bi bi-wrench me-1"></i> Bảo trì
+                                            </td>
+                                        }
+                                        else if (booking != null)
+                                        {
+                                            <td class="bg-light text-muted fw-semibold text-center" style="cursor: pointer; border-left: 3px solid var(--primary-color) !important;" onclick="alert('Khách hàng: @(booking.CustomerName)\nSĐT: @(booking.CustomerPhone)\nKhung giờ: @(booking.StartTime.ToString("HH:mm")) - @(booking.EndTime.ToString("HH:mm"))')">
+                                                <i class="bi bi-person-fill me-1 text-primary"></i> @booking.CustomerName
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td class="empty text-success" onclick="openQuickBookModal(@court.CourtId, '@court.CourtName', '@slot.Start', '@slot.End')" style="cursor: pointer;">
+                                                <i class="bi bi-plus-circle-fill me-1"></i> Trống (Đặt sân)
+                                            </td>
+                                        }
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Daily Bookings List Card -->
+            <div class="glass-card p-4 mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-calendar3 me-2 text-primary"></i>Lịch Đặt Sân Trong Ngày</h5>
+                    <span class="badge bg-primary rounded-pill px-3" id="booking-count-badge">0 lịch đặt</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover mb-0" id="bookings-table">
+                        <thead class="table-light">
+                            <tr class="small text-secondary">
+                                <th>Khách hàng</th>
+                                <th>Số điện thoại</th>
+                                <th>Sân</th>
+                                <th>Khung giờ</th>
+                                <th class="text-end" style="width: 220px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookings-list-body" class="small">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-3">Đang tải danh sách lịch đặt...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -458,7 +593,14 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-dark mb-1">Giá thuê theo giờ (đ/h)</label>
-                        <input type="number" class="form-control rounded-3" id="editCourtPrice" min="1000" step="5000" required placeholder="Ví dụ: 80000">
+                        <input type="number" class="form-control rounded-3" id="editCourtPrice" min="1000" step="1000" required placeholder="Ví dụ: 80000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Trạng thái hoạt động</label>
+                        <select class="form-select rounded-3" id="editCourtStatus">
+                            <option value="Available">Hoạt động bình thường</option>
+                            <option value="Maintenance">Đang bảo trì (Khóa sân)</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer p-3 bg-light rounded-bottom-4">
@@ -470,12 +612,49 @@
     </div>
 </div>
 
+<!-- Modal: Change Court for Booking -->
+<div class="modal fade" id="changeCourtModal" tabindex="-1" aria-labelledby="changeCourtModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-primary text-white py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="changeCourtModalLabel"><i class="bi bi-arrow-left-right me-2"></i>Chuyển Sân Cho Khách Hàng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="changeCourtForm" onsubmit="processChangeCourt(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="changeBookingId">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Khách hàng</label>
+                        <input type="text" class="form-control rounded-3 bg-light" id="changeCustName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Khung giờ hiện tại</label>
+                        <input type="text" class="form-control rounded-3 bg-light" id="changeTimeRange" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Chọn sân mới muốn chuyển đến</label>
+                        <select class="form-select rounded-3" id="changeNewCourtSelect" required>
+                            <!-- Dynamically populated via JS -->
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer p-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Xác Nhận Chuyển</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
         let serviceModalObj = null;
         let checkoutModalObj = null;
         let quickBookModalObj = null;
         let editCourtModalObj = null;
+        let changeCourtModalObj = null;
         let courtHourlyPrices = {
             @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
             {
@@ -483,15 +662,57 @@
             }
         };
 
+        // SignalR Connection
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/courtHub")
+            .build();
+
+        connection.on("ReceiveUpdate", function() {
+            const openModals = $('.modal.show').length;
+            if (openModals === 0) {
+                location.reload();
+            } else {
+                console.log("Dữ liệu sân đã thay đổi. Sẽ cập nhật sau.");
+            }
+        });
+
         $(document).ready(function() {
             serviceModalObj = new bootstrap.Modal(document.getElementById('serviceOrderModal'));
             checkoutModalObj = new bootstrap.Modal(document.getElementById('checkoutModal'));
             quickBookModalObj = new bootstrap.Modal(document.getElementById('quickBookModal'));
             editCourtModalObj = new bootstrap.Modal(document.getElementById('editCourtModal'));
+            changeCourtModalObj = new bootstrap.Modal(document.getElementById('changeCourtModal'));
             updateServiceUnitPrice();
+            loadDailyBookings();
+
+            connection.start().then(function() {
+                console.log("SignalR connected successfully.");
+            }).catch(function(err) {
+                console.error("SignalR connection error: " + err.toString());
+            });
         });
 
-        function openQuickBookModal() {
+        function openQuickBookModal(courtId, courtName, startTime, endTime) {
+            if (courtId) {
+                document.getElementById('quickBookCourt').value = courtId;
+            } else {
+                document.getElementById('quickBookCourt').selectedIndex = 0;
+            }
+            if (startTime) {
+                document.getElementById('quickBookStart').value = startTime;
+            } else {
+                document.getElementById('quickBookStart').value = "17:00";
+            }
+            if (endTime) {
+                document.getElementById('quickBookEnd').value = endTime;
+            } else {
+                document.getElementById('quickBookEnd').value = "19:00";
+            }
+            // Reset customer inputs
+            document.getElementById('quickBookName').value = "";
+            document.getElementById('quickBookPhone').value = "";
+            document.getElementById('quickBookNotes').value = "";
+
             quickBookModalObj.show();
         }
 
@@ -748,10 +969,16 @@
             }
         }
         
-        function openEditCourtModal(id, currentName, fallbackPrice) {
+        function openEditCourtModal(btn) {
+            const id = btn.getAttribute('data-id');
+            const name = btn.getAttribute('data-name');
+            const price = btn.getAttribute('data-price');
+            const status = btn.getAttribute('data-status');
+
             document.getElementById('editCourtId').value = id;
-            document.getElementById('editCourtName').value = document.getElementById(`courtName-${id}`).innerText;
-            document.getElementById('editCourtPrice').value = courtHourlyPrices[id] || fallbackPrice;
+            document.getElementById('editCourtName').value = name;
+            document.getElementById('editCourtPrice').value = price;
+            document.getElementById('editCourtStatus').value = status;
             editCourtModalObj.show();
         }
 
@@ -760,6 +987,7 @@
             const id = document.getElementById('editCourtId').value;
             const newName = document.getElementById('editCourtName').value;
             const newPrice = parseInt(document.getElementById('editCourtPrice').value);
+            const status = document.getElementById('editCourtStatus').value;
             
             $.ajax({
                 url: `/api/CourtApi/${id}`,
@@ -768,18 +996,12 @@
                 data: JSON.stringify({
                     courtId: parseInt(id),
                     courtName: newName,
-                    hourlyPrice: newPrice
+                    hourlyPrice: newPrice,
+                    status: status
                 }),
                 success: function() {
                     courtHourlyPrices[id] = newPrice;
-                    document.getElementById(`courtName-${id}`).innerText = newName;
-                    
-                    const priceLabel = document.querySelector(`.court-price-label-${id}`);
-                    if (priceLabel) {
-                        priceLabel.innerText = `${newPrice.toLocaleString('vi-VN')}đ`;
-                    }
-                    
-                    alert(`Cập nhật cấu hình thành công!\nTên mới: ${newName}\nGiá thuê mới: ${newPrice.toLocaleString('vi-VN')}đ/giờ\nHệ thống đã đồng bộ bảng danh mục sân.`);
+                    alert('Cập nhật cấu hình thành công!');
                     editCourtModalObj.hide();
                     location.reload();
                 },
@@ -787,6 +1009,125 @@
                     alert('Lỗi: ' + xhr.responseText);
                 }
             });
+        }
+
+        function loadDailyBookings() {
+            $.ajax({
+                url: '/api/CourtApi/schedule',
+                type: 'GET',
+                success: function(bookings) {
+                    const tbody = document.getElementById('bookings-list-body');
+                    const countBadge = document.getElementById('booking-count-badge');
+                    if (!tbody) return;
+                    
+                    if (bookings.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-3">Không có lịch đặt nào trong ngày hôm nay.</td>
+                            </tr>
+                        `;
+                        if (countBadge) countBadge.innerText = '0 lịch đặt';
+                        return;
+                    }
+                    
+                    if (countBadge) countBadge.innerText = `${bookings.length} lịch đặt`;
+                    
+                    let html = '';
+                    bookings.forEach(b => {
+                        const courtNameEl = document.getElementById(`courtName-${b.courtId}`);
+                        const courtName = courtNameEl ? courtNameEl.innerText : `Sân ${b.courtId}`;
+                        
+                        html += `
+                            <tr>
+                                <td class="fw-semibold text-dark">${b.customerName}</td>
+                                <td class="text-secondary">${b.customerPhone}</td>
+                                <td><span class="badge bg-light text-dark border px-2 py-1">${courtName}</span></td>
+                                <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1">${b.startTime} - ${b.endTime}</span></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill me-1" onclick="openChangeCourtModal(${b.bookingId}, '${b.customerName}', '${b.startTime} - ${b.endTime}', ${b.courtId})">
+                                        <i class="bi bi-arrow-left-right me-1"></i>Chuyển sân
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="cancelBooking(${b.bookingId})">
+                                        <i class="bi bi-trash me-1"></i>Hủy
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = html;
+                },
+                error: function(xhr) {
+                    console.error('Lỗi tải lịch đặt sân: ', xhr.responseText);
+                }
+            });
+        }
+
+        function openChangeCourtModal(bookingId, customerName, timeRange, currentCourtId) {
+            document.getElementById('changeBookingId').value = bookingId;
+            document.getElementById('changeCustName').value = customerName;
+            document.getElementById('changeTimeRange').value = timeRange;
+            
+            const select = document.getElementById('changeNewCourtSelect');
+            select.innerHTML = '';
+            
+            const courts = [
+                @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
+                {
+                    @:{ id: @court.CourtId, name: '@Html.Raw(court.CourtName)' },
+                }
+            ];
+            
+            courts.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.id;
+                option.text = c.name + (c.id === currentCourtId ? ' (Hiện tại)' : '');
+                if (c.id === currentCourtId) {
+                    option.disabled = true;
+                }
+                select.appendChild(option);
+            });
+            
+            changeCourtModalObj.show();
+        }
+
+        function processChangeCourt(e) {
+            e.preventDefault();
+            const bookingId = parseInt(document.getElementById('changeBookingId').value);
+            const newCourtId = parseInt(document.getElementById('changeNewCourtSelect').value);
+            
+            $.ajax({
+                url: '/api/CourtApi/bookings/change-court',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    bookingId: bookingId,
+                    newCourtId: newCourtId
+                }),
+                success: function() {
+                    alert('Chuyển sân thành công!');
+                    changeCourtModalObj.hide();
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Lỗi chuyển sân: ' + xhr.responseText);
+                }
+            });
+        }
+
+        function cancelBooking(bookingId) {
+            if (confirm('Bạn có chắc chắn muốn hủy lịch đặt sân này không?')) {
+                $.ajax({
+                    url: `/api/CourtApi/bookings/cancel/${bookingId}`,
+                    type: 'POST',
+                    success: function() {
+                        alert('Đã hủy lịch đặt sân thành công!');
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        alert('Lỗi hủy lịch đặt sân: ' + xhr.responseText);
+                    }
+                });
+            }
         }
     </script>
 }

@@ -312,7 +312,8 @@ h1, h2, h3, h4, h5, h6, .brand-font {
   border: 1px solid rgba(0, 0, 0, 0.04);
   background: var(--bg-secondary);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  max-height: 480px;
+  overflow-y: auto;
 }
 
 .timetable-table {
@@ -330,6 +331,10 @@ h1, h2, h3, h4, h5, h6, .brand-font {
   letter-spacing: 0.8px;
   padding: 16px;
   border-bottom: 1px solid #edf2f7;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.05);
 }
 
 .timetable-table td {
@@ -349,6 +354,13 @@ h1, h2, h3, h4, h5, h6, .brand-font {
   font-weight: 500;
   text-decoration: line-through;
   opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.timetable-table td.maintenance {
+  background: repeating-linear-gradient(45deg, #fff1f2, #fff1f2 8px, #ffe4e6 8px, #ffe4e6 16px) !important;
+  color: var(--accent-danger-dark);
+  font-weight: 700;
   cursor: not-allowed;
 }
 

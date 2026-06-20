@@ -91,3 +91,57 @@ function generateBotReply(query, isManager) {
                 3. Tư vấn mua sắm vợt/giày phù hợp: gõ <em>"vợt cầu lông nào tốt"</em>`;
     }
 }
+
+// Global alert override with beautiful centered Bootstrap modal
+(function () {
+    window.alert = function (message) {
+        let modalEl = document.getElementById('customAlertModal');
+        if (!modalEl) {
+            modalEl = document.createElement('div');
+            modalEl.id = 'customAlertModal';
+            modalEl.className = 'modal fade';
+            modalEl.setAttribute('tabindex', '-1');
+            modalEl.setAttribute('aria-hidden', 'true');
+            modalEl.style.zIndex = '9999';
+            modalEl.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--bg-card, #ffffff); color: var(--text-color, #1e293b);">
+                        <div class="modal-header border-0 pb-0" style="padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
+                            <h5 class="modal-title fw-bold d-flex align-items-center">
+                                <i class="bi bi-info-circle-fill text-primary me-2 fs-4"></i> Thông báo
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body py-3 px-4" style="font-size: 1rem; line-height: 1.6; white-space: pre-line;">
+                            <!-- Message -->
+                        </div>
+                        <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-end">
+                            <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold" data-bs-dismiss="modal">Đồng ý</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modalEl);
+        }
+
+        modalEl.querySelector('.modal-body').innerText = message;
+
+        const titleEl = modalEl.querySelector('.modal-title');
+        const btnEl = modalEl.querySelector('.modal-footer .btn');
+
+        const msgLower = message.toLowerCase();
+        if (msgLower.includes('lỗi') || msgLower.includes('thất bại') || msgLower.includes('không thể') || msgLower.includes('không hợp lệ')) {
+            titleEl.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-danger me-2 fs-4"></i> Lỗi hệ thống';
+            btnEl.className = 'btn btn-danger rounded-pill px-4 py-2 fw-semibold';
+        } else if (msgLower.includes('thành công') || msgLower.includes('hoàn tất') || msgLower.includes('đã đặt') || msgLower.includes('thêm mới')) {
+            titleEl.innerHTML = '<i class="bi bi-check-circle-fill text-success me-2 fs-4"></i> Thành công';
+            btnEl.className = 'btn btn-success rounded-pill px-4 py-2 fw-semibold';
+        } else {
+            titleEl.innerHTML = '<i class="bi bi-info-circle-fill text-primary me-2 fs-4"></i> Thông báo';
+            btnEl.className = 'btn btn-primary rounded-pill px-4 py-2 fw-semibold';
+        }
+
+        const modalInstance = new bootstrap.Modal(modalEl);
+        modalInstance.show();
+    };
+})();

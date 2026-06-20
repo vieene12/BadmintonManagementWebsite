@@ -13,7 +13,9 @@ public class MatchmakingGroup
     public string Status { get; set; } = "Open"; // Open, Matched, Cancelled
     public int? CourtId { get; set; }
     public string CreatorName { get; set; } = string.Empty;
+    public int? BookingId { get; set; }
 
     // Navigation properties
     public Court? Court { get; set; }
+    public Booking? Booking { get; set; }
 }

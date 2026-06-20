@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using AquarSmartCourt.Models;
+using AquarSmartCourt.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,18 +17,21 @@ namespace AquarSmartCourt.Controllers;
 public class MatchmakingApiController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IHubContext<CourtHub> _hubContext;
 
-    public MatchmakingApiController(ApplicationDbContext context)
+    public MatchmakingApiController(ApplicationDbContext context, IHubContext<CourtHub> hubContext)
     {
         _context = context;
+        _hubContext = hubContext;
     }
 
     // GET: api/Matchmaking/groups
     [HttpGet("groups")]
     public async Task<ActionResult<IEnumerable<object>>> GetOpenGroups()
     {
+        var now = DateTime.Now;
         var groups = await _context.MatchmakingGroups
-            .Where(g => g.Status == "Open")
+            .Where(g => g.Status == "Open" && g.EndTime > now)
             .Select(g => new {
                 g.MatchmakingGroupId,
                 g.SkillLevel,
@@ -35,7 +40,11 @@ public class MatchmakingApiController : ControllerBase
                 g.PlayersNeeded,
                 g.PlayersJoined,
                 g.CreatorName,
-                CourtName = g.Court != null ? g.Court.CourtName : "Chưa xếp sân"
+                CourtName = g.Court != null ? g.Court.CourtName : "Chưa xếp sân",
+                Participants = _context.MatchmakingParticipants
+                    .Where(p => p.MatchmakingGroupId == g.MatchmakingGroupId)
+                    .Select(p => p.FullName)
+                    .ToList()
             })
             .ToListAsync();
 
@@ -46,59 +55,33 @@ public class MatchmakingApiController : ControllerBase
     [HttpPost("request")]
     public async Task<IActionResult> CreateGroup([FromBody] MatchmakingRequestDto request)
     {
-        DateTime today = DateTime.Today;
-        DateTime startDateTime;
-        DateTime endDateTime;
+        var booking = await _context.Bookings
+            .Include(b => b.Court)
+            .FirstOrDefaultAsync(b => b.BookingId == request.BookingId);
 
-        try
+        if (booking == null)
         {
-            var startParts = request.StartTime.Split(':');
-            var endParts = request.EndTime.Split(':');
-            startDateTime = today.AddHours(int.Parse(startParts[0])).AddMinutes(int.Parse(startParts[1]));
-            endDateTime = today.AddHours(int.Parse(endParts[0])).AddMinutes(int.Parse(endParts[1]));
-        }
-        catch
-        {
-            return BadRequest("Khung giờ không hợp lệ.");
+            return NotFound("Không tìm thấy thông tin lịch đặt sân.");
         }
 
-        if (startDateTime >= endDateTime)
+        // Check if this booking already has an active matchmaking group
+        var existingGroup = await _context.MatchmakingGroups
+            .FirstOrDefaultAsync(g => g.BookingId == request.BookingId && g.Status != "Cancelled");
+        if (existingGroup != null)
         {
-            return BadRequest("Thời gian kết thúc phải sau thời gian bắt đầu.");
-        }
-
-        // Find an available court that doesn't overlap for this timeframe
-        var courts = await _context.Courts.ToListAsync();
-        Court? assignedCourt = null;
-        foreach (var court in courts)
-        {
-            bool overlaps = await _context.Bookings.AnyAsync(b =>
-                b.CourtId == court.CourtId &&
-                b.Status == "Confirmed" &&
-                b.StartTime < endDateTime &&
-                startDateTime < b.EndTime
-            );
-            if (!overlaps)
-            {
-                assignedCourt = court;
-                break;
-            }
-        }
-
-        if (assignedCourt == null)
-        {
-            return BadRequest("Không có sân con nào trống trong khung giờ này.");
+            return BadRequest("Lịch đặt này đã được đăng ký ghép cặp rồi.");
         }
 
         var group = new MatchmakingGroup
         {
+            BookingId = booking.BookingId,
             SkillLevel = request.SkillLevel,
-            StartTime = startDateTime,
-            EndTime = endDateTime,
+            StartTime = booking.StartTime,
+            EndTime = booking.EndTime,
             PlayersNeeded = request.PlayersNeeded,
             PlayersJoined = 1,
             Status = "Open",
-            CourtId = assignedCourt.CourtId,
+            CourtId = booking.CourtId,
             CreatorName = request.CreatorName
         };
 
@@ -106,17 +89,26 @@ public class MatchmakingApiController : ControllerBase
         await _context.SaveChangesAsync();
 
         // Add creator as first participant
+        int? creatorUserId = null;
+        var creatorUserIdStr = User.FindFirst("UserId")?.Value;
+        if (int.TryParse(creatorUserIdStr, out int parsedCreatorUserId))
+        {
+            creatorUserId = parsedCreatorUserId;
+        }
+
         var participant = new MatchmakingParticipant
         {
             MatchmakingGroupId = group.MatchmakingGroupId,
             FullName = request.CreatorName,
             PhoneNumber = request.CreatorPhone,
+            UserId = creatorUserId,
             JoinedAt = DateTime.Now
         };
         _context.MatchmakingParticipants.Add(participant);
         await _context.SaveChangesAsync();
+        await _hubContext.Clients.All.SendAsync("ReceiveUpdate");
 
-        return Ok(new { message = "Tạo nhóm ghép sân thành công!", groupId = group.MatchmakingGroupId });
+        return Ok(new { message = "Đăng ký ghép sân thành công!", groupId = group.MatchmakingGroupId });
     }
 
     // POST: api/Matchmaking/join/{id}
@@ -129,6 +121,10 @@ public class MatchmakingApiController : ControllerBase
 
         if (group == null) return NotFound("Không tìm thấy nhóm ghép.");
         if (group.Status != "Open") return BadRequest("Nhóm ghép này đã đóng hoặc đã bắt cặp xong.");
+        if (group.EndTime <= DateTime.Now)
+        {
+            return BadRequest("Ca chơi của nhóm ghép này đã kết thúc hoặc đã qua.");
+        }
 
         // Check if phone number already joined
         bool alreadyJoined = await _context.MatchmakingParticipants.AnyAsync(p =>
@@ -139,11 +135,20 @@ public class MatchmakingApiController : ControllerBase
             return BadRequest("Số điện thoại này đã tham gia vào nhóm ghép rồi.");
         }
 
+        // Get current user's UserId for the guest player
+        int? guestUserId = null;
+        var guestUserIdStr = User.FindFirst("UserId")?.Value;
+        if (int.TryParse(guestUserIdStr, out int parsedGuestUserId))
+        {
+            guestUserId = parsedGuestUserId;
+        }
+
         var participant = new MatchmakingParticipant
         {
             MatchmakingGroupId = id,
             FullName = request.FullName,
             PhoneNumber = request.PhoneNumber,
+            UserId = guestUserId,
             JoinedAt = DateTime.Now
         };
         _context.MatchmakingParticipants.Add(participant);
@@ -154,18 +159,17 @@ public class MatchmakingApiController : ControllerBase
         if (group.PlayersJoined >= group.PlayersNeeded)
         {
             group.Status = "Matched";
-            // Create the booking automatically!
-            var booking = new Booking
+            
+            // Update the existing booking notes instead of creating a new booking
+            if (group.BookingId.HasValue)
             {
-                CourtId = group.CourtId ?? 1,
-                CustomerName = $"Nhóm ghép - {group.CreatorName}",
-                CustomerPhone = request.PhoneNumber, // Representative phone
-                StartTime = group.StartTime,
-                EndTime = group.EndTime,
-                Status = "Confirmed",
-                Notes = $"Tự động ghép từ Nhóm #{group.MatchmakingGroupId} ({group.SkillLevel})"
-            };
-            _context.Bookings.Add(booking);
+                var booking = await _context.Bookings.FindAsync(group.BookingId.Value);
+                if (booking != null)
+                {
+                    booking.Notes = $"Đã ghép đủ thành viên ({group.SkillLevel}) - Tổng {group.PlayersJoined} người.";
+                    _context.Entry(booking).State = EntityState.Modified;
+                }
+            }
 
             // Update Court Status to InUse if current time is within booking slot
             var now = DateTime.Now;
@@ -177,9 +181,10 @@ public class MatchmakingApiController : ControllerBase
         }
 
         await _context.SaveChangesAsync();
+        await _hubContext.Clients.All.SendAsync("ReceiveUpdate");
 
         return Ok(new {
-            message = group.Status == "Matched" ? "Ghép nhóm thành công! Sân chơi đã được đặt tự động." : "Tham gia nhóm ghép thành công!",
+            message = group.Status == "Matched" ? "Ghép nhóm thành công! Lịch chơi của bạn đã được xác nhận đủ người." : "Tham gia nhóm ghép thành công!",
             status = group.Status,
             playersJoined = group.PlayersJoined
         });
@@ -188,9 +193,8 @@ public class MatchmakingApiController : ControllerBase
 
 public class MatchmakingRequestDto
 {
+    public int BookingId { get; set; }
     public string SkillLevel { get; set; } = string.Empty;
-    public string StartTime { get; set; } = string.Empty;
-    public string EndTime { get; set; } = string.Empty;
     public int PlayersNeeded { get; set; }
     public string CreatorName { get; set; } = string.Empty;
     public string CreatorPhone { get; set; } = string.Empty;

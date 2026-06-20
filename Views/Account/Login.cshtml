@@ -349,19 +349,19 @@
             </div>
 
             <div class="quick-role-grid">
-                <a class="quick-role-card role-customer" href="@Url.Action("SwitchRole", "Account", new { role = 1 })">
+                <a class="quick-role-card role-customer" href="javascript:void(0)" onclick="quickLogin('customer')">
                     <i class="bi bi-people-fill"></i>
                     <span class="role-name">Khách Hàng</span>
                     <span class="role-desc">Role: 1</span>
                 </a>
                 
-                <a class="quick-role-card role-staff" href="@Url.Action("SwitchRole", "Account", new { role = 2 })">
+                <a class="quick-role-card role-staff" href="javascript:void(0)" onclick="quickLogin('staff')">
                     <i class="bi bi-laptop"></i>
                     <span class="role-name">Lễ Tân</span>
                     <span class="role-desc">Role: 2</span>
                 </a>
                 
-                <a class="quick-role-card role-manager" href="@Url.Action("SwitchRole", "Account", new { role = 3 })">
+                <a class="quick-role-card role-manager" href="javascript:void(0)" onclick="quickLogin('manager')">
                     <i class="bi bi-shield-lock-fill"></i>
                     <span class="role-name">Quản Lý</span>
                     <span class="role-desc">Role: 3</span>
@@ -370,5 +370,12 @@
         </div>
     </div>
 
+    <script>
+        function quickLogin(username) {
+            document.querySelector('input[name="username"]').value = username;
+            document.querySelector('input[name="password"]').value = "123";
+            document.querySelector('form').submit();
+        }
+    </script>
 </body>
 </html>

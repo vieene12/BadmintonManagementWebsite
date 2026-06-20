@@ -117,8 +117,8 @@ public class ApplicationDbContext : DbContext
                 CourtId = 1,
                 CustomerName = "Nguyễn Văn A",
                 CustomerPhone = "0987654321",
-                StartTime = new DateTime(2026, 6, 14, 17, 0, 0),
-                EndTime = new DateTime(2026, 6, 14, 19, 0, 0),
+                StartTime = DateTime.Today.AddHours(17),
+                EndTime = DateTime.Today.AddHours(19),
                 Status = "Confirmed",
                 UserId = 1
             },
@@ -128,8 +128,18 @@ public class ApplicationDbContext : DbContext
                 CourtId = 3,
                 CustomerName = "Nhóm Trần Minh",
                 CustomerPhone = "0912345678",
-                StartTime = new DateTime(2026, 6, 14, 18, 0, 0),
-                EndTime = new DateTime(2026, 6, 14, 20, 0, 0),
+                StartTime = DateTime.Today.AddHours(18),
+                EndTime = DateTime.Today.AddHours(20),
+                Status = "Confirmed"
+            },
+            new Booking
+            {
+                BookingId = 3,
+                CourtId = 1,
+                CustomerName = "Khánh Lê",
+                CustomerPhone = "0900112233",
+                StartTime = DateTime.Today.AddHours(19).AddMinutes(30),
+                EndTime = DateTime.Today.AddHours(21).AddMinutes(30),
                 Status = "Confirmed"
             }
         );
@@ -300,25 +310,27 @@ public class ApplicationDbContext : DbContext
             {
                 MatchmakingGroupId = 1,
                 SkillLevel = "Intermediate",
-                StartTime = new DateTime(2026, 6, 14, 18, 0, 0),
-                EndTime = new DateTime(2026, 6, 14, 20, 0, 0),
+                StartTime = DateTime.Today.AddHours(18),
+                EndTime = DateTime.Today.AddHours(20),
                 PlayersNeeded = 4,
                 PlayersJoined = 2,
                 Status = "Open",
                 CourtId = 3,
-                CreatorName = "Trần Minh"
+                CreatorName = "Trần Minh",
+                BookingId = 2
             },
             new MatchmakingGroup
             {
                 MatchmakingGroupId = 2,
                 SkillLevel = "Advanced",
-                StartTime = new DateTime(2026, 6, 14, 19, 30, 0),
-                EndTime = new DateTime(2026, 6, 14, 21, 30, 0),
+                StartTime = DateTime.Today.AddHours(19).AddMinutes(30),
+                EndTime = DateTime.Today.AddHours(21).AddMinutes(30),
                 PlayersNeeded = 4,
                 PlayersJoined = 3,
                 Status = "Open",
                 CourtId = 1,
-                CreatorName = "Khánh Lê"
+                CreatorName = "Khánh Lê",
+                BookingId = 3
             }
         );
 

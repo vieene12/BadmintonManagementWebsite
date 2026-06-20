@@ -38,82 +38,239 @@
         <div class="col-xl-8 col-lg-7">
             
             <!-- 0. Active Play Session Card (Customer Self-Service) -->
+            @{
+                var nowVal = DateTime.Now;
+                var myBookingsList = ViewBag.MyBookings as List<AquarSmartCourt.Models.Booking> ?? new List<AquarSmartCourt.Models.Booking>();
+                
+                // Find the active booking right now (today)
+                var activeSession = myBookingsList.FirstOrDefault(b => b.StartTime <= nowVal && nowVal < b.EndTime && b.Status == "Confirmed");
+                var showUpcoming = false;
+                
+                // If no active booking, find the nearest upcoming booking today
+                if (activeSession == null)
+                {
+                    activeSession = myBookingsList.FirstOrDefault(b => b.StartTime > nowVal && b.StartTime.Date == nowVal.Date && b.Status == "Confirmed");
+                    if (activeSession != null)
+                    {
+                        showUpcoming = true;
+                    }
+                }
+            }
+
             <div class="card border-0 glass-card active-session-card p-4 mb-4" id="active-session-section">
-                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-                    <div>
-                        <h4 class="mb-1 fw-bold text-dark"><i class="bi bi-activity text-success me-2"></i>Phiên Chơi Hiện Tại Của Bạn</h4>
-                        <small class="text-muted">Hệ thống phục vụ tự động chuyển nước uống & dụng cụ đến tận sân chơi</small>
+                @if (activeSession != null)
+                {
+                    var courtName = activeSession.Court != null ? activeSession.Court.CourtName : "Sân Con 01";
+                    var timeRange = $"{activeSession.StartTime.ToString("HH:mm")} - {activeSession.EndTime.ToString("HH:mm")}";
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                        <div>
+                            <h4 class="mb-1 fw-bold text-dark"><i class="bi bi-activity text-success me-2"></i>Phiên Chơi Của Bạn</h4>
+                            <small class="text-muted">Hệ thống phục vụ tự động chuyển nước uống & dụng cụ đến tận sân chơi</small>
+                        </div>
+                        @if (showUpcoming)
+                        {
+                            <span class="status-badge warning bg-warning bg-opacity-10 text-warning border-warning" style="border: 1px solid rgba(255, 193, 7, 0.2); border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; font-weight: 600;">
+                                <span class="recording-dot d-inline-block me-1 bg-warning"></span> Sắp diễn ra
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="status-badge available" style="background: hsla(var(--success-hsl), 0.1); color: var(--accent-success-dark);">
+                                <span class="live-radar-dot d-inline-block me-1"></span> Đang hoạt động
+                            </span>
+                        }
                     </div>
-                    <span class="status-badge available" style="background: hsla(var(--success-hsl), 0.1); color: var(--accent-success-dark);">
-                        <span class="live-radar-dot d-inline-block me-1"></span> Đang hoạt động
-                    </span>
-                </div>
-                <div class="row align-items-center g-4">
-                    <div class="col-md-6">
-                        <table class="table table-sm table-borderless mb-3 small text-secondary">
-                            <tbody>
-                                <tr>
-                                    <td style="width: 40%;" class="fw-semibold text-muted">Vị trí sân:</td>
-                                    <td class="text-dark fw-bold"><span class="badge bg-dark text-white rounded-pill px-3 py-1">Sân Con 01</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-semibold text-muted">Thời gian ca:</td>
-                                    <td class="text-dark"><span class="fw-bold text-primary">17:00 - 19:00</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-semibold text-muted">Hội viên đặt:</td>
-                                    <td class="text-dark fw-bold">Nguyễn Văn A</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-semibold text-muted">Trạng thái:</td>
-                                    <td><span class="recording-indicator"><span class="recording-dot"></span> Đang ghi hình HD</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        
-                        <!-- Progress bar simulation -->
-                        <div class="mt-2">
-                            <div class="d-flex justify-content-between small text-muted mb-1" style="font-size: 0.75rem;">
-                                <span>Thời gian trôi qua: 75 phút (62%)</span>
-                                <span>Còn lại: 45 phút</span>
-                            </div>
-                            <div class="session-progress">
-                                <div class="session-progress-bar" style="width: 62.5%;"></div>
+                    <div class="row align-items-center g-4">
+                        <div class="col-md-6">
+                            <table class="table table-sm table-borderless mb-3 small text-secondary">
+                                <tbody>
+                                    <tr>
+                                        <td style="width: 40%;" class="fw-semibold text-muted">Vị trí sân:</td>
+                                        <td class="text-dark fw-bold"><span class="badge bg-dark text-white rounded-pill px-3 py-1">@courtName</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold text-muted">Thời gian ca:</td>
+                                        <td class="text-dark"><span class="fw-bold text-primary">@timeRange</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold text-muted">Hội viên đặt:</td>
+                                        <td class="text-dark fw-bold">@activeSession.CustomerName</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <!-- Progress bar calculations -->
+                            <div class="mt-2" id="session-progress-container" data-start="@activeSession.StartTime.ToString("o")" data-end="@activeSession.EndTime.ToString("o")" data-upcoming="@showUpcoming.ToString().ToLower()">
+                                @if (showUpcoming)
+                                {
+                                    var waitMinutes = (int)(activeSession.StartTime - nowVal).TotalMinutes;
+                                    var totalPlay = (int)(activeSession.EndTime - activeSession.StartTime).TotalMinutes;
+                                    <div class="d-flex justify-content-between small text-muted mb-1" style="font-size: 0.75rem;">
+                                        <span id="session-progress-text-left">Bắt đầu sau: @waitMinutes phút</span>
+                                        <span id="session-progress-text-right">Thời gian chơi: @totalPlay phút</span>
+                                    </div>
+                                    <div class="session-progress">
+                                        <div class="session-progress-bar" id="session-progress-bar-el" style="width: 0%;"></div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    var totalMin = (activeSession.EndTime - activeSession.StartTime).TotalMinutes;
+                                    var elapsedMin = (nowVal - activeSession.StartTime).TotalMinutes;
+                                    var remainMin = (activeSession.EndTime - nowVal).TotalMinutes;
+                                    var progPercent = Math.Clamp((elapsedMin / totalMin) * 100, 0, 100);
+                                    
+                                    <div class="d-flex justify-content-between small text-muted mb-1" style="font-size: 0.75rem;">
+                                        <span id="session-progress-text-left">Thời gian trôi qua: @((int)elapsedMin) phút (@((int)progPercent)%)</span>
+                                        <span id="session-progress-text-right">Còn lại: @((int)remainMin) phút</span>
+                                    </div>
+                                    <div class="session-progress">
+                                        <div class="session-progress-bar" id="session-progress-bar-el" style="width: @progPercent.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%;"></div>
+                                    </div>
+                                }
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-6 border-start ps-md-4">
-                        <div class="p-3 rounded-4 bg-light border" style="border-left: 4px solid var(--primary-color) !important;">
-                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-cart-plus me-1 text-primary"></i>Gọi Nước & Phụ Kiện Tại Sân</h6>
-                            <form id="activePlayOrderForm" onsubmit="submitActivePlayOrder(event)" class="vstack gap-2">
-                                <div class="mb-1">
-                                    <select class="form-select form-select-sm" id="activePlayCategorySelect" onchange="filterActivePlayServices()">
-                                        <option value="All">-- Tất cả danh mục --</option>
-                                        <option value="Nước uống">Nước uống</option>
-                                        <option value="Thuê vợt">Thuê vợt</option>
-                                        <option value="Phụ kiện">Phụ kiện</option>
-                                    </select>
-                                </div>
-                                <div class="row g-2">
-                                    <div class="col-8">
-                                        <select class="form-select form-select-sm" id="activePlayServiceSelect">
-                                            @foreach (var item in ViewBag.Services as List<AquarSmartCourt.Models.ServiceItem> ?? new List<AquarSmartCourt.Models.ServiceItem>())
-                                            {
-                                                <option value="@item.ServiceItemId" data-category="@item.Category">@item.ItemName - @(((int)item.UnitPrice).ToString("N0", new System.Globalization.CultureInfo("vi-VN")))đ</option>
-                                            }
+                        <div class="col-md-6 border-start ps-md-4">
+                            <div class="p-3 rounded-4 bg-light border" style="border-left: 4px solid var(--primary-color) !important;">
+                                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-cart-plus me-1 text-primary"></i>Gọi Nước & Phụ Kiện Tại Sân</h6>
+                                <form id="activePlayOrderForm" onsubmit="submitActivePlayOrder(event, @activeSession.CourtId)" class="vstack gap-2">
+                                    <div class="mb-1">
+                                        <select class="form-select form-select-sm" id="activePlayCategorySelect" onchange="filterActivePlayServices()">
+                                            <option value="All">-- Tất cả danh mục --</option>
+                                            <option value="Nước uống">Nước uống</option>
+                                            <option value="Thuê vợt">Thuê vợt</option>
+                                            <option value="Phụ kiện">Phụ kiện</option>
                                         </select>
                                     </div>
-                                    <div class="col-4">
-                                        <input type="number" class="form-control form-control-sm text-center" id="activePlayServiceQty" value="1" min="1" max="10">
+                                    <div class="row g-2">
+                                        <div class="col-8">
+                                            <select class="form-select form-select-sm" id="activePlayServiceSelect">
+                                                @foreach (var item in ViewBag.Services as List<AquarSmartCourt.Models.ServiceItem> ?? new List<AquarSmartCourt.Models.ServiceItem>())
+                                                {
+                                                    <option value="@item.ServiceItemId" data-category="@item.Category">@item.ItemName - @(((int)item.UnitPrice).ToString("N0", new System.Globalization.CultureInfo("vi-VN")))đ</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <input type="number" class="form-control form-control-sm text-center" id="activePlayServiceQty" value="1" min="1" max="10">
+                                        </div>
                                     </div>
-                                </div>
-                                <button type="submit" class="btn btn-primary btn-sm rounded-pill w-100 py-2 fw-bold mt-1">
-                                    <i class="bi bi-send-fill me-1"></i> Gọi Phục Vụ Ngay
-                                </button>
-                            </form>
+                                    <button type="submit" class="btn btn-primary btn-sm rounded-pill w-100 py-2 fw-bold mt-1">
+                                        <i class="bi bi-send-fill me-1"></i> Gọi Phục Vụ Ngay
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
+                }
+                else
+                {
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                        <div>
+                            <h4 class="mb-1 fw-bold text-dark"><i class="bi bi-activity text-secondary me-2"></i>Phiên Chơi Hiện Tại</h4>
+                            <small class="text-muted">Hệ thống phục vụ tự động chuyển nước uống & dụng cụ đến tận sân chơi</small>
+                        </div>
+                        <span class="status-badge text-secondary border-secondary bg-secondary bg-opacity-10" style="border: 1px solid rgba(108, 117, 125, 0.2); border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; font-weight: 600;">
+                            <span class="recording-dot d-inline-block me-1 bg-secondary"></span> Không có phiên chơi
+                        </span>
+                    </div>
+                    <div class="text-center py-4 bg-light rounded-4 border">
+                        <i class="bi bi-activity text-muted" style="font-size: 2.5rem;"></i>
+                        <p class="text-secondary small mt-2 mb-0">Bạn hiện không có ca chơi nào đang diễn ra hoặc sắp bắt đầu hôm nay.</p>
+                        <a href="#booking-section" class="btn btn-primary btn-sm rounded-pill px-3 mt-2">Đặt sân chơi ngay</a>
+                    </div>
+                }
+            </div>
+
+            <!-- 0.5. Customer My Bookings Section -->
+            <div class="glass-card p-4 mb-4 glow-card" id="my-bookings-section">
+                <h4 class="mb-1 fw-bold text-dark"><i class="bi bi-bookmark-star-fill text-warning me-2"></i>Lịch Đặt Sân Của Bạn</h4>
+                <p class="text-secondary small mb-3">Danh sách các ca chơi bạn đã đặt hoặc đã tham gia ghép cặp.</p>
+                
+                @{
+                    var myBookings = ViewBag.MyBookings as List<AquarSmartCourt.Models.Booking> ?? new List<AquarSmartCourt.Models.Booking>();
+                    var myGroups = ViewBag.MyMatchmakingGroups as List<AquarSmartCourt.Models.MatchmakingGroup> ?? new List<AquarSmartCourt.Models.MatchmakingGroup>();
+                    var currentUserIdVal = User.FindFirst("UserId")?.Value;
+                    int currentUserId = int.TryParse(currentUserIdVal, out int parsedId) ? parsedId : 0;
+                }
+                
+                @if (myBookings.Count == 0)
+                {
+                    <div class="text-center py-4 bg-light rounded-4 border">
+                        <i class="bi bi-calendar-x text-muted" style="font-size: 2.5rem;"></i>
+                        <p class="text-secondary small mt-2 mb-0">Bạn chưa có lịch đặt sân nào hôm nay hoặc sắp tới.</p>
+                        <a href="#booking-section" class="btn btn-primary btn-sm rounded-pill px-3 mt-2">Đặt sân ngay</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small" style="border-collapse: separate; border-spacing: 0 8px;">
+                            <thead>
+                                <tr class="text-secondary border-bottom">
+                                    <th>Sân</th>
+                                    <th>Thời gian</th>
+                                    <th>Trạng thái ghép</th>
+                                    <th class="text-end">Vai trò / Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var booking in myBookings)
+                                {
+                                    var matchingGroup = myGroups.FirstOrDefault(g => g.BookingId == booking.BookingId);
+                                    <tr class="bg-white rounded-3 shadow-sm" style="border: 1px solid rgba(0,0,0,0.05);">
+                                        <td class="fw-bold text-dark">@booking.Court?.CourtName</td>
+                                        <td class="text-primary fw-semibold">
+                                            <i class="bi bi-clock me-1"></i> @booking.StartTime.ToString("HH:mm") - @booking.EndTime.ToString("HH:mm") (@booking.StartTime.ToString("dd/MM"))
+                                        </td>
+                                        <td>
+                                            @if (matchingGroup == null)
+                                            {
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2">Chưa ghép cặp</span>
+                                            }
+                                            else if (matchingGroup.Status == "Open")
+                                            {
+                                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2">
+                                                    <i class="bi bi-people-fill me-1"></i> Đang chờ (@matchingGroup.PlayersJoined/@matchingGroup.PlayersNeeded)
+                                                </span>
+                                            }
+                                            else if (matchingGroup.Status == "Matched")
+                                            {
+                                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">
+                                                    <i class="bi bi-check-circle-fill me-1"></i> Đã ghép đủ (@matchingGroup.PlayersJoined/@matchingGroup.PlayersNeeded)
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            @if (booking.UserId == currentUserId)
+                                            {
+                                                @if (matchingGroup == null)
+                                                {
+                                                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" onclick="openRegisterMatchmakingModal(@booking.BookingId, '@booking.Court?.CourtName', '@booking.StartTime.ToString("HH:mm") - @booking.EndTime.ToString("HH:mm")')">
+                                                        <i class="bi bi-share me-1"></i> Ghép cặp
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn btn-light btn-sm rounded-pill px-3 text-muted" disabled>
+                                                        <i class="bi bi-check-lg"></i> Đã gửi yêu cầu
+                                                    </button>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 fw-bold">
+                                                    <i class="bi bi-person-check-fill me-1"></i> Thành viên ghép
+                                                </span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
             </div>
 
             <!-- 1. Booking Section -->
@@ -136,46 +293,79 @@
                                 <th>Khung Giờ</th>
                                 @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
                                 {
-                                    <th>@court.CourtName</th>
+                                    <th>
+                                        @court.CourtName
+                                        @if (court.Status == "Maintenance")
+                                        {
+                                            <br/><small class="text-danger" style="font-size: 0.65rem; text-transform: none;"><i class="bi bi-wrench"></i> Bảo trì</small>
+                                        }
+                                    </th>
                                 }
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td class="fw-bold text-dark">17:00 - 18:00</td>
-                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
-                                <td class="empty text-success" onclick="openBookingModal(2, 'Sân Con 02', '17:00', '18:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
-                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
-                                <td class="empty text-success" onclick="openBookingModal(4, 'Sân Con 04', '17:00', '18:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
-                            </tr>
-                            <tr>
-                                <td class="fw-bold text-dark">18:00 - 19:00</td>
-                                <td class="empty text-success" onclick="openBookingModal(1, 'Sân Con 01', '18:00', '19:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
-                                <td class="empty text-success" onclick="openBookingModal(2, 'Sân Con 02', '18:00', '19:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
-                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
-                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
-                            </tr>
-                            <tr>
-                                <td class="fw-bold text-dark">19:00 - 20:00</td>
-                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
-                                <td class="empty text-success" onclick="openBookingModal(2, 'Sân Con 02', '19:00', '20:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
-                                <td class="empty text-success" onclick="openBookingModal(3, 'Sân Con 03', '19:00', '20:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
-                                <td class="empty text-success" onclick="openBookingModal(4, 'Sân Con 04', '19:00', '20:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
-                            </tr>
-                            <tr>
-                                <td class="fw-bold text-dark">20:00 - 21:00</td>
-                                <td class="empty text-success" onclick="openBookingModal(1, 'Sân Con 01', '20:00', '21:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
-                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
-                                <td class="empty text-success" onclick="openBookingModal(3, 'Sân Con 03', '20:00', '21:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
-                                <td class="empty text-success" onclick="openBookingModal(4, 'Sân Con 04', '20:00', '21:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
-                            </tr>
-                            <tr>
-                                <td class="fw-bold text-dark">21:00 - 22:00</td>
-                                <td class="empty text-success" onclick="openBookingModal(1, 'Sân Con 01', '21:00', '22:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
-                                <td class="empty text-success" onclick="openBookingModal(2, 'Sân Con 02', '21:00', '22:00')"><i class="bi bi-plus-circle-fill me-1"></i> Đặt sân</td>
-                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
-                                <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước!')"><i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt</td>
-                            </tr>
+                            @{
+                                var slots = new List<(string Start, string End)>
+                                {
+                                    ("05:00", "06:00"),
+                                    ("06:00", "07:00"),
+                                    ("07:00", "08:00"),
+                                    ("08:00", "09:00"),
+                                    ("09:00", "10:00"),
+                                    ("10:00", "11:00"),
+                                    ("11:00", "12:00"),
+                                    ("12:00", "13:00"),
+                                    ("13:00", "14:00"),
+                                    ("14:00", "15:00"),
+                                    ("15:00", "16:00"),
+                                    ("16:00", "17:00"),
+                                    ("17:00", "18:00"),
+                                    ("18:00", "19:00"),
+                                    ("19:00", "20:00"),
+                                    ("20:00", "21:00"),
+                                    ("21:00", "22:00")
+                                };
+                                var courts = ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>();
+                                var todayBookings = ViewBag.TodayBookings as List<AquarSmartCourt.Models.Booking> ?? new List<AquarSmartCourt.Models.Booking>();
+                            }
+                            @foreach (var slot in slots)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-dark">@slot.Start - @slot.End</td>
+                                    @foreach (var court in courts)
+                                    {
+                                        var startParts = slot.Start.Split(':');
+                                        var endParts = slot.End.Split(':');
+                                        var slotStart = DateTime.Today.AddHours(int.Parse(startParts[0])).AddMinutes(int.Parse(startParts[1]));
+                                        var slotEnd = DateTime.Today.AddHours(int.Parse(endParts[0])).AddMinutes(int.Parse(endParts[1]));
+
+                                        var booking = todayBookings.FirstOrDefault(b => 
+                                            b.CourtId == court.CourtId && 
+                                            b.StartTime < slotEnd && 
+                                            slotStart < b.EndTime
+                                        );
+
+                                        if (court.Status == "Maintenance")
+                                        {
+                                            <td class="maintenance text-danger text-center bg-danger-subtle fw-semibold" style="cursor: not-allowed;" onclick="alert('Sân này đang trong thời gian bảo trì, vui lòng chọn sân khác!')">
+                                                <i class="bi bi-wrench me-1"></i> Bảo trì
+                                            </td>
+                                        }
+                                        else if (booking != null)
+                                        {
+                                            <td class="booked text-muted" onclick="alert('Khung giờ này đã được đặt trước bởi: @(booking.CustomerName)!')">
+                                                <i class="bi bi-lock-fill me-1 text-muted"></i> Đã đặt (@booking.CustomerName)
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td class="empty text-success" onclick="openBookingModal(@court.CourtId, '@court.CourtName', '@slot.Start', '@slot.End')">
+                                                <i class="bi bi-plus-circle-fill me-1"></i> Đặt sân
+                                            </td>
+                                        }
+                                    }
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>
@@ -238,71 +428,15 @@
                 <h4 class="mb-1 fw-bold"><i class="bi bi-people-fill me-2 text-success"></i>Bắt Cặp & Ghép Sân Chơi</h4>
                 <p class="text-secondary small mb-4">Kết nối với những người chơi khác phù hợp trình độ và chia sẻ chi phí thuê sân.</p>
 
-                <!-- Create Matching Request Form -->
-                <form id="matchingForm" class="mb-4 p-3 border rounded-4 bg-white" onsubmit="submitMatchingRequest(event)">
-                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-plus-circle me-1 text-success"></i>Tạo Yêu Cầu Ghép Sân</h6>
-                    <div class="mb-2">
-                        <label class="form-label small fw-semibold text-dark mb-1">Trình độ kỹ thuật</label>
-                        <select class="form-select form-select-sm" id="matchingSkill" required>
-                            <option value="Beginner">Nhập môn (Beginner)</option>
-                            <option value="Intermediate" selected>Trung bình (Intermediate)</option>
-                            <option value="Advanced">Nâng cao (Advanced)</option>
-                        </select>
-                    </div>
-                    <div class="mb-2 row g-2">
-                        <div class="col-6">
-                            <label class="form-label small fw-semibold text-dark mb-1">Bắt đầu</label>
-                            <input type="time" class="form-control form-control-sm" id="matchingStart" value="18:00" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-semibold text-dark mb-1">Kết thúc</label>
-                            <input type="time" class="form-control form-control-sm" id="matchingEnd" value="20:00" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-dark mb-1">Số lượng tay vợt cần thêm</label>
-                        <input type="number" class="form-control form-control-sm" id="matchingNeeded" min="1" max="4" value="2" required>
-                    </div>
-                    <button type="submit" class="btn btn-success btn-sm w-100 rounded-pill py-2 fw-bold">Đăng Đăng Ký Ghép Sân</button>
-                </form>
 
                 <!-- Active matching groups list -->
                 <div class="active-groups">
                     <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-lightning-fill me-1 text-warning"></i>Nhóm Đang Chờ Thành Viên</h6>
-                    <div class="vstack gap-3">
-                        <div class="border rounded-4 p-3 bg-white shadow-sm glow-card">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="status-badge available" style="font-size: 0.65rem;">Trung Bình</span>
-                                <span class="small text-danger fw-bold"><i class="bi bi-person-fill-exclamation me-1"></i>Cần thêm 2</span>
-                            </div>
-                            <div class="fw-bold text-dark small mb-2"><i class="bi bi-clock me-1 text-primary"></i>18:00 - 20:00 | Sân Con 03</div>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="small text-muted" style="font-size: 0.8rem;">Thành viên hiện tại:</span>
-                                <div class="avatar-group">
-                                    <div class="avatar-img" style="background-color: #e0e7ff; color: #4338ca;">T</div>
-                                    <div class="avatar-img" style="background-color: #d1fae5; color: #065f46;">V</div>
-                                </div>
-                            </div>
-                            <div class="text-secondary small mb-3" style="font-size: 0.78rem;"><i class="bi bi-cash me-1 text-muted"></i>Hình thức: Chia đều tiền sân</div>
-                            <button class="btn btn-outline-primary btn-sm w-100 rounded-pill py-2 fw-bold" onclick="alert('Đã gửi yêu cầu tham gia nhóm ghép. Vui lòng chờ duyệt!')">Tham Gia Ngay</button>
-                        </div>
-                        
-                        <div class="border rounded-4 p-3 bg-white shadow-sm glow-card">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="status-badge available" style="background: hsla(var(--warning-hsl), 0.1); color: var(--accent-warning-dark); border-color: hsla(var(--warning-hsl), 0.2); font-size: 0.65rem;">Nâng Cao</span>
-                                <span class="small text-danger fw-bold"><i class="bi bi-person-fill-exclamation me-1"></i>Cần thêm 1</span>
-                            </div>
-                            <div class="fw-bold text-dark small mb-2"><i class="bi bi-clock me-1 text-primary"></i>19:30 - 21:30 | Sân Con 01</div>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="small text-muted" style="font-size: 0.8rem;">Thành viên hiện tại:</span>
-                                <div class="avatar-group">
-                                    <div class="avatar-img" style="background-color: #fee2e2; color: #991b1b;">K</div>
-                                    <div class="avatar-img" style="background-color: #fef3c7; color: #92400e;">L</div>
-                                    <div class="avatar-img" style="background-color: #e0f2fe; color: #075985;">H</div>
-                                </div>
-                            </div>
-                            <div class="text-secondary small mb-3" style="font-size: 0.78rem;"><i class="bi bi-gift me-1 text-success"></i>Hình thức: Mời chơi (Không cần chia tiền)</div>
-                            <button class="btn btn-outline-primary btn-sm w-100 rounded-pill py-2 fw-bold" onclick="alert('Đã gửi yêu cầu tham gia nhóm ghép. Vui lòng chờ duyệt!')">Tham Gia Ngay</button>
+                    <div class="vstack gap-3" id="matchmakingGroupsList">
+                        <!-- Tải động từ API -->
+                        <div class="text-center py-3 text-secondary">
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Đang tải nhóm ghép...
                         </div>
                     </div>
                 </div>
@@ -374,11 +508,11 @@
                     <div class="mb-3 row g-2">
                         <div class="col-6">
                             <label class="form-label fw-semibold text-dark small mb-1">Thời gian bắt đầu</label>
-                            <input type="text" class="form-control rounded-3" id="bookStart" readonly>
+                            <input type="time" class="form-control rounded-3" id="bookStart" required>
                         </div>
                         <div class="col-6">
                             <label class="form-label fw-semibold text-dark small mb-1">Thời gian kết thúc</label>
-                            <input type="text" class="form-control rounded-3" id="bookEnd" readonly>
+                            <input type="time" class="form-control rounded-3" id="bookEnd" required>
                         </div>
                     </div>
                     <div class="mb-3 row g-2">
@@ -437,6 +571,64 @@
     </div>
 </div>
 
+<!-- Matchmaking Registration Modal -->
+<div class="modal fade" id="registerMatchmakingModal" tabindex="-1" aria-labelledby="registerMatchmakingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-success text-white py-3 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="registerMatchmakingModalLabel"><i class="bi bi-people me-2"></i>Đăng Ký Ghép Cặp Sân Chơi</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="registerMatchmakingForm" onsubmit="submitRegisterMatchmaking(event)">
+                <input type="hidden" id="matchBookingId">
+                <div class="modal-body p-4">
+                    <div class="mb-3 p-3 bg-light rounded-3 border">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-secondary small">Sân của bạn:</span>
+                            <span class="fw-bold text-dark" id="matchCourtName">Sân Con 01</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-secondary small">Thời gian chơi:</span>
+                            <span class="fw-bold text-primary" id="matchTimeRange">17:00 - 19:00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Trình độ kỹ thuật yêu cầu</label>
+                        <select class="form-select rounded-3" id="matchSkill" required>
+                            <option value="Beginner">Nhập môn (Beginner)</option>
+                            <option value="Intermediate" selected>Trung bình (Intermediate)</option>
+                            <option value="Advanced">Nâng cao (Advanced)</option>
+                        </select>
+                        <small class="text-muted d-block mt-1">Chọn trình độ kỹ thuật tối thiểu mà bạn muốn ghép cùng.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Số lượng tay vợt cần thêm</label>
+                        <input type="number" class="form-control rounded-3" id="matchNeeded" min="1" max="4" value="2" required>
+                        <small class="text-muted d-block mt-1">Số người cần tìm thêm để bắt cặp đủ sân (từ 1 đến 4 người).</small>
+                    </div>
+
+                    <div class="mb-3 row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Tên hiển thị người tạo</label>
+                            <input type="text" class="form-control rounded-3" id="matchCreatorName" value="@(User.Identity?.Name ?? "")" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Số điện thoại liên hệ</label>
+                            <input type="tel" class="form-control rounded-3" id="matchCreatorPhone" value="@User.FindFirst("PhoneNumber")?.Value" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4">Đăng Ký Ghép</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Video Simulation Modal Dialog -->
 <div class="modal fade" id="videoPlayModal" tabindex="-1" aria-labelledby="videoPlayModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -472,13 +664,45 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
+        const CURRENT_USER_NAME = '@Html.Raw(User.Identity?.Name ?? "Khách Hàng")';
+        const CURRENT_USER_PHONE = '@Html.Raw(User.FindFirst("PhoneNumber")?.Value ?? "0987654321")';
+
         let bookingModalObj = null;
         let videoModalObj = null;
+        let registerMatchmakingModalObj = null;
+
+        // SignalR Connection
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/courtHub")
+            .build();
+
+        connection.on("ReceiveUpdate", function() {
+            const openModals = $('.modal.show').length;
+            if (openModals === 0) {
+                location.reload();
+            } else {
+                console.log("Dữ liệu sân đã thay đổi. Sẽ cập nhật sau.");
+            }
+        });
 
         $(document).ready(function() {
             bookingModalObj = new bootstrap.Modal(document.getElementById('onlineBookingModal'));
             videoModalObj = new bootstrap.Modal(document.getElementById('videoPlayModal'));
+            registerMatchmakingModalObj = new bootstrap.Modal(document.getElementById('registerMatchmakingModal'));
+            loadMatchmakingGroups();
+            updateSessionProgress();
+
+            // Periodic updates
+            setInterval(loadMatchmakingGroups, 30000);
+            setInterval(updateSessionProgress, 10000);
+
+            connection.start().then(function() {
+                console.log("SignalR connected successfully.");
+            }).catch(function(err) {
+                console.error("SignalR connection error: " + err.toString());
+            });
         });
 
         function toggleBookSvcQty(id) {
@@ -546,26 +770,25 @@
             });
         }
 
-        function submitActivePlayOrder(e) {
+        function submitActivePlayOrder(e, courtId) {
             e.preventDefault();
             const itemId = parseInt(document.getElementById('activePlayServiceSelect').value);
             const qty = parseInt(document.getElementById('activePlayServiceQty').value);
             const itemName = document.getElementById('activePlayServiceSelect').options[document.getElementById('activePlayServiceSelect').selectedIndex].text;
 
-            // Simulate active session is Sân Con 01 (CourtId = 1)
-            const courtId = 1;
+            const finalCourtId = courtId || 1;
 
             $.ajax({
                 url: '/api/CourtApi/order',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                    courtId: courtId,
+                    courtId: finalCourtId,
                     serviceItemId: itemId,
                     quantity: qty
                 }),
                 success: function() {
-                    alert(`Gửi yêu cầu phục vụ thành công!\nĐã đặt: ${itemName}\nSố lượng: ${qty}\nNhân viên lễ tân sẽ chuyển nước/vợt đến Sân Con 01 ngay cho bạn!`);
+                    alert(`Gửi yêu cầu phục vụ thành công!\nĐã đặt: ${itemName}\nSố lượng: ${qty}\nNhân viên lễ tân sẽ chuyển nước/vợt đến sân ngay cho bạn!`);
                     document.getElementById('activePlayServiceQty').value = 1;
                 },
                 error: function(xhr) {
@@ -574,13 +797,252 @@
             });
         }
 
-        function submitMatchingRequest(e) {
+        function getAvatarColor(name) {
+            const hash = [...name].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            const colors = [
+                { bg: '#e0e7ff', text: '#4338ca' }, // Indigo
+                { bg: '#d1fae5', text: '#065f46' }, // Green
+                { bg: '#fee2e2', text: '#991b1b' }, // Red
+                { bg: '#fef3c7', text: '#92400e' }, // Amber
+                { bg: '#e0f2fe', text: '#075985' }, // Sky
+                { bg: '#f3e8ff', text: '#6b21a8' }, // Purple
+                { bg: '#fce7f3', text: '#9d174d' }  // Pink
+            ];
+            return colors[hash % colors.length];
+        }
+
+        function updateSessionProgress() {
+            const container = document.getElementById('session-progress-container');
+            if (!container) return;
+
+            const startStr = container.getAttribute('data-start');
+            const endStr = container.getAttribute('data-end');
+            const isUpcoming = container.getAttribute('data-upcoming') === 'true';
+
+            if (!startStr || !endStr) return;
+
+            const start = new Date(startStr);
+            const end = new Date(endStr);
+            const now = new Date();
+
+            const leftTextEl = document.getElementById('session-progress-text-left');
+            const rightTextEl = document.getElementById('session-progress-text-right');
+            const barEl = document.getElementById('session-progress-bar-el');
+
+            if (isUpcoming) {
+                const waitMs = start - now;
+                if (waitMs <= 0) {
+                    location.reload();
+                    return;
+                }
+                const waitMinutes = Math.ceil(waitMs / 60000);
+                const totalPlay = Math.round((end - start) / 60000);
+                if (leftTextEl) leftTextEl.innerText = `Bắt đầu sau: ${waitMinutes} phút`;
+                if (rightTextEl) rightTextEl.innerText = `Thời gian chơi: ${totalPlay} phút`;
+                if (barEl) barEl.style.width = '0%';
+            } else {
+                const totalMs = end - start;
+                const elapsedMs = now - start;
+                const remainMs = end - now;
+
+                if (remainMs <= 0) {
+                    location.reload();
+                    return;
+                }
+
+                const totalMin = Math.round(totalMs / 60000);
+                const elapsedMin = Math.floor(elapsedMs / 60000);
+                const remainMin = Math.ceil(remainMs / 60000);
+                const progPercent = Math.max(0, Math.min(100, (elapsedMs / totalMs) * 100));
+
+                if (leftTextEl) leftTextEl.innerText = `Thời gian trôi qua: ${elapsedMin} phút (${Math.round(progPercent)}%)`;
+                if (rightTextEl) rightTextEl.innerText = `Còn lại: ${remainMin} phút`;
+                if (barEl) barEl.style.width = `${progPercent.toFixed(1)}%`;
+            }
+        }
+
+        function loadMatchmakingGroups() {
+            $.ajax({
+                url: '/api/MatchmakingApi/groups',
+                type: 'GET',
+                success: function(groups) {
+                    const listContainer = document.getElementById('matchmakingGroupsList');
+                    if (!listContainer) return;
+                    listContainer.innerHTML = '';
+
+                    if (groups.length === 0) {
+                        listContainer.innerHTML = `
+                            <div class="text-center py-4 text-secondary">
+                                <i class="bi bi-info-circle me-1"></i> Hiện chưa có nhóm nào chờ ghép.
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    groups.forEach(g => {
+                        const needed = g.playersNeeded - g.playersJoined;
+                        const badgeLabel = g.skillLevel === 'Beginner' ? 'Nhập Môn' : 
+                                           g.skillLevel === 'Advanced' ? 'Nâng Cao' : 
+                                           'Trung Bình';
+
+                        let avatarsHtml = '';
+                        if (g.participants && g.participants.length > 0) {
+                            g.participants.forEach(pName => {
+                                const initials = pName.trim().split(" ").pop()[0] || pName[0] || "?";
+                                const colors = getAvatarColor(pName);
+                                avatarsHtml += `<div class="avatar-img" style="background-color: ${colors.bg}; color: ${colors.text};" title="${pName}">${initials}</div>`;
+                            });
+                        } else {
+                            const initials = g.creatorName.trim().split(" ").pop()[0] || g.creatorName[0] || "?";
+                            const colors = getAvatarColor(g.creatorName);
+                            avatarsHtml += `<div class="avatar-img" style="background-color: ${colors.bg}; color: ${colors.text};" title="${g.creatorName}">${initials}</div>`;
+                        }
+
+                        const alreadyJoined = g.participants && g.participants.includes(CURRENT_USER_NAME);
+                        const buttonHtml = alreadyJoined 
+                            ? `<button class="btn btn-secondary btn-sm w-100 rounded-pill py-2 fw-bold" disabled>Bạn Đã Tham Gia</button>`
+                            : `<button class="btn btn-outline-primary btn-sm w-100 rounded-pill py-2 fw-bold" onclick="joinMatchmakingGroup(${g.matchmakingGroupId}, '${g.creatorName}', '${g.startTime}', '${g.endTime}')">Tham Gia Ngay</button>`;
+
+                        const cardHtml = `
+                            <div class="border rounded-4 p-3 bg-white shadow-sm glow-card">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="status-badge px-2 py-1 border rounded fw-semibold text-success bg-success bg-opacity-10 border-success" style="font-size: 0.65rem;">${badgeLabel}</span>
+                                    <span class="small text-danger fw-bold"><i class="bi bi-person-fill-exclamation me-1"></i>Cần thêm ${needed}</span>
+                                </div>
+                                <div class="fw-bold text-dark small mb-2"><i class="bi bi-clock me-1 text-primary"></i>${g.startTime} - ${g.endTime} | ${g.courtName}</div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="small text-muted" style="font-size: 0.8rem;">Thành viên hiện tại:</span>
+                                    <div class="avatar-group">
+                                        ${avatarsHtml}
+                                    </div>
+                                </div>
+                                <div class="text-secondary small mb-3" style="font-size: 0.78rem;">
+                                    <i class="bi bi-person me-1 text-muted"></i>Người tạo: <strong>${g.creatorName}</strong>
+                                </div>
+                                ${buttonHtml}
+                            </div>
+                        `;
+                        listContainer.innerHTML += cardHtml;
+                    });
+                },
+                error: function(xhr) {
+                    console.error('Lỗi tải danh sách ghép sân:', xhr.responseText);
+                    const listContainer = document.getElementById('matchmakingGroupsList');
+                    if (listContainer) {
+                        listContainer.innerHTML = `
+                            <div class="text-center py-4 text-danger">
+                                <i class="bi bi-exclamation-triangle me-1"></i> Không thể tải danh sách nhóm ghép.
+                            </div>
+                        `;
+                    }
+                }
+            });
+        }
+
+        function joinMatchmakingGroup(groupId, creatorName, start, end) {
+            let confirmModalEl = document.getElementById('customConfirmModal');
+            if (!confirmModalEl) {
+                confirmModalEl = document.createElement('div');
+                confirmModalEl.id = 'customConfirmModal';
+                confirmModalEl.className = 'modal fade';
+                confirmModalEl.setAttribute('tabindex', '-1');
+                confirmModalEl.setAttribute('aria-hidden', 'true');
+                confirmModalEl.style.zIndex = '10000';
+                confirmModalEl.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--bg-card, #ffffff); color: var(--text-color, #1e293b);">
+                            <div class="modal-header border-0 pb-0" style="padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
+                                <h5 class="modal-title fw-bold d-flex align-items-center">
+                                    <i class="bi bi-question-circle-fill text-warning me-2 fs-4"></i> Xác nhận tham gia
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body py-3 px-4" style="font-size: 1rem; line-height: 1.6;">
+                                <!-- Message -->
+                            </div>
+                            <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" data-bs-dismiss="modal">Hủy</button>
+                                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold btn-confirm-action">Xác nhận</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(confirmModalEl);
+            }
+
+            confirmModalEl.querySelector('.modal-body').innerHTML = `Bạn có chắc chắn muốn tham gia nhóm ghép của <strong>${creatorName}</strong> trong khung giờ <strong>${start} - ${end}</strong> không?`;
+            
+            const confirmBtn = confirmModalEl.querySelector('.btn-confirm-action');
+            const bsConfirmModal = new bootstrap.Modal(confirmModalEl);
+            
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+            newConfirmBtn.addEventListener('click', function() {
+                bsConfirmModal.hide();
+                
+                $.ajax({
+                    url: `/api/MatchmakingApi/join/${groupId}`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        fullName: CURRENT_USER_NAME,
+                        phoneNumber: CURRENT_USER_PHONE
+                    }),
+                    success: function(res) {
+                        alert(res.message || 'Tham gia nhóm ghép thành công!');
+                        loadMatchmakingGroups();
+                        if (res.status === 'Matched') {
+                            setTimeout(() => {
+                                location.reload();
+                            }, 2000);
+                        }
+                    },
+                    error: function(xhr) {
+                        alert('Lỗi tham gia nhóm: ' + xhr.responseText);
+                    }
+                });
+            });
+
+            bsConfirmModal.show();
+        }
+
+        function openRegisterMatchmakingModal(bookingId, courtName, timeRange) {
+            document.getElementById('matchBookingId').value = bookingId;
+            document.getElementById('matchCourtName').textContent = courtName;
+            document.getElementById('matchTimeRange').textContent = timeRange;
+            registerMatchmakingModalObj.show();
+        }
+
+        function submitRegisterMatchmaking(e) {
             e.preventDefault();
-            const level = document.getElementById('matchingSkill').options[document.getElementById('matchingSkill').selectedIndex].text;
-            const start = document.getElementById('matchingStart').value;
-            const end = document.getElementById('matchingEnd').value;
-            alert(`Đăng ký ghép đôi thành công!\nHệ thống đang quét các người chơi trình độ [${level}] có cùng khu giờ ${start} - ${end}.\nChúng tôi sẽ gửi thông báo xác nhận tự động khi tìm thấy đối tác phù hợp.`);
-            document.getElementById('matchingForm').reset();
+            const bookingId = parseInt(document.getElementById('matchBookingId').value);
+            const level = document.getElementById('matchSkill').value;
+            const neededVal = parseInt(document.getElementById('matchNeeded').value);
+            const totalPlayersNeeded = 1 + neededVal;
+            const creatorName = document.getElementById('matchCreatorName').value;
+            const creatorPhone = document.getElementById('matchCreatorPhone').value;
+
+            $.ajax({
+                url: '/api/MatchmakingApi/request',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    bookingId: bookingId,
+                    skillLevel: level,
+                    playersNeeded: totalPlayersNeeded,
+                    creatorName: creatorName,
+                    creatorPhone: creatorPhone
+                }),
+                success: function(res) {
+                    alert('Đăng ký ghép đôi thành công!\nYêu cầu của bạn đã được đưa lên danh sách ghép sân.');
+                    registerMatchmakingModalObj.hide();
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Lỗi tạo nhóm ghép: ' + xhr.responseText);
+                }
+            });
         }
 
         function filterActivePlayServices() {

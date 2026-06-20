@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using AquarSmartCourt.Models;
+using AquarSmartCourt.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -25,6 +27,18 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.EnsureDeleted();
     db.Database.EnsureCreated();
+
+    if (db.Database.IsSqlServer() || db.Database.ProviderName?.Contains("SqlServer") == true)
+    {
+        db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('MatchmakingGroups', RESEED)");
+        db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('MatchmakingParticipants', RESEED)");
+        db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Bookings', RESEED)");
+        db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Invoices', RESEED)");
+        db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Users', RESEED)");
+        db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Courts', RESEED)");
+        db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('ServiceItems', RESEED)");
+        db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('SurveillanceVideos', RESEED)");
+    }
 }
 
 // Configure the HTTP request pipeline.
@@ -41,6 +55,8 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHub<CourtHub>("/courtHub");
 
 app.MapControllerRoute(
     name: "default",

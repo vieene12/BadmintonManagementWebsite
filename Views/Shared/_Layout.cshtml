@@ -40,7 +40,7 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarColor01">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
-                        @if (userRole == "1" || userRole == "2" || userRole == "3")
+                        @if (userRole == "1")
                         {
                             <li class="nav-item">
                                 <a class="nav-link py-2 px-3 fw-semibold @(ViewData["ActivePage"]?.ToString() == "Customer" ? "text-primary active" : "text-secondary")" asp-controller="Home" asp-action="Index">
@@ -48,7 +48,7 @@
                                 </a>
                             </li>
                         }
-                        @if (userRole == "2" || userRole == "3")
+                        @if (userRole == "2")
                         {
                             <li class="nav-item">
                                 <a class="nav-link py-2 px-3 fw-semibold @(ViewData["ActivePage"]?.ToString() == "Receptionist" ? "text-primary active" : "text-secondary")" asp-controller="Receptionist" asp-action="Index">
@@ -77,18 +77,9 @@
                             </small>
                             <span class="fw-semibold text-dark" id="current-user-tag">@userName</span>
                         </div>
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border: 1px solid #e2e8f0;">
-                                <i class="bi bi-person-circle"></i> Đổi Vai Trò
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-md border-0 mt-2 rounded-4">
-                                <li><a class="dropdown-item py-2 fw-medium" href="@Url.Action("SwitchRole", "Account", new { role = 1 })"><i class="bi bi-people me-2 text-primary"></i>Khách hàng</a></li>
-                                <li><a class="dropdown-item py-2 fw-medium" href="@Url.Action("SwitchRole", "Account", new { role = 2 })"><i class="bi bi-laptop me-2 text-info"></i>Nhân viên Lễ tân</a></li>
-                                <li><a class="dropdown-item py-2 fw-medium" href="@Url.Action("SwitchRole", "Account", new { role = 3 })"><i class="bi bi-shield-lock me-2 text-success"></i>Quản trị viên (Admin)</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item py-2 text-danger fw-medium" href="@Url.Action("Logout", "Account")"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
-                            </ul>
-                        </div>
+                        <a class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" href="@Url.Action("Logout", "Account")">
+                            <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+                        </a>
                     </div>
                 </div>
             </div>
@@ -225,9 +216,9 @@
             // Initialize chatbot state based on current role on load
             const currentRole = '@userRole';
             if (currentRole === '3') {
-                switchRole('Manager', '@userName');
+                switchRole('Manager', '@Html.Raw(userName)');
             } else {
-                switchRole('Customer', '@userName');
+                switchRole('Customer', '@Html.Raw(userName)');
             }
         });
     </script>
