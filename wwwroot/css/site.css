@@ -4,26 +4,54 @@
    DESIGN SYSTEM (MINIMAL, CLEAN, FLAT)
    ========================================== */
 :root {
-  --bg-primary: #f2f2f2;
-  --bg-secondary: #ffffff;
-  --text-primary: #161616;
-  --text-secondary: #555555;
-  --text-muted: #999999;
+  /* ─── Base Colors (Layers) ─── */
+  --bg-primary: #f8fafc; /* Nền xám nhạt sáng hơn */
+  --bg-secondary: #ffffff; /* Nền Card/Modal */
+  --text-primary: #0f172a; /* Xanh navy siêu đậm (Đảm bảo độ đọc trên nền sáng) */
+  --text-secondary: #475569; /* Xám chì cho text phụ */
+  --text-muted: #94a3b8;
+  --border-color: #e2e8f0;
   
-  /* Accent Colors */
-  --accent-green: #316143;
-  --accent-blue: #4270be;
+  /* ─── Thể Thao / Thống Nhất (Accent Colors) ─── */
+  --color-primary: #ea580c; /* Cam đậm (Đảm bảo tương phản WCAG với chữ trắng) */
+  --color-primary-hover: #c2410c;
+  --text-on-primary: #ffffff; /* Chữ TRẮNG trên nền đậm */
+
+  --color-secondary: #2563eb; /* Xanh dương đậm */
+  --color-secondary-hover: #1d4ed8;
+  --text-on-secondary: #ffffff;
+
+  --color-success: #059669; /* Xanh lá đậm */
+  --color-success-hover: #047857;
+  --text-on-success: #ffffff;
+
+  --color-danger: #dc2626; /* Đỏ đậm */
+  --color-danger-hover: #b91c1c;
+  --text-on-danger: #ffffff;
   
-  --border-color: #e0e0e0;
+  /* ─── Spacing ─── */
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
   
-  /* Fonts */
+  /* ─── Border Radius ─── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+  
+  /* ─── Shadows ─── */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  
+  /* ─── Fonts & Animations ─── */
   --font-title: 'Inter', sans-serif;
   --font-body: 'Be Vietnam Pro', sans-serif;
-  
-  /* Animations */
-  --transition-smooth: all 0.45s cubic-bezier(0.215, 0.61, 0.355, 1);
-  --radius-cta: 2px; /* Slight angle / cut angle look */
-  --radius-card: 4px;
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.15s ease-in-out;
 }
 
 /* Base resets */
@@ -37,6 +65,109 @@ body {
   overflow-x: hidden;
 }
 
+/* ==========================================
+   GLOBAL BOOTSTRAP OVERRIDES (ACCESSIBILITY)
+   ========================================== */
+
+/* ─── BOOTSTRAP CARDS ─── */
+.card {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+.card-header, .card-footer {
+  background-color: rgba(0, 0, 0, 0.02);
+  border-color: var(--border-color);
+}
+.text-muted {
+  color: var(--text-secondary) !important;
+}
+
+/* ─── BOOTSTRAP BUTTONS ─── */
+.btn {
+  font-family: var(--font-title);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+  padding: 10px 20px;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(100%);
+}
+
+/* Override btn-primary */
+.btn-primary, .bg-primary {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--text-on-primary) !important;
+}
+.btn-primary:hover:not(:disabled), .btn-primary:focus:not(:disabled) {
+  background-color: var(--color-primary-hover) !important;
+  border-color: var(--color-primary-hover) !important;
+  color: var(--text-on-primary) !important;
+  box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);
+}
+
+/* Override btn-secondary */
+.btn-secondary, .bg-secondary {
+  background-color: var(--color-secondary) !important;
+  border-color: var(--color-secondary) !important;
+  color: var(--text-on-secondary) !important;
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-secondary-hover) !important;
+  border-color: var(--color-secondary-hover) !important;
+  color: var(--text-on-secondary) !important;
+}
+
+/* Override btn-success */
+.btn-success, .bg-success {
+  background-color: var(--color-success) !important;
+  border-color: var(--color-success) !important;
+  color: var(--text-on-success) !important;
+}
+.btn-success:hover:not(:disabled) {
+  background-color: var(--color-success-hover) !important;
+  border-color: var(--color-success-hover) !important;
+}
+
+/* Override btn-danger */
+.btn-danger, .bg-danger {
+  background-color: var(--color-danger) !important;
+  border-color: var(--color-danger) !important;
+  color: var(--text-on-danger) !important;
+}
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--color-danger-hover) !important;
+  border-color: var(--color-danger-hover) !important;
+}
+
+/* Override btn-outline-* */
+.btn-outline-primary {
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  background-color: transparent !important;
+}
+.btn-outline-primary:hover:not(:disabled) {
+  background-color: var(--color-primary) !important;
+  color: var(--text-on-primary) !important;
+}
+.btn-outline-secondary {
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+  background-color: var(--bg-secondary) !important;
+}
+.btn-outline-secondary:hover:not(:disabled) {
+  background-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-title);
   color: var(--text-primary);
@@ -98,12 +229,156 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .admin-sidebar-header {
-  padding: 24px 20px;
+  padding: 24px;
   border-bottom: 1px solid #2d2d2d;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
 }
+
+/* ==========================================
+   UI COMPONENTS (CARDS & BUTTONS)
+   ========================================== */
+
+/* ─── CARD SYSTEM ─── */
+.sys-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Card Hover Effect */
+.sys-card-interactive {
+  cursor: pointer;
+}
+.sys-card-interactive:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+/* Glassmorphism Card (Cho Customer Role) */
+.sys-card-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+}
+
+/* Card Header/Body Layout */
+.sys-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+.sys-card-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.sys-card-body {
+  flex: 1; /* Căn chỉnh đẩy footer xuống đáy nếu dùng trong flex row */
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* ─── BUTTON SYSTEM ─── */
+.sys-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: 10px 20px;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.sys-btn:active:not(:disabled) {
+  transform: scale(0.96); /* Hiệu ứng lún nút */
+}
+
+.sys-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(100%);
+}
+
+/* Primary Button (Năng động, Hành động chính) */
+.sys-btn-primary {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.3);
+}
+.sys-btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  box-shadow: 0 6px 14px rgba(249, 115, 22, 0.4);
+  color: #ffffff;
+}
+
+/* Secondary Button (Thông tin, Hành động phụ) */
+.sys-btn-secondary {
+  background-color: transparent;
+  color: var(--color-secondary);
+  border: 1px solid var(--color-secondary);
+}
+.sys-btn-secondary:hover:not(:disabled) {
+  background-color: rgba(59, 130, 246, 0.08);
+}
+
+/* Danger Button (Xóa, Hủy) */
+.sys-btn-danger {
+  background-color: var(--color-danger);
+  color: #ffffff;
+}
+.sys-btn-danger:hover:not(:disabled) {
+  background-color: var(--color-danger-hover);
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+}
+
+/* Rounded Pill Button */
+.sys-btn-pill {
+  border-radius: var(--radius-pill);
+  padding: 10px 24px;
+}
+
+/* ─── RIPPLE EFFECT (JS REQUIRED) ─── */
+.sys-ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: sys-ripple-anim 0.6s linear;
+  background-color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+.sys-btn-secondary .sys-ripple {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+@keyframes sys-ripple-anim {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
 
 .admin-sidebar-logo {
   font-family: var(--font-title);
@@ -1128,4 +1403,238 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 12px 16px;
+}
+
+/* ==========================================
+   FRONTEND ROUTING LOADER & TRANSITION STYLES
+   ========================================== */
+#frontend-loader {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.95);
+  z-index: 999999;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
+}
+
+#frontend-loader.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.loader-content {
+  text-align: center;
+  color: #ffffff;
+  animation: scaleUpIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleUpIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Custom scrollbar utility for cleaner overflow layout */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 8px;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: rgba(16, 22, 35, 0.15);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 22, 35, 0.35);
+}
+
+/* ==========================================
+   CHIBI STICKER ANIMATIONS (DECORATION)
+   ========================================== */
+
+/* 1. Bounce (Nhún nhảy / Vung vợt) */
+.sticker-bounce {
+  display: inline-block;
+  animation: chibiBounce 2.5s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+@keyframes chibiBounce {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  40% { transform: translateY(-12px) scaleY(1.05); }
+  50% { transform: translateY(-12px) scaleY(1.05); }
+  90% { transform: translateY(0) scaleY(0.95); }
+}
+
+/* 2. Float Glow (Quả cầu lông lơ lửng & phát sáng nhẹ) */
+.sticker-float-glow {
+  display: inline-block;
+  animation: chibiFloatGlow 3s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0));
+}
+@keyframes chibiFloatGlow {
+  0% { transform: translateY(0) rotate(0deg); filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.2)); }
+  100% { transform: translateY(-15px) rotate(8deg); filter: drop-shadow(0 10px 15px rgba(59, 130, 246, 0.6)); }
+}
+
+/* 3. High-five / Pulse (Nhân vật vẫy tay / đập tay) */
+.sticker-pulse {
+  display: inline-block;
+  animation: chibiPulse 2s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes chibiPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08) rotate(3deg); }
+  100% { transform: scale(1); }
+}
+
+/* 4. Wave (Nhân vật vẫy tay chào) */
+.sticker-wave {
+  display: inline-block;
+  animation: chibiWave 2.5s infinite;
+  transform-origin: bottom center;
+}
+@keyframes chibiWave {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(10deg); }
+  30% { transform: rotate(-10deg); }
+  45% { transform: rotate(10deg); }
+  60% { transform: rotate(-5deg); }
+  75% { transform: rotate(0deg); }
+}
+
+/* 5. Utility classes for absolute positioning stickers in corners */
+.sticker-floating-corner {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none; /* Tránh cản trở click chuột */
+}
+.sticker-floating-corner img, .sticker-floating-corner svg {
+  width: 100px;
+  height: auto;
+  opacity: 0.95;
+}
+
+/* ==========================================
+   SCROLL & RANDOM ANIMATIONS (SVG CHIBI)
+   ========================================== */
+
+/* Scroll Observer Hidden/Show States */
+.scroll-hidden {
+  opacity: 0;
+  transform: translateY(40px) scale(0.8);
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.scroll-show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Base SVG styling */
+.svg-chibi {
+  overflow: visible;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+/* Random shoot animation for Shuttlecock */
+.random-shoot {
+  animation: shuttleShoot 1.5s ease-in-out forwards;
+}
+
+@keyframes shuttleShoot {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  20% { transform: translate(-20px, 10px) rotate(-15deg); opacity: 1; }
+  100% { transform: translate(300px, -200px) rotate(180deg); opacity: 0; }
+}
+
+/* ==========================================
+   SPORTS UI UPGRADES (VIBRANT & HIGH CONTRAST)
+   ========================================== */
+:root {
+  /* 1. Manager: Nút "Xuất báo cáo" (Professional & Deep) */
+  --btn-report-bg: #1e3a8a; /* Deep Indigo / Royal Blue */
+  --btn-report-hover: #2563eb;
+  --btn-report-shadow: rgba(59, 130, 246, 0.4);
+
+  /* 2. Staff: Nút "Đặt sân tại quầy" (Vibrant CTA) */
+  --btn-quickbook-bg-start: #ff6b00; /* Vibrant Orange */
+  --btn-quickbook-bg-end: #ea1818; /* Red Orange */
+  
+  /* 3. Customer: Header (Tech & Modern Navy to Teal) */
+  --header-cust-start: #0f172a; /* Deep Navy */
+  --header-cust-end: #0d9488; /* Teal / Cyan */
+}
+
+/* ─── 1. NÚT XUẤT BÁO CÁO (MANAGER) ─── */
+.btn-export-report {
+  background-color: var(--btn-report-bg) !important;
+  color: #ffffff !important; /* Chữ trắng tương phản tuyệt đối */
+  font-weight: 600 !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+}
+.btn-export-report:hover, 
+.btn-export-report:focus {
+  background-color: var(--btn-report-hover) !important;
+  box-shadow: 0 4px 15px var(--btn-report-shadow) !important;
+  transform: translateY(-2px);
+  color: #ffffff !important;
+}
+
+/* ─── 2. NÚT ĐẶT SÂN TẠI QUẦY (RECEPTIONIST) ─── */
+.btn-quick-book {
+  background: linear-gradient(135deg, var(--btn-quickbook-bg-start) 0%, var(--btn-quickbook-bg-end) 100%) !important;
+  color: #ffffff !important; /* Khắc phục lỗi chữ tàng hình */
+  font-weight: 700 !important;
+  border: none !important;
+  box-shadow: 0 4px 10px rgba(234, 24, 24, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+.btn-quick-book:hover {
+  transform: scale(1.05) !important; /* Phóng to tạo cảm giác chốt đơn */
+  box-shadow: 0 6px 15px rgba(234, 24, 24, 0.4) !important;
+  color: #ffffff !important;
+}
+
+/* ─── 3. THANH HEADER (CUSTOMER) ─── */
+.header-customer-sporty {
+  background: linear-gradient(90deg, var(--header-cust-start) 0%, var(--header-cust-end) 100%) !important;
+  box-shadow: 0 4px 20px rgba(13, 148, 136, 0.2) !important;
+  color: #ffffff !important;
+  border-bottom: none !important;
+}
+.header-customer-sporty .navbar-brand,
+.header-customer-sporty .nav-link,
+.header-customer-sporty .text-dark /* Ghi đè text cũ nếu có */ {
+  color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.header-customer-sporty .btn-outline-primary {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+.header-customer-sporty .btn-outline-primary:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }

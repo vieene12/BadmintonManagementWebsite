@@ -26,6 +26,32 @@
                     document.documentElement.setAttribute('data-theme', 'dark');
                 }
             })();
+
+            // Expose server auth state to frontend scripts
+            window.authConfig = {
+                isAuthenticated: @(User.Identity?.IsAuthenticated.ToString().ToLower() ?? "false"),
+                role: '@userRole',
+                username: '@Html.Raw(userName)',
+                position: '@Html.Raw(userPosition)',
+                staffCode: '@staffCode'
+            };
+
+            // Immediate Client-side Protected Routes (Route Guards)
+            (function() {
+                var currentUrl = window.location.pathname.toLowerCase();
+                var role = window.authConfig.role || localStorage.getItem('role') || '';
+                var token = localStorage.getItem('token') || (window.authConfig.isAuthenticated ? 'server_token' : '');
+
+                if (currentUrl.indexOf('/manager') !== -1) {
+                    if (!token || role !== '3') {
+                        window.location.href = '/Account/AccessDenied';
+                    }
+                } else if (currentUrl.indexOf('/receptionist') !== -1) {
+                    if (!token || (role !== '2' && role !== '3')) {
+                        window.location.href = '/Account/AccessDenied';
+                    }
+                }
+            })();
     </script>
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
@@ -141,7 +167,7 @@ else
 {
     <!-- Customer / Guest Layout with Top Header Navbar -->
     <header>
-        <nav class="navbar navbar-expand-lg navbar-light navbar-custom py-2">
+        <nav class="navbar navbar-expand-lg navbar-light navbar-custom py-2 header-customer-sporty">
             <div class="container-fluid px-4">
                 <a class="navbar-brand navbar-brand-custom" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="bi bi-lightning-charge-fill"></i> Aquar SmashCourt
@@ -173,7 +199,12 @@ else
                             </li>
                         }
                     </ul>
-                    <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-3 position-relative">
+                        <!-- Chibi Greeting Sticker for Guest/Customer -->
+                        <div class="sticker-floating-corner sticker-wave d-none d-md-block" style="top: 25px; right: 120px; width: 65px;">
+                            <img src="~/images/stickers/chibi-wave.png" alt="hello sticker" style="width: 100%;" onerror="this.style.display='none'" />
+                        </div>
+
                         @if (userRole == "1")
                         {
                             <button class="btn btn-outline-success btn-sm d-none d-lg-inline-block px-3" id="btn-toggle-matching-desktop" onclick="toggleCustomerMatchmakingView()">

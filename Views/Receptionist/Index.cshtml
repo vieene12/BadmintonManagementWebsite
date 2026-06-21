@@ -9,8 +9,11 @@
             <p class="text-secondary mb-0">Quản lý đặt sân tại quầy, kích hoạt ca chơi, bán dịch vụ gia tăng và thanh toán hóa đơn.</p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="openQuickBookModal()">
+            <button class="btn btn-quick-book rounded-pill px-4" onclick="openQuickBookModal()">
                 <i class="bi bi-plus-circle me-1"></i> Đặt Sân Tại Quầy
+            </button>
+            <button class="btn btn-outline-warning rounded-pill px-3" onclick="switchToInvoiceTab()" style="background:white;">
+                <i class="bi bi-receipt me-1"></i> Quản lý Hóa Đơn
             </button>
             <button class="btn btn-outline-secondary rounded-pill px-3" onclick="location.reload()" style="background: white;">
                 <i class="bi bi-arrow-clockwise"></i> Đồng Bộ Lịch
@@ -36,9 +39,9 @@
                             now <= b.EndTime
                         );
                         string computedStatus = court.Status;
-                        if (court.Status != "Maintenance")
+                        if (court.Status == "Available" && activeBooking != null)
                         {
-                            computedStatus = activeBooking != null ? "InUse" : "Available";
+                            computedStatus = "InUse";
                         }
                         string statusClass = computedStatus.ToLower() switch
                         {
@@ -387,6 +390,910 @@
                 </div>
         </div>
     </div> <!-- end tab-services -->
+
+    <!-- ===============================================================
+         Tab: Quản lý Hóa Đơn (Invoice Management)
+         =============================================================== -->
+    <div id="tab-invoices" class="admin-tab-content">
+        <div class="glass-card p-4 mt-0 mb-4">
+
+            <!-- Header row -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1"><i class="bi bi-receipt me-2 text-primary"></i>Quản lý Hóa Đơn</h5>
+                    <small class="text-muted">Tất cả hóa đơn thanh toán được ghi nhận trong ca trực hôm nay.</small>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-outline-success btn-sm rounded-pill px-3" onclick="exportInvoiceCSV()">
+                        <i class="bi bi-download me-1"></i>Xuất Excel
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="renderInvoiceTable()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Làm mới
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary stat cards -->
+            <div class="row g-3 mb-4" id="inv-stat-cards">
+                <div class="col-6 col-md-3">
+                    <div class="rounded-3 p-3 text-center" style="background:#eff6ff;border:1px solid #bfdbfe;">
+                        <div class="fw-black text-primary" style="font-size:1.6rem;" id="inv-stat-total-count">0</div>
+                        <small class="text-secondary">Tổng hóa đơn</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="rounded-3 p-3 text-center" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                        <div class="fw-black text-success" style="font-size:1.6rem;" id="inv-stat-paid-count">0</div>
+                        <small class="text-secondary">Hoàn tất</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="rounded-3 p-3 text-center" style="background:#fef3c7;border:1px solid #fde68a;">
+                        <div class="fw-black" style="font-size:1.6rem;color:#92400e;" id="inv-stat-pending-count">0</div>
+                        <small class="text-secondary">Chờ thanh toán</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="rounded-3 p-3 text-center" style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);">
+                        <div class="fw-black text-white" style="font-size:1.3rem;" id="inv-stat-revenue">0đ</div>
+                        <small class="text-white opacity-75">Doanh thu ca</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter + Search row -->
+            <div class="d-flex flex-column flex-md-row gap-2 mb-3">
+                <div class="input-group input-group-sm" style="max-width:280px;">
+                    <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" class="form-control" id="inv-search-input"
+                           placeholder="Tìm theo khách, sân, mã HĐ..."
+                           oninput="renderInvoiceTable()">
+                </div>
+                <select class="form-select form-select-sm" id="inv-filter-status" style="max-width:160px;" onchange="renderInvoiceTable()">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Paid">Hoàn tất</option>
+                    <option value="Pending">Chờ thanh toán</option>
+                    <option value="Cancelled">Hủy</option>
+                </select>
+                <select class="form-select form-select-sm" id="inv-filter-method" style="max-width:160px;" onchange="renderInvoiceTable()">
+                    <option value="">Tất cả hình thức</option>
+                    <option value="cash">Ấ Tiền mặt</option>
+                    <option value="bank">Ấ Chuyển khoản</option>
+                </select>
+            </div>
+
+            <!-- Invoice Table -->
+            <div class="table-responsive">
+                <table class="table align-middle table-hover mb-0" id="inv-history-table">
+                    <thead class="table-light">
+                        <tr class="small text-secondary" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.4px;">
+                            <th style="width:120px;">Mã HĐ</th>
+                            <th>Khách hàng</th>
+                            <th>Sân</th>
+                            <th class="text-center">Giờ chơi</th>
+                            <th class="text-end">Thành tiền</th>
+                            <th class="text-center">Hình thức</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-center">Thời gian</th>
+                            <th class="text-center" style="width:90px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inv-history-tbody">
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-5">
+                                <i class="bi bi-receipt text-muted" style="font-size:2.5rem;opacity:0.3;"></i>
+                                <div class="mt-2">Chưa có hóa đơn nào trong ca hôm nay.</div>
+                                <small class="text-muted">Hóa đơn sẽ xuất hiện đây sau khi nhân viên xác nhận thanh toán.</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination row -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <small class="text-muted" id="inv-table-count">Hiển thị 0 hóa đơn</small>
+                <div class="d-flex gap-1" id="inv-pagination"></div>
+            </div>
+        </div>
+    </div> <!-- end tab-invoices -->
+
+</div>
+
+<!-- ============================================================
+     INVOICE PAYMENT MODAL (Thanh toán hóa đơn)
+     Trigger: openCheckoutModal(courtId, courtName, customerName, hourlyPrice, hours, svcMultiplier)
+     ============================================================ -->
+<div class="modal fade" id="invoicePaymentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen-lg-down modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 rounded-4 overflow-hidden" style="box-shadow: 0 32px 80px rgba(15,23,42,0.22);">
+
+      <!-- ─── Modal Header ─── -->
+      <div class="modal-header border-0 px-4 py-3" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-3 d-flex align-items-center justify-content-center" style="width:42px;height:42px;background:rgba(255,255,255,0.12);">
+            <i class="bi bi-receipt-cutoff text-white fs-5"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-black text-white mb-0" style="letter-spacing:-0.3px;">HÓA ĐƠN THANH TOÁN</h5>
+            <small class="text-white opacity-75" id="inv-invoice-code">Mã HĐ: #INV-000000</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- ─── Modal Body: 2-column grid ─── -->
+      <div class="modal-body p-0">
+        <div class="row g-0" style="min-height:500px;">
+
+          <!-- ═══ LEFT COLUMN: Invoice Detail ═══ -->
+          <div class="col-lg-7 p-4" style="background:#f8fafc; border-right:1px solid #e2e8f0;">
+
+            <!-- Customer Info Card -->
+            <div class="rounded-3 p-3 mb-4" style="background:white;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-person-circle text-primary fs-5"></i>
+                <h6 class="fw-bold text-dark mb-0">Thông tin khách hàng</h6>
+              </div>
+              <div class="row g-2 small">
+                <div class="col-6">
+                  <span class="text-muted">Khách hàng</span>
+                  <div class="fw-bold text-dark" id="inv-customer-name">—</div>
+                </div>
+                <div class="col-6">
+                  <span class="text-muted">Số điện thoại</span>
+                  <div class="fw-semibold text-dark" id="inv-customer-phone">—</div>
+                </div>
+                <div class="col-6">
+                  <span class="text-muted">Mã sân</span>
+                  <div class="fw-bold text-primary" id="inv-court-name">—</div>
+                </div>
+                <div class="col-6">
+                  <span class="text-muted">Thời gian</span>
+                  <div class="fw-semibold text-dark" id="inv-time-range">—</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── Group 1: Tiền Thuê Sân ─── -->
+            <div class="inv-group mb-3">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge rounded-pill px-2" style="background:#dbeafe;color:#1d4ed8;font-size:0.7rem;"><i class="bi bi-grid-3x3-gap"></i> TIỀN THUÊ SÂN</span>
+              </div>
+              <table class="table table-sm mb-0" style="border-collapse:separate;border-spacing:0;">
+                <thead>
+                  <tr class="small" style="border-bottom:2px solid #e2e8f0;">
+                    <th class="fw-semibold text-secondary pb-2" style="width:50%;">Mô tả</th>
+                    <th class="fw-semibold text-secondary text-center pb-2">Số giờ</th>
+                    <th class="fw-semibold text-secondary text-end pb-2">Đơn giá</th>
+                    <th class="fw-semibold text-secondary text-end pb-2">Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody id="inv-court-rows"></tbody>
+              </table>
+            </div>
+
+            <!-- ─── Group 2: F&B / Nước uống ─── -->
+            <div class="inv-group mb-3">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge rounded-pill px-2" style="background:#dcfce7;color:#15803d;font-size:0.7rem;"><i class="bi bi-cup-hot"></i> DỊCH VỤ F&B</span>
+              </div>
+              <table class="table table-sm mb-0">
+                <thead>
+                  <tr class="small" style="border-bottom:2px solid #e2e8f0;">
+                    <th class="fw-semibold text-secondary pb-2" style="width:50%;">Tên món</th>
+                    <th class="fw-semibold text-secondary text-center pb-2">SL</th>
+                    <th class="fw-semibold text-secondary text-end pb-2">Đơn giá</th>
+                    <th class="fw-semibold text-secondary text-end pb-2">Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody id="inv-fnb-rows"></tbody>
+              </table>
+            </div>
+
+            <!-- ─── Group 3: Thuê Phụ Kiện ─── -->
+            <div class="inv-group mb-2">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge rounded-pill px-2" style="background:#fef3c7;color:#92400e;font-size:0.7rem;"><i class="bi bi-lightning-charge"></i> THUÊ PHỤ KIỆN</span>
+              </div>
+              <table class="table table-sm mb-0">
+                <thead>
+                  <tr class="small" style="border-bottom:2px solid #e2e8f0;">
+                    <th class="fw-semibold text-secondary pb-2" style="width:50%;">Phụ kiện</th>
+                    <th class="fw-semibold text-secondary text-center pb-2">SL</th>
+                    <th class="fw-semibold text-secondary text-end pb-2">Đơn giá</th>
+                    <th class="fw-semibold text-secondary text-end pb-2">Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody id="inv-accessory-rows"></tbody>
+              </table>
+            </div>
+
+            <!-- Note -->
+            <p class="text-muted small mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>Dữ liệu dịch vụ được lấy từ phiên làm việc hiện tại. Nhân viên có thể thêm dịch vụ từ nút "Gọi Nước/Vợt" trước khi tính tiền.</p>
+          </div>
+
+          <!-- ═══ RIGHT COLUMN: Summary & Payment ═══ -->
+          <div class="col-lg-5 p-4 d-flex flex-column" style="background:#ffffff;">
+
+            <!-- Totals block -->
+            <div class="rounded-3 p-3 mb-4" style="border:1px solid #e2e8f0;">
+              <h6 class="fw-bold text-dark mb-3"><i class="bi bi-calculator me-1 text-primary"></i>Tổng kết thanh toán</h6>
+              <div class="d-flex justify-content-between small text-secondary mb-2">
+                <span>Tiền thuê sân:</span>
+                <span id="inv-subtotal-court" class="fw-semibold text-dark">0đ</span>
+              </div>
+              <div class="d-flex justify-content-between small text-secondary mb-2">
+                <span>Dịch vụ F&B:</span>
+                <span id="inv-subtotal-fnb" class="fw-semibold text-dark">0đ</span>
+              </div>
+              <div class="d-flex justify-content-between small text-secondary mb-3">
+                <span>Thuê phụ kiện:</span>
+                <span id="inv-subtotal-accessory" class="fw-semibold text-dark">0đ</span>
+              </div>
+              <div class="d-flex justify-content-between small mb-2 pt-2" style="border-top:1px dashed #e2e8f0;">
+                <span class="text-secondary">Tổng cộng:</span>
+                <span id="inv-subtotal-all" class="fw-bold text-dark">0đ</span>
+              </div>
+              <div class="d-flex justify-content-between small mb-0 text-success">
+                <span>Giảm giá (Voucher):</span>
+                <span id="inv-discount-display" class="fw-bold">-0đ</span>
+              </div>
+            </div>
+
+            <!-- Grand Total -->
+            <div class="rounded-3 p-3 mb-4 text-center" style="background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 100%);">
+              <small class="text-white opacity-75 d-block mb-1">THÀNH TIỀN</small>
+              <div id="inv-grand-total" class="fw-black text-white" style="font-size:2rem;letter-spacing:-1px;">0đ</div>
+            </div>
+
+            <!-- Voucher input -->
+            <div class="mb-4">
+              <label class="form-label small fw-semibold text-dark mb-1"><i class="bi bi-ticket-perforated me-1"></i>Mã giảm giá / Voucher</label>
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control rounded-start-3" id="inv-voucher-input" placeholder="VD: SMASH10, WELCOME20..." style="border-color:#cbd5e1;">
+                <button class="btn btn-outline-primary rounded-end-3 px-3" onclick="applyVoucher()">Áp dụng</button>
+              </div>
+              <div id="inv-voucher-message" class="mt-1 small"></div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="mb-4">
+              <label class="form-label small fw-semibold text-dark mb-2"><i class="bi bi-credit-card me-1"></i>Phương thức thanh toán</label>
+              <div class="d-flex gap-2">
+                <!-- Cash option -->
+                <div class="payment-method-card flex-fill text-center p-3 rounded-3 selected" id="pmCard-cash" onclick="selectPaymentMethod('cash')" style="cursor:pointer;border:2px solid #1d4ed8;background:#eff6ff;transition:all 0.2s;">
+                  <i class="bi bi-cash-coin fs-4 d-block mb-1" style="color:#1d4ed8;"></i>
+                  <span class="small fw-bold" style="color:#1d4ed8;">Tiền Mặt</span>
+                </div>
+                <!-- Bank Transfer option -->
+                <div class="payment-method-card flex-fill text-center p-3 rounded-3" id="pmCard-bank" onclick="selectPaymentMethod('bank')" style="cursor:pointer;border:2px solid #e2e8f0;background:#f8fafc;transition:all 0.2s;">
+                  <i class="bi bi-qr-code-scan fs-4 d-block mb-1 text-secondary"></i>
+                  <span class="small fw-bold text-secondary">Chuyển khoản</span>
+                </div>
+              </div>
+
+              <!-- QR section (hidden by default) -->
+              <div id="inv-qr-section" class="mt-3 text-center p-3 rounded-3" style="display:none;background:#f0fdf4;border:1px dashed #86efac;">
+                <p class="small text-secondary mb-2">Quét mã QR để thanh toán</p>
+                <!-- Placeholder QR using a simple SVG pattern -->
+                <div class="mx-auto mb-2" style="width:130px;height:130px;border:3px solid #1d4ed8;border-radius:8px;background:white;display:flex;align-items:center;justify-content:center;">
+                  <svg viewBox="0 0 100 100" width="110" height="110" xmlns="http://www.w3.org/2000/svg">
+                    <!-- QR mock pattern -->
+                    <rect x="5" y="5" width="35" height="35" fill="none" stroke="#1e3a8a" stroke-width="4"/>
+                    <rect x="12" y="12" width="21" height="21" fill="#1e3a8a"/>
+                    <rect x="60" y="5" width="35" height="35" fill="none" stroke="#1e3a8a" stroke-width="4"/>
+                    <rect x="67" y="12" width="21" height="21" fill="#1e3a8a"/>
+                    <rect x="5" y="60" width="35" height="35" fill="none" stroke="#1e3a8a" stroke-width="4"/>
+                    <rect x="12" y="67" width="21" height="21" fill="#1e3a8a"/>
+                    <!-- Data modules -->
+                    <rect x="45" y="5" width="10" height="10" fill="#1e3a8a"/>
+                    <rect x="60" y="45" width="10" height="10" fill="#1e3a8a"/>
+                    <rect x="45" y="60" width="10" height="10" fill="#1e3a8a"/>
+                    <rect x="75" y="60" width="10" height="10" fill="#1e3a8a"/>
+                    <rect x="45" y="75" width="10" height="10" fill="#1e3a8a"/>
+                    <rect x="60" y="75" width="25" height="10" fill="#1e3a8a"/>
+                    <rect x="85" y="45" width="10" height="25" fill="#1e3a8a"/>
+                    <rect x="45" y="45" width="10" height="10" fill="#1e3a8a"/>
+                  </svg>
+                </div>
+                <div class="small">
+                  <div class="text-muted">Ngân hàng: <strong class="text-dark">Vietcombank</strong></div>
+                  <div class="text-muted">STK: <strong class="text-dark">1900xxxx2526</strong></div>
+                  <div class="text-muted">Chủ TK: <strong class="text-dark">AQUAR SMASHCOURT</strong></div>
+                  <div class="mt-1">Nội dung CK: <span class="badge bg-primary rounded-pill" id="inv-bank-content">HĐ #000000</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Spacer -->
+            <div class="flex-grow-1"></div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 pt-3" style="border-top:1px solid #e2e8f0;">
+              <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+                <i class="bi bi-x-lg me-1"></i> Hủy bỏ
+              </button>
+              <button type="button" class="btn btn-success flex-fill rounded-pill fw-bold py-2" onclick="confirmInvoicePayment()" style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);border:none;box-shadow:0 4px 14px rgba(16,185,129,0.3);letter-spacing:0.3px;">
+                <i class="bi bi-check2-circle me-2"></i>XÁC NHẬN THANH TOÁN
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /invoicePaymentModal -->
+
+<!-- ─── Inline CSS for Invoice Modal ─── -->
+<style>
+  /* Invoice table rows */
+  #invoicePaymentModal table tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+  }
+  #invoicePaymentModal table tbody tr:last-child {
+    border-bottom: none;
+  }
+  #invoicePaymentModal table tbody td {
+    padding: 8px 4px;
+    font-size: 0.85rem;
+    color: #334155;
+    vertical-align: middle;
+  }
+  #invoicePaymentModal table thead th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  /* Payment method card hover */
+  .payment-method-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+</style>
+
+<!-- ─── Inline Script for Invoice Logic ─── -->
+<script>
+// ================================================================
+// INVOICE PAYMENT LOGIC
+// Được gọi từ nút "Tính Tiền" trong khối trạng thái sân
+// ================================================================
+
+// ─── 1. State object lưu dữ liệu phiên làm việc hiện tại ───
+const invoiceState = {
+    courtId: null,
+    courtName: '',
+    customerName: '',
+    hourlyPrice: 0,
+    hours: 0,
+    discount: 0,          // Số tiền giảm (VNĐ)
+    discountPercent: 0,   // % giảm
+    paymentMethod: 'cash',
+
+    // ─── Mock data dịch vụ đã gọi trong phiên ───
+    // Khi gắn API thật: thay thế bằng fetch('/api/SessionOrders?bookingId=...')
+    fnbItems: [
+        { name: 'Nước Aquafina 500ml', qty: 3, unitPrice: 10000 },
+        { name: 'Pocari Sweat Ion',     qty: 2, unitPrice: 15000 },
+        { name: 'Snack Lays (gói lớn)',qty: 1, unitPrice: 25000 },
+    ],
+    accessoryItems: [
+        { name: 'Thuê vợt Victor NR10', qty: 2, unitPrice: 30000 },
+        { name: 'Ống cầu Ba Sao',       qty: 1, unitPrice: 55000 },
+    ],
+
+    // Danh sách voucher hợp lệ (mock) - thay bằng API khi cần
+    validVouchers: {
+        'SMASH10':   { type: 'percent', value: 10,   label: 'Giảm 10%' },
+        'WELCOME20': { type: 'percent', value: 20,   label: 'Giảm 20% cho khách mới' },
+        'FLAT50K':   { type: 'fixed',   value: 50000, label: 'Giảm 50.000đ' },
+        'VIP100K':   { type: 'fixed',   value: 100000,label: 'Giảm 100.000đ (VIP)' },
+    }
+};
+
+// ─── 2. Hàm format tiền VNĐ ───
+function fmtVND(amount) {
+    return Math.max(0, Math.round(amount)).toLocaleString('vi-VN') + 'đ';
+}
+
+// ─── 3. Mở modal và render dữ liệu ───
+function openCheckoutModal(courtId, courtName, customerName, hourlyPrice, hours, svcMultiplier) {
+    // Cập nhật state
+    invoiceState.courtId      = courtId;
+    invoiceState.courtName    = courtName;
+    invoiceState.customerName = customerName;
+    invoiceState.hourlyPrice  = hourlyPrice;
+    invoiceState.hours        = hours;
+    invoiceState.discount     = 0;
+    invoiceState.discountPercent = 0;
+    invoiceState.paymentMethod   = 'cash';
+
+    // Reset voucher UI
+    const voucherInput = document.getElementById('inv-voucher-input');
+    const voucherMsg   = document.getElementById('inv-voucher-message');
+    if (voucherInput) voucherInput.value = '';
+    if (voucherMsg)   voucherMsg.innerHTML = '';
+
+    // Reset payment method UI
+    selectPaymentMethod('cash');
+
+    // ─── Render thông tin khách hàng ───
+    document.getElementById('inv-customer-name').textContent  = customerName || 'Khách vãng lai';
+    document.getElementById('inv-customer-phone').textContent = '(Xem tại hệ thống)';
+    document.getElementById('inv-court-name').textContent     = courtName;
+
+    // Mock time range: bắt đầu = giờ hiện tại, kết thúc = + hours
+    const now   = new Date();
+    const end   = new Date(now.getTime() + hours * 3600 * 1000);
+    const fmt   = (d) => d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    document.getElementById('inv-time-range').textContent = fmt(now) + ' – ' + fmt(end);
+
+    // Mã hoá đơn mock
+    const invoiceCode = '#INV-' + Date.now().toString().slice(-6);
+    document.getElementById('inv-invoice-code').textContent    = 'Mã HĐ: ' + invoiceCode;
+    document.getElementById('inv-bank-content').textContent    = 'HĐ ' + invoiceCode;
+
+    // ─── Render Group 1: Tiền thuê sân ───
+    const courtBody = document.getElementById('inv-court-rows');
+    const courtTotal = hourlyPrice * hours;
+    courtBody.innerHTML = `
+        <tr>
+            <td class="fw-semibold">${courtName}</td>
+            <td class="text-center">${hours.toFixed(1)}h</td>
+            <td class="text-end">${fmtVND(hourlyPrice)}</td>
+            <td class="text-end fw-bold text-primary">${fmtVND(courtTotal)}</td>
+        </tr>`;
+
+    // ─── Render Group 2: F&B ───
+    const fnbBody = document.getElementById('inv-fnb-rows');
+    if (invoiceState.fnbItems.length === 0) {
+        fnbBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-2">Không có gọi dịch vụ F&B</td></tr>';
+    } else {
+        fnbBody.innerHTML = invoiceState.fnbItems.map(item => {
+            const lineTotal = item.qty * item.unitPrice;
+            return `<tr>
+                <td>${item.name}</td>
+                <td class="text-center">${item.qty}</td>
+                <td class="text-end">${fmtVND(item.unitPrice)}</td>
+                <td class="text-end fw-semibold text-success">${fmtVND(lineTotal)}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ─── Render Group 3: Phụ kiện ───
+    const accBody = document.getElementById('inv-accessory-rows');
+    if (invoiceState.accessoryItems.length === 0) {
+        accBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-2">Không có thuê phụ kiện</td></tr>';
+    } else {
+        accBody.innerHTML = invoiceState.accessoryItems.map(item => {
+            const lineTotal = item.qty * item.unitPrice;
+            return `<tr>
+                <td>${item.name}</td>
+                <td class="text-center">${item.qty}</td>
+                <td class="text-end">${fmtVND(item.unitPrice)}</td>
+                <td class="text-end fw-semibold" style="color:#92400e;">${fmtVND(lineTotal)}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    // Tính tổng và render
+    recalculateTotals();
+
+    // Mở modal Bootstrap
+    const modalEl = document.getElementById('invoicePaymentModal');
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+}
+
+// ─── 4. Tính toán và cập nhật tổng tiền ───
+function recalculateTotals() {
+    // Tổng tiền thuê sân
+    const courtTotal = invoiceState.hourlyPrice * invoiceState.hours;
+
+    // Tổng F&B
+    const fnbTotal = invoiceState.fnbItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
+
+    // Tổng phụ kiện
+    const accTotal = invoiceState.accessoryItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
+
+    // Tổng chưa giảm
+    const subtotal = courtTotal + fnbTotal + accTotal;
+
+    // Tính giảm giá
+    let discount = 0;
+    if (invoiceState.discountPercent > 0) {
+        discount = subtotal * invoiceState.discountPercent / 100;
+    } else if (invoiceState.discount > 0) {
+        discount = invoiceState.discount;
+    }
+    discount = Math.min(discount, subtotal); // Không giảm quá tổng tiền
+
+    const grandTotal = subtotal - discount;
+
+    // ─── Cập nhật UI ───
+    document.getElementById('inv-subtotal-court').textContent     = fmtVND(courtTotal);
+    document.getElementById('inv-subtotal-fnb').textContent       = fmtVND(fnbTotal);
+    document.getElementById('inv-subtotal-accessory').textContent = fmtVND(accTotal);
+    document.getElementById('inv-subtotal-all').textContent       = fmtVND(subtotal);
+    document.getElementById('inv-discount-display').textContent   = '-' + fmtVND(discount);
+    document.getElementById('inv-grand-total').textContent        = fmtVND(grandTotal);
+
+    // Lưu grand total để dùng khi confirm
+    invoiceState.grandTotal = grandTotal;
+}
+
+// ─── 5. Xử lý mã voucher ───
+function applyVoucher() {
+    const code    = (document.getElementById('inv-voucher-input').value || '').trim().toUpperCase();
+    const msgEl   = document.getElementById('inv-voucher-message');
+    const voucher = invoiceState.validVouchers[code];
+
+    if (!code) {
+        // Reset discount
+        invoiceState.discount        = 0;
+        invoiceState.discountPercent = 0;
+        msgEl.innerHTML = '';
+        recalculateTotals();
+        return;
+    }
+
+    if (!voucher) {
+        msgEl.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Mã voucher không hợp lệ hoặc đã hết hạn.</span>';
+        invoiceState.discount        = 0;
+        invoiceState.discountPercent = 0;
+        recalculateTotals();
+        return;
+    }
+
+    // Áp dụng voucher
+    if (voucher.type === 'percent') {
+        invoiceState.discountPercent = voucher.value;
+        invoiceState.discount        = 0;
+        msgEl.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>${voucher.label} đã được áp dụng!</span>`;
+    } else {
+        invoiceState.discount        = voucher.value;
+        invoiceState.discountPercent = 0;
+        msgEl.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>${voucher.label} đã được áp dụng!</span>`;
+    }
+
+    recalculateTotals();
+}
+
+// ─── 6. Chọn phương thức thanh toán ───
+function selectPaymentMethod(method) {
+    invoiceState.paymentMethod = method;
+
+    const cashCard = document.getElementById('pmCard-cash');
+    const bankCard = document.getElementById('pmCard-bank');
+    const qrSection = document.getElementById('inv-qr-section');
+
+    if (method === 'cash') {
+        cashCard.style.border = '2px solid #1d4ed8';
+        cashCard.style.background = '#eff6ff';
+        cashCard.querySelector('i').style.color = '#1d4ed8';
+        cashCard.querySelector('span').style.color = '#1d4ed8';
+        bankCard.style.border = '2px solid #e2e8f0';
+        bankCard.style.background = '#f8fafc';
+        bankCard.querySelector('i').className = 'bi bi-qr-code-scan fs-4 d-block mb-1 text-secondary';
+        bankCard.querySelector('span').className = 'small fw-bold text-secondary';
+        qrSection.style.display = 'none';
+    } else {
+        bankCard.style.border = '2px solid #10b981';
+        bankCard.style.background = '#f0fdf4';
+        bankCard.querySelector('i').className = 'bi bi-qr-code-scan fs-4 d-block mb-1 text-success';
+        bankCard.querySelector('span').className = 'small fw-bold text-success';
+        cashCard.style.border = '2px solid #e2e8f0';
+        cashCard.style.background = '#f8fafc';
+        cashCard.querySelector('i').style.color = '#94a3b8';
+        cashCard.querySelector('span').style.color = '#94a3b8';
+        qrSection.style.display = 'block';
+    }
+}
+
+// ─── 7. Danh sách hóa đơn trong session (in-memory store) ───
+const invoiceHistory = [
+    // Pre-populated mock data để test giao diện
+    {
+        code: '#INV-001001', customerName: 'Nguyễn Văn An', courtName: 'Sân A1',
+        timeRange: '08:00 – 09:30', hours: 1.5, courtTotal: 180000,
+        fnbTotal: 55000, accTotal: 85000, discount: 0,
+        grandTotal: 320000, method: 'cash', status: 'Paid',
+        createdAt: new Date(Date.now() - 3 * 3600000)
+    },
+    {
+        code: '#INV-001002', customerName: 'Trần Thị Hương', courtName: 'Sân B2',
+        timeRange: '09:30 – 11:00', hours: 1.5, courtTotal: 225000,
+        fnbTotal: 30000, accTotal: 0, discount: 22500,
+        grandTotal: 232500, method: 'bank', status: 'Paid',
+        createdAt: new Date(Date.now() - 2 * 3600000)
+    },
+    {
+        code: '#INV-001003', customerName: 'Lê Minh Tuấn', courtName: 'Sân A2',
+        timeRange: '11:00 – 12:30', hours: 1.5, courtTotal: 180000,
+        fnbTotal: 25000, accTotal: 55000, discount: 0,
+        grandTotal: 260000, method: 'cash', status: 'Pending',
+        createdAt: new Date(Date.now() - 1 * 3600000)
+    },
+];
+
+// ─── 7b. Xác nhận thanh toán (có lưu vào invoiceHistory) ───
+function confirmInvoicePayment() {
+    const method    = invoiceState.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản QR';
+    const grandTotal = invoiceState.grandTotal || 0;
+
+    // ─── Tạo bản ghi hóa đơn mới ───
+    const courtTotal = invoiceState.hourlyPrice * invoiceState.hours;
+    const fnbTotal   = invoiceState.fnbItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
+    const accTotal   = invoiceState.accessoryItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
+    let   discountAmt = 0;
+    if (invoiceState.discountPercent > 0) {
+        discountAmt = (courtTotal + fnbTotal + accTotal) * invoiceState.discountPercent / 100;
+    } else {
+        discountAmt = invoiceState.discount;
+    }
+
+    const newInvoice = {
+        code:         '#INV-' + Date.now().toString().slice(-6),
+        customerName: invoiceState.customerName || 'Khách vãng lai',
+        courtName:    invoiceState.courtName,
+        timeRange:    document.getElementById('inv-time-range')?.textContent || '',
+        hours:        invoiceState.hours,
+        courtTotal,
+        fnbTotal,
+        accTotal,
+        discount:     discountAmt,
+        grandTotal,
+        method:       invoiceState.paymentMethod,
+        status:       'Paid',
+        createdAt:    new Date()
+    };
+
+    // Đẩy vào mảng lịch sử
+    invoiceHistory.unshift(newInvoice);
+
+    // Cập nhật bảng nếu đang hiện thị tab invoices
+    renderInvoiceTable();
+
+    // ─── TODO: Gắn API thật tại đây ───
+    // fetch('/api/Invoice/Confirm', { method:'POST', body: JSON.stringify(newInvoice) })
+
+    // Đóng modal (không reload để giữ UI mượt)
+    const modalEl = document.getElementById('invoicePaymentModal');
+    bootstrap.Modal.getInstance(modalEl)?.hide();
+
+    // Hiển thị toast thông báo nhẹ nhàng
+    showInvoiceToast(`✅ Đã thanh toán <strong>${fmtVND(grandTotal)}</strong> — ${newInvoice.customerName} (${newInvoice.courtName})`);
+}
+
+// ─── 8. Toast nhẹ nhàng thay thế alert ───
+function showInvoiceToast(html) {
+    let t = document.getElementById('inv-toast-container');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'inv-toast-container';
+        t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;';
+        document.body.appendChild(t);
+    }
+    const toast = document.createElement('div');
+    toast.style.cssText = 'background:white;border-left:4px solid #10b981;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,0.15);padding:14px 18px;min-width:320px;max-width:400px;font-size:0.88rem;animation:slideInRight 0.3s ease;';
+    toast.innerHTML = `<div class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i><span>${html}</span></div>`;
+    t.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.4s'; setTimeout(() => toast.remove(), 400); }, 4000);
+}
+
+// ─── 9. Render bảng hóa đơn ───
+function renderInvoiceTable() {
+    const search  = (document.getElementById('inv-search-input')?.value || '').toLowerCase();
+    const fStatus = document.getElementById('inv-filter-status')?.value || '';
+    const fMethod = document.getElementById('inv-filter-method')?.value || '';
+
+    // Lọc
+    const filtered = invoiceHistory.filter(inv => {
+        const matchSearch = !search ||
+            inv.customerName.toLowerCase().includes(search) ||
+            inv.courtName.toLowerCase().includes(search) ||
+            inv.code.toLowerCase().includes(search);
+        const matchStatus = !fStatus || inv.status === fStatus;
+        const matchMethod = !fMethod || inv.method === fMethod;
+        return matchSearch && matchStatus && matchMethod;
+    });
+
+    // Stats
+    const allPaid    = invoiceHistory.filter(i => i.status === 'Paid');
+    const allPending = invoiceHistory.filter(i => i.status === 'Pending');
+    const revenue    = allPaid.reduce((s, i) => s + i.grandTotal, 0);
+    document.getElementById('inv-stat-total-count').textContent   = invoiceHistory.length;
+    document.getElementById('inv-stat-paid-count').textContent    = allPaid.length;
+    document.getElementById('inv-stat-pending-count').textContent = allPending.length;
+    document.getElementById('inv-stat-revenue').textContent       = fmtVND(revenue);
+    document.getElementById('inv-table-count').textContent        = `Hiển thị ${filtered.length} hóa đơn`;
+
+    const tbody = document.getElementById('inv-history-tbody');
+    if (!tbody) return;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-5">
+            <i class="bi bi-search" style="font-size:2rem;opacity:0.3;"></i>
+            <div class="mt-2">Không tìm thấy hóa đơn phù hợp.</div></td></tr>`;
+        return;
+    }
+
+    const statusBadge = (s) => ({
+        'Paid':      '<span class="badge rounded-pill px-2 py-1" style="background:#dcfce7;color:#15803d;font-size:0.72rem;"><i class="bi bi-check-circle-fill me-1"></i>Hoàn tất</span>',
+        'Pending':   '<span class="badge rounded-pill px-2 py-1" style="background:#fef3c7;color:#92400e;font-size:0.72rem;"><i class="bi bi-clock me-1"></i>Chờ TT</span>',
+        'Cancelled': '<span class="badge rounded-pill px-2 py-1" style="background:#fee2e2;color:#b91c1c;font-size:0.72rem;"><i class="bi bi-x-circle me-1"></i>Hủy</span>',
+    })[s] || '<span class="badge bg-secondary">?</span>';
+
+    const methodBadge = (m) => m === 'cash'
+        ? '<span class="text-muted small"><i class="bi bi-cash-coin me-1 text-success"></i>Tiền mặt</span>'
+        : '<span class="text-muted small"><i class="bi bi-qr-code me-1 text-primary"></i>Chuyển khoản</span>';
+
+    const fmt2 = (d) => {
+        const p = (n) => n.toString().padStart(2,'0');
+        return `${p(d.getHours())}:${p(d.getMinutes())} ${p(d.getDate())}/${p(d.getMonth()+1)}`;
+    };
+
+    tbody.innerHTML = filtered.map((inv, idx) => `
+        <tr style="font-size:0.85rem;">
+            <td><code class="text-primary fw-bold" style="font-size:0.78rem;">${inv.code}</code></td>
+            <td>
+                <div class="fw-semibold text-dark">${inv.customerName}</div>
+                <small class="text-muted">${inv.timeRange}</small>
+            </td>
+            <td><span class="badge rounded-pill" style="background:#eff6ff;color:#1d4ed8;">${inv.courtName}</span></td>
+            <td class="text-center text-secondary">${inv.hours.toFixed(1)}h</td>
+            <td class="text-end"><span class="fw-bold text-dark">${fmtVND(inv.grandTotal)}</span>
+                ${inv.discount > 0 ? `<br><small class="text-success" style="font-size:0.72rem;">-${fmtVND(inv.discount)}</small>` : ''}
+            </td>
+            <td class="text-center">${methodBadge(inv.method)}</td>
+            <td class="text-center">${statusBadge(inv.status)}</td>
+            <td class="text-center text-muted" style="font-size:0.78rem;">${fmt2(inv.createdAt)}</td>
+            <td class="text-center">
+                <div class="d-flex gap-1 justify-content-center">
+                    <button class="btn btn-outline-primary btn-sm rounded-2" style="padding:3px 8px;font-size:0.75rem;" onclick="viewInvoiceDetail(${idx})" title="Xem chi tiết">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    ${inv.status === 'Pending' ? `<button class="btn btn-outline-success btn-sm rounded-2" style="padding:3px 8px;font-size:0.75rem;" onclick="markInvoicePaid(${idx})" title="Đánh dấu đã thanh toán"><i class="bi bi-check-lg"></i></button>` : ''}
+                    ${inv.status !== 'Cancelled' ? `<button class="btn btn-outline-danger btn-sm rounded-2" style="padding:3px 8px;font-size:0.75rem;" onclick="cancelInvoice(${idx})" title="Hủy hóa đơn"><i class="bi bi-x-lg"></i></button>` : ''}
+                </div>
+            </td>
+        </tr>`).join('');
+}
+
+// ─── 10. Xem chi tiết hóa đơn ───
+function viewInvoiceDetail(filteredIdx) {
+    // Lấy inv dựa trên filtered list hiện tại (ta render theo filtered)
+    const search  = (document.getElementById('inv-search-input')?.value || '').toLowerCase();
+    const fStatus = document.getElementById('inv-filter-status')?.value || '';
+    const fMethod = document.getElementById('inv-filter-method')?.value || '';
+    const filtered = invoiceHistory.filter(inv => {
+        const matchSearch = !search || inv.customerName.toLowerCase().includes(search) || inv.courtName.toLowerCase().includes(search) || inv.code.toLowerCase().includes(search);
+        return matchSearch && (!fStatus || inv.status === fStatus) && (!fMethod || inv.method === fMethod);
+    });
+    const inv = filtered[filteredIdx];
+    if (!inv) return;
+
+    const statusLabel = { 'Paid': 'Hoàn tất', 'Pending': 'Chờ TT', 'Cancelled': 'Hủy' }[inv.status] || inv.status;
+    const methodLabel = inv.method === 'cash' ? 'Tiền mặt' : 'Chuyển khoản';
+
+    const html = `
+        <div class="mb-3 pb-2" style="border-bottom:1px solid #e2e8f0;">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-dark">${inv.code}</span>
+                <small class="text-muted">${inv.createdAt.toLocaleString('vi-VN')}</small>
+            </div>
+        </div>
+        <div class="row g-2 small mb-3">
+            <div class="col-6"><span class="text-muted">Khách hàng:</span><div class="fw-semibold">${inv.customerName}</div></div>
+            <div class="col-6"><span class="text-muted">Sân:</span><div class="fw-semibold text-primary">${inv.courtName}</div></div>
+            <div class="col-6"><span class="text-muted">Giờ chơi:</span><div class="fw-semibold">${inv.timeRange}</div></div>
+            <div class="col-6"><span class="text-muted">Hình thức:</span><div class="fw-semibold">${methodLabel}</div></div>
+        </div>
+        <table class="table table-sm small mb-3">
+            <tbody>
+                <tr><td class="text-muted">Tiền thuê sân</td><td class="text-end fw-semibold">${fmtVND(inv.courtTotal)}</td></tr>
+                <tr><td class="text-muted">Dịch vụ F&B</td><td class="text-end fw-semibold">${fmtVND(inv.fnbTotal)}</td></tr>
+                <tr><td class="text-muted">Thuê phụ kiện</td><td class="text-end fw-semibold">${fmtVND(inv.accTotal)}</td></tr>
+                ${inv.discount > 0 ? `<tr><td class="text-success">Giảm giá / Voucher</td><td class="text-end text-success fw-semibold">-${fmtVND(inv.discount)}</td></tr>` : ''}
+                <tr style="border-top:2px solid #e2e8f0;"><td class="fw-bold text-dark">THÀNH TIỀN</td><td class="text-end fw-black text-primary" style="font-size:1.1rem;">${fmtVND(inv.grandTotal)}</td></tr>
+            </tbody>
+        </table>
+        <div class="text-center">
+            <span class="badge px-3 py-2 rounded-pill" style="background:${ inv.status==='Paid' ? '#dcfce7' : inv.status==='Pending' ? '#fef3c7' : '#fee2e2' };color:${ inv.status==='Paid' ? '#15803d' : inv.status==='Pending' ? '#92400e' : '#b91c1c' };font-size:0.85rem;">${statusLabel}</span>
+        </div>`;
+
+    document.getElementById('inv-detail-body').innerHTML = html;
+    new bootstrap.Modal(document.getElementById('invDetailModal')).show();
+}
+
+// ─── 11. Đánh dấu đã thanh toán ───
+function markInvoicePaid(filteredIdx) {
+    const search  = (document.getElementById('inv-search-input')?.value || '').toLowerCase();
+    const fStatus = document.getElementById('inv-filter-status')?.value || '';
+    const fMethod = document.getElementById('inv-filter-method')?.value || '';
+    const filtered = invoiceHistory.filter(inv => {
+        return (!search || inv.customerName.toLowerCase().includes(search) || inv.courtName.toLowerCase().includes(search) || inv.code.toLowerCase().includes(search))
+            && (!fStatus || inv.status === fStatus) && (!fMethod || inv.method === fMethod);
+    });
+    const inv = filtered[filteredIdx];
+    if (inv) { inv.status = 'Paid'; renderInvoiceTable(); showInvoiceToast(`✅ Đã cập nhật <strong>${inv.code}</strong> sang Hoàn tất`); }
+}
+
+// ─── 12. Hủy hóa đơn ───
+function cancelInvoice(filteredIdx) {
+    if (!confirm('Bạn có chắc muốn hủy hóa đơn này không?')) return;
+    const search  = (document.getElementById('inv-search-input')?.value || '').toLowerCase();
+    const fStatus = document.getElementById('inv-filter-status')?.value || '';
+    const fMethod = document.getElementById('inv-filter-method')?.value || '';
+    const filtered = invoiceHistory.filter(inv => {
+        return (!search || inv.customerName.toLowerCase().includes(search) || inv.courtName.toLowerCase().includes(search) || inv.code.toLowerCase().includes(search))
+            && (!fStatus || inv.status === fStatus) && (!fMethod || inv.method === fMethod);
+    });
+    const inv = filtered[filteredIdx];
+    if (inv) { inv.status = 'Cancelled'; renderInvoiceTable(); showInvoiceToast(`Hóa đơn <strong>${inv.code}</strong> đã bị hủy`); }
+}
+
+// ─── 13. Xuất CSV ───
+function exportInvoiceCSV() {
+    const header = ['Mã HĐ','Khách hàng','Sân','Giờ chơi','Tiền sân','F&B','Phụ kiện','Giảm giá','Thành tiền','Hình thức','Trạng thái','Thời gian'];
+    const rows = invoiceHistory.map(inv => [
+        inv.code, inv.customerName, inv.courtName, inv.timeRange,
+        inv.courtTotal, inv.fnbTotal, inv.accTotal, inv.discount, inv.grandTotal,
+        inv.method === 'cash' ? 'Tiền mặt' : 'Chuyển khoản',
+        { 'Paid': 'Hoàn tất', 'Pending': 'Chờ TT', 'Cancelled': 'Hủy' }[inv.status] || inv.status,
+        inv.createdAt.toLocaleString('vi-VN')
+    ]);
+    const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+    a.download = `HoaDon_Ca_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.csv`;
+    a.click();
+}
+
+// ─── 14. Chuyển sang tab quản lý hóa đơn ───
+function switchToInvoiceTab() {
+    // Nếu có tab system dùng admin-tab-content, ẩn các tab khác và hiển thị tab invoices
+    const allTabs = document.querySelectorAll('.admin-tab-content');
+    allTabs.forEach(t => t.style.display = 'none');
+    const invTab = document.getElementById('tab-invoices');
+    if (invTab) {
+        invTab.style.display = '';
+        invTab.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    renderInvoiceTable();
+}
+
+// Khởi tạo bảng khi trang load
+document.addEventListener('DOMContentLoaded', renderInvoiceTable);
+</script>
+
+<!-- End Invoice Payment Modal -->
+
+<!-- ============================================================
+     Invoice Detail Modal (Chi tiết hóa đơn)
+     ============================================================ -->
+<div class="modal fade" id="invDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+    <div class="modal-content border-0 rounded-4" style="box-shadow:0 24px 60px rgba(15,23,42,0.18);">
+      <div class="modal-header border-0 px-4 py-3" style="background:linear-gradient(135deg,#0f172a,#1e3a8a);">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-receipt text-white fs-5"></i>
+          <h6 class="modal-title fw-bold text-white mb-0">Chi Tiết Hóa Đơn</h6>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4" id="inv-detail-body">
+        <!-- Được render bằng JS viewInvoiceDetail() -->
+      </div>
+      <div class="modal-footer border-0 px-4 pb-4 pt-0">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+        <button type="button" class="btn btn-primary rounded-pill px-4" onclick="window.print()">
+          <i class="bi bi-printer me-1"></i>In Hóa Đơn
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="modal fade" id="serviceOrderModal" tabindex="-1" aria-labelledby="serviceOrderModalLabel" aria-hidden="true">

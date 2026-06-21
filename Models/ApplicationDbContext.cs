@@ -19,6 +19,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<MatchmakingGroup> MatchmakingGroups { get; set; } = null!;
     public DbSet<MatchmakingParticipant> MatchmakingParticipants { get; set; } = null!;
     public DbSet<SurveillanceVideo> SurveillanceVideos { get; set; } = null!;
+    public DbSet<Product> Products { get; set; } = null!;
+    public DbSet<NewsArticle> NewsArticles { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -391,6 +393,25 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<ServiceOrder>().HasData(
             new ServiceOrder { ServiceOrderId = 1, CourtId = 1, ServiceItemId = 1, Quantity = 2, BookingId = 1, OrderTime = new DateTime(2026, 6, 14, 17, 15, 0) },
             new ServiceOrder { ServiceOrderId = 2, CourtId = 1, ServiceItemId = 3, Quantity = 1, BookingId = 1, OrderTime = new DateTime(2026, 6, 14, 17, 30, 0) }
+        );
+
+        // Seed Products
+        modelBuilder.Entity<Product>().HasData(
+            new Product { ProductId = 1, Name = "Vợt Cầu Lông Yonex Astrox 88D Pro", Description = "Dòng vợt cao cấp hỗ trợ những cú đập smash uy lực mạnh mẽ.", Price = 3990000, Badge = "HOT", ImageUrl = "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=150&q=80" },
+            new Product { ProductId = 2, Name = "Giày Cầu Lông Victor P9200", Description = "Giày thi đấu chuyên nghiệp, chống lật cổ chân, đệm lót êm ái.", Price = 2150000, Badge = "-15%", ImageUrl = "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=150&q=80" },
+            new Product { ProductId = 3, Name = "Vợt Cầu Lông Li-Ning Tectonic 7", Description = "Thiết kế hệ thống giảm chấn hiện đại giúp vung vợt nhanh.", Price = 3200000, Badge = "NEW", ImageUrl = "https://images.unsplash.com/photo-1617083266344-0b1a039755b6?auto=format&fit=crop&w=150&q=80" },
+            new Product { ProductId = 4, Name = "Balo Cầu Lông Yonex Pro Bag", Description = "Không gian rộng rãi, ngăn chứa giày riêng và lớp cách nhiệt chống nóng.", Price = 1450000, Badge = null, ImageUrl = "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=150&q=80" },
+            new Product { ProductId = 5, Name = "Giày Cầu Lông Yonex Power Cushion 65Z3", Description = "Dòng giày huyền thoại mang lại độ êm ái tối đa.", Price = 2850000, Badge = "HOT", ImageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=150&q=80" },
+            new Product { ProductId = 6, Name = "Ống Cầu Lông Ba Sao (12 Quả)", Description = "Cầu bay đầm, quỹ đạo chuẩn xác, độ bền cao.", Price = 220000, Badge = null, ImageUrl = "https://images.unsplash.com/photo-1611252199277-2bc46617a6a4?auto=format&fit=crop&w=150&q=80" },
+            new Product { ProductId = 7, Name = "Ống Cầu Lông Vina Star (12 Quả)", Description = "Công nghệ sản xuất hiện đại, lông cầu bền dai.", Price = 240000, Badge = "HOT", ImageUrl = "https://images.unsplash.com/photo-1611252199277-2bc46617a6a4?auto=format&fit=crop&w=150&q=80" },
+            new Product { ProductId = 8, Name = "Quấn Cán Vợt VS Grip (Vỉ 10 Cái)", Description = "Chất liệu cao su non bám dính tốt, thấm hút mồ hôi hiệu quả.", Price = 120000, Badge = "NEW", ImageUrl = "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=150&q=80" }
+        );
+
+        // Seed NewsArticles
+        modelBuilder.Entity<NewsArticle>().HasData(
+            new NewsArticle { NewsArticleId = 1, Title = "Chung kết Đơn Nam 2026", Description = "Kịch tính đến set thứ 3 giữa hai hạt giống...", Category = "NEW MATCH", BadgeColor = "bg-danger", ImageUrl = "https://images.unsplash.com/photo-1560089000-7433a4ebbd64?auto=format&fit=crop&q=80&w=350", VideoActionUrl = "Chung kết Đơn Nam CLB Aquar 2026", CreatedAt = DateTime.Now },
+            new NewsArticle { NewsArticleId = 2, Title = "Highlights Cú Đập Cầu Khủng", Description = "Tuyển tập những pha ghi điểm tốc độ cao...", Category = "BEST SMASHES", BadgeColor = "bg-primary", ImageUrl = "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=350", VideoActionUrl = "Highlights Smash Trận 3 Sân Con 2", CreatedAt = DateTime.Now },
+            new NewsArticle { NewsArticleId = 3, Title = "Giải Giao Hữu Mùa Hè 2026", Description = "Đăng ký tham gia ngay trước ngày 25/06...", Category = "EVENT", BadgeColor = "bg-warning", ImageUrl = "https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&q=80&w=350", VideoActionUrl = null, CreatedAt = DateTime.Now }
         );
     }
 }
