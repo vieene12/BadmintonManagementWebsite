@@ -29,54 +29,168 @@
     </script>
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
+    
+@if (userRole == "2" || userRole == "3")
+{
+    <!-- Admin & Staff Dashboard with Left Sidebar -->
+    <div class="admin-layout">
+        <!-- Sidebar Navigation Drawer -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="admin-sidebar-header">
+                <span class="admin-sidebar-logo">
+                    <i class="bi bi-lightning-charge-fill"></i> AQUAR COURT
+                </span>
+            </div>
+            
+            <ul class="admin-sidebar-menu">
+                @if (userRole == "3")
+                {
+                    <li class="admin-sidebar-item">
+                        <a href="#" class="admin-sidebar-link active" data-tab="tab-overview">
+                            <i class="bi bi-speedometer2"></i> Tổng quan
+                        </a>
+                    </li>
+                    <li class="admin-sidebar-item">
+                        <a href="#" class="admin-sidebar-link" data-tab="tab-courts">
+                            <i class="bi bi-grid-3x3-gap"></i> Quản lý sân
+                        </a>
+                    </li>
+                    <li class="admin-sidebar-item">
+                        <a href="#" class="admin-sidebar-link" data-tab="tab-services">
+                            <i class="bi bi-tags"></i> Dịch vụ
+                        </a>
+                    </li>
+                    <li class="admin-sidebar-item">
+                        <a href="#" class="admin-sidebar-link" data-tab="tab-staff">
+                            <i class="bi bi-shield-lock"></i> Nhân sự
+                        </a>
+                    </li>
+                    <li class="admin-sidebar-item">
+                        <a href="#" class="admin-sidebar-link" data-tab="tab-camera">
+                            <i class="bi bi-camera-video"></i> Camera giám sát
+                        </a>
+                    </li>
+                }
+                else if (userRole == "2")
+                {
+                    <li class="admin-sidebar-item">
+                        <a href="#" class="admin-sidebar-link active" data-tab="tab-courts">
+                            <i class="bi bi-grid-3x3-gap"></i> Trạng thái sân
+                        </a>
+                    </li>
+                    <li class="admin-sidebar-item">
+                        <a href="#" class="admin-sidebar-link" data-tab="tab-schedule">
+                            <i class="bi bi-calendar-range"></i> Sơ đồ lịch đặt
+                        </a>
+                    </li>
+                    <li class="admin-sidebar-item">
+                        <a href="#" class="admin-sidebar-link" data-tab="tab-customers">
+                            <i class="bi bi-search"></i> Tra cứu khách
+                        </a>
+                    </li>
+                    <li class="admin-sidebar-item">
+                        <a href="#" class="admin-sidebar-link" data-tab="tab-shift">
+                            <i class="bi bi-wallet2"></i> Kiểm kê ca
+                        </a>
+                    </li>
+                    <li class="admin-sidebar-item">
+                        <a href="#" class="admin-sidebar-link" data-tab="tab-services">
+                            <i class="bi bi-tags"></i> Bảng giá dịch vụ
+                        </a>
+                    </li>
+                }
+            </ul>
+            
+            <div class="admin-sidebar-footer">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-person-circle fs-5"></i>
+                    <div style="line-height: 1.2;">
+                        <small class="text-muted d-block" style="font-size: 10px;">@userPosition</small>
+                        <span class="fw-bold" style="font-size: 12px; color: #fff;">@userName</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Overlay for Mobile Sidebar trượt -->
+        <div class="admin-sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <!-- Main Workspace -->
+        <div class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-left">
+                    <button class="sidebar-toggle-btn d-lg-none" onclick="toggleSidebar()">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h5 class="admin-header-title">@ViewData["Title"]</h5>
+                </div>
+                <div class="admin-header-right">
+                    <a class="btn btn-outline-danger btn-sm px-3" href="@Url.Action("Logout", "Account")">
+                        <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+                    </a>
+                </div>
+            </header>
+
+            <main class="admin-content">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Customer / Guest Layout with Top Header Navbar -->
     <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom navbar-custom py-2">
+        <nav class="navbar navbar-expand-lg navbar-light navbar-custom py-2">
             <div class="container-fluid px-4">
                 <a class="navbar-brand navbar-brand-custom" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="bi bi-lightning-charge-fill"></i> Aquar SmashCourt
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+                
+                <div class="d-flex align-items-center gap-2 ms-auto d-lg-none">
+                    @if (userRole == "1")
+                    {
+                        <button class="btn btn-outline-success btn-sm" id="btn-toggle-matching-mobile" onclick="toggleCustomerMatchmakingView()">
+                            <i class="bi bi-people-fill me-1"></i> Ghép sân
+                        </button>
+                        <button class="btn btn-cta-header btn-sm" id="btn-toggle-order-mobile" onclick="toggleCustomerOrderView()">
+                            <i class="bi bi-cart-fill me-1"></i> Gọi nước
+                        </button>
+                    }
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                </div>
+                
                 <div class="collapse navbar-collapse" id="navbarColor01">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
                         @if (userRole == "1")
                         {
                             <li class="nav-item">
-                                <a class="nav-link py-2 px-3 fw-semibold @(ViewData["ActivePage"]?.ToString() == "Customer" ? "text-primary active" : "text-secondary")" asp-controller="Home" asp-action="Index">
+                                <a class="nav-link py-2 px-3 fw-semibold active" asp-controller="Home" asp-action="Index">
                                     <i class="bi bi-people-fill me-1"></i> Khách Hàng
-                                </a>
-                            </li>
-                        }
-                        @if (userRole == "2")
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link py-2 px-3 fw-semibold @(ViewData["ActivePage"]?.ToString() == "Receptionist" ? "text-primary active" : "text-secondary")" asp-controller="Receptionist" asp-action="Index">
-                                    <i class="bi bi-laptop me-1"></i> Quầy Lễ Tân
-                                </a>
-                            </li>
-                        }
-                        @if (userRole == "3")
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link py-2 px-3 fw-semibold @(ViewData["ActivePage"]?.ToString() == "Manager" ? "text-primary active" : "text-secondary")" asp-controller="Manager" asp-action="Index">
-                                    <i class="bi bi-graph-up-arrow me-1"></i> Ban Quản Lý
                                 </a>
                             </li>
                         }
                     </ul>
                     <div class="d-flex align-items-center gap-3">
-                        <button class="btn btn-link text-secondary p-0 border-0" id="theme-toggle" title="Đổi giao diện (Sáng/Tối)">
-                            <i class="bi bi-moon-stars-fill fs-5" id="theme-icon"></i>
-                        </button>
+                        @if (userRole == "1")
+                        {
+                            <button class="btn btn-outline-success btn-sm d-none d-lg-inline-block px-3" id="btn-toggle-matching-desktop" onclick="toggleCustomerMatchmakingView()">
+                                <i class="bi bi-people-fill me-2"></i> Bắt cặp ghép sân
+                            </button>
+                            <button class="btn btn-cta-header btn-sm d-none d-lg-inline-block px-3" id="btn-toggle-order-desktop" onclick="toggleCustomerOrderView()">
+                                <i class="bi bi-cart-fill me-2"></i> Gọi nước & thuê vợt
+                            </button>
+                        }
 
                         <div class="text-end d-none d-sm-block">
                             <small class="text-muted d-block" style="font-size: 0.75rem;">
                                 @userPosition @(string.IsNullOrEmpty(staffCode) ? "" : $"({staffCode})")
                             </small>
-                            <span class="fw-semibold text-dark" id="current-user-tag">@userName</span>
+                            <span class="fw-semibold text-dark">@userName</span>
                         </div>
-                        <a class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" href="@Url.Action("Logout", "Account")">
+                        <a class="btn btn-outline-danger btn-sm px-3 fw-bold" href="@Url.Action("Logout", "Account")">
                             <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
                         </a>
                     </div>
@@ -93,8 +207,8 @@
         </div>
     </div>
 
-    <footer class="mt-5 border-top" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
-        <div class="container-fluid px-4 py-4">
+    <footer class="mt-5 border-top bg-white py-4">
+        <div class="container-fluid px-4">
             <div class="row g-4 justify-content-between align-items-center">
                 <div class="col-md-4 text-center text-md-start">
                     <a class="navbar-brand-custom text-decoration-none mb-2 d-inline-flex" href="/">
@@ -118,18 +232,9 @@
             </div>
         </div>
     </footer>
+}
 
-    <style>
-            .custom-hover:hover {
-                color: var(--primary-color) !important;
-                transform: scale(1.1);
-                transition: all 0.2s ease;
-                display: inline-block;
-            }
-
-
-    </style>
-
+    <!-- Chatbot AI Widget -->
     <button class="chatbot-toggler" type="button" onclick="toggleChatbot()">
         <i class="bi bi-chat-dots-fill fs-4" style="pointer-events: none;"></i>
     </button>
@@ -169,11 +274,11 @@
 
     <script>
         function clickChatChip(query) {
-        const inputField = document.getElementById('chat-input');
-        if(inputField) {
-        inputField.value = query;
-        sendChatMessage();
-        }
+            const inputField = document.getElementById('chat-input');
+            if(inputField) {
+                inputField.value = query;
+                sendChatMessage();
+            }
         }
 
         function switchRole(role, name) {
@@ -255,32 +360,32 @@
 
         // Đổi giao diện sáng/tối
         document.addEventListener('DOMContentLoaded', function() {
-        var themeToggleBtn = document.getElementById('theme-toggle');
-        var themeIcon = document.getElementById('theme-icon');
+            var themeToggleBtn = document.getElementById('theme-toggle');
+            var themeIcon = document.getElementById('theme-icon');
 
-        if(themeToggleBtn && themeIcon) {
-        function updateIcon(theme) {
-        if(theme === 'dark') {
-        themeIcon.classList.remove('bi-moon-stars-fill');
-        themeIcon.classList.add('bi-sun-fill', 'text-warning');
-        } else {
-        themeIcon.classList.remove('bi-sun-fill', 'text-warning');
-        themeIcon.classList.add('bi-moon-stars-fill');
-        }
-        }
+            if(themeToggleBtn && themeIcon) {
+                function updateIcon(theme) {
+                    if(theme === 'dark') {
+                        themeIcon.classList.remove('bi-moon-stars-fill');
+                        themeIcon.classList.add('bi-sun-fill', 'text-warning');
+                    } else {
+                        themeIcon.classList.remove('bi-sun-fill', 'text-warning');
+                        themeIcon.classList.add('bi-moon-stars-fill');
+                    }
+                }
 
-        var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-        updateIcon(currentTheme);
+                var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                updateIcon(currentTheme);
 
-        themeToggleBtn.addEventListener('click', function() {
-        var currentTheme = document.documentElement.getAttribute('data-theme');
-        var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                themeToggleBtn.addEventListener('click', function() {
+                    var currentTheme = document.documentElement.getAttribute('data-theme');
+                    var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        updateIcon(newTheme);
-        });
-        }
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    updateIcon(newTheme);
+                });
+            }
         });
     </script>
     @await RenderSectionAsync("Scripts", required: false)

@@ -17,9 +17,10 @@
             </button>
         </div>
     </div>
-    <div class="row g-4">
-        <div class="col-xl-8 col-lg-7">
-            <div class="glass-card p-4">
+    <!-- Tab: Realtime Court Status & Daily Bookings -->
+    <div id="tab-courts" class="admin-tab-content active">
+        <!-- Trạng Thái Sân Thời Gian Thực -->
+        <div class="glass-card p-4 mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold text-dark mb-0"><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Trạng Thái Sân Thời Gian Thực</h5>
                     <small class="text-muted">Ca trực hiện tại: Hoạt động ổn định</small>
@@ -179,6 +180,35 @@
                 </div>
             </div>
             <div class="glass-card p-4 mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-calendar3 me-2 text-primary"></i>Lịch Đặt Sân Trong Ngày</h5>
+                    <span class="badge bg-primary rounded-pill px-3" id="booking-count-badge">0 lịch đặt</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover mb-0" id="bookings-table">
+                        <thead class="table-light">
+                            <tr class="small text-secondary">
+                                <th>Khách hàng</th>
+                                <th>Số điện thoại</th>
+                                <th>Sân</th>
+                                <th>Khung giờ</th>
+                                <th class="text-end" style="width: 220px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookings-list-body" class="small">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-3">Đang tải danh sách lịch đặt...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+        </div>
+    </div> <!-- end tab-courts -->
+
+    <!-- Tab: Hourly Grid Schedule -->
+    <div id="tab-schedule" class="admin-tab-content">
+        <!-- Sơ Đồ Đặt Sân Theo Khung Giờ (Hôm Nay) -->
+        <div class="glass-card p-4 mt-0 mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h5 class="fw-bold text-dark mb-1"><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Sơ Đồ Đặt Sân Theo Khung Giờ (Hôm Nay)</h5>
@@ -260,34 +290,13 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-            <div class="glass-card p-4 mt-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-calendar3 me-2 text-primary"></i>Lịch Đặt Sân Trong Ngày</h5>
-                    <span class="badge bg-primary rounded-pill px-3" id="booking-count-badge">0 lịch đặt</span>
-                </div>
-                <div class="table-responsive">
-                    <table class="table align-middle table-hover mb-0" id="bookings-table">
-                        <thead class="table-light">
-                            <tr class="small text-secondary">
-                                <th>Khách hàng</th>
-                                <th>Số điện thoại</th>
-                                <th>Sân</th>
-                                <th>Khung giờ</th>
-                                <th class="text-end" style="width: 220px;">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bookings-list-body" class="small">
-                            <tr>
-                                <td colspan="5" class="text-center text-muted py-3">Đang tải danh sách lịch đặt...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
-        <div class="col-xl-4 col-lg-5">
-            <div class="glass-card p-4 mb-4">
+    </div> <!-- end tab-schedule -->
+
+    <!-- Tab: Customer Directory -->
+    <div id="tab-customers" class="admin-tab-content">
+        <!-- Tra Cứu Khách Hàng -->
+        <div class="glass-card p-4 mt-0 mb-4">
                 <h5 class="fw-bold text-dark mb-3"><i class="bi bi-search me-2 text-primary"></i>Tra Cứu Khách Hàng</h5>
                 <div class="input-group mb-3">
                     <input type="text" class="form-control rounded-start-pill" id="custSearchPhone" placeholder="Nhập số điện thoại (0987...)" value="0987654321">
@@ -315,8 +324,13 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="glass-card p-4 mb-4 border-start border-4 border-success bg-white glow-card">
+        </div>
+    </div> <!-- end tab-customers -->
+
+    <!-- Tab: Shift Auditing -->
+    <div id="tab-shift" class="admin-tab-content">
+        <!-- Kiểm Kê Doanh Thu Ca -->
+        <div class="glass-card p-4 mb-4 border-start border-4 border-success bg-white mt-0 glow-card">
                 <h5 class="fw-bold text-dark mb-3"><i class="bi bi-wallet2 me-2 text-success"></i>Kiểm Kê Doanh Thu Ca</h5>
                 <p class="text-secondary small mb-3">Đối chiếu tổng tiền thuê sân và dịch vụ phát sinh thực tế tại quầy.</p>
                 <div class="vstack gap-2 mb-3 border rounded-3 p-3 audit-log-box">
@@ -336,13 +350,19 @@
                 <button class="btn btn-success btn-sm w-100 rounded-pill py-2 fw-bold" onclick="alert('Báo cáo kiểm kê ca đã được ghi nhận vào hệ thống quản trị và in thành công!')">
                     <i class="bi bi-printer-fill me-1"></i> Chốt Ca & In Bàn Giao
                 </button>
-            </div>
-            <div class="glass-card p-4">
+        </div>
+    </div> <!-- end tab-shift -->
+
+    <!-- Tab: Service Pricing -->
+    <div id="tab-services" class="admin-tab-content">
+        <!-- Bảng Giá Dịch Vụ -->
+        <div class="glass-card p-4 mt-0 mb-4">
                 <h5 class="fw-bold text-dark mb-3"><i class="bi bi-tags me-2 text-primary"></i>Bảng Giá Dịch Vụ</h5>
                 <div class="table-responsive">
                     <table class="table table-sm table-hover align-middle small mb-0">
                         <thead>
                             <tr class="table-light">
+                                <th style="width: 60px;">Ảnh</th>
                                 <th>Tên Dịch Vụ</th>
                                 <th class="text-center">ĐVT</th>
                                 <th class="text-end">Đơn Giá</th>
@@ -352,6 +372,11 @@
                             @foreach (var item in ViewBag.Services as List<AquarSmartCourt.Models.ServiceItem> ?? new List<AquarSmartCourt.Models.ServiceItem>())
                             {
                                 <tr>
+                                    <td>
+                                        <div class="service-image-preview-cell" data-service-id="@item.ServiceItemId" style="width: 40px; height: 28px; background: #e2e8f0; border-radius: 2px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-image text-muted" style="font-size: 0.8rem;"></i>
+                                        </div>
+                                    </td>
                                     <td class="fw-medium text-dark">@item.ItemName</td>
                                     <td class="text-center text-muted">@item.Unit</td>
                                     <td class="text-end fw-bold text-dark">@(((int)item.UnitPrice).ToString("N0", new System.Globalization.CultureInfo("vi-VN")))đ</td>
@@ -360,9 +385,8 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
         </div>
-    </div>
+    </div> <!-- end tab-services -->
 </div>
 
 <div class="modal fade" id="serviceOrderModal" tabindex="-1" aria-labelledby="serviceOrderModalLabel" aria-hidden="true">
@@ -637,20 +661,41 @@
         });
 
         $(document).ready(function() {
-        serviceModalObj = new bootstrap.Modal(document.getElementById('serviceOrderModal'));
-        checkoutModalObj = new bootstrap.Modal(document.getElementById('checkoutModal'));
-        quickBookModalObj = new bootstrap.Modal(document.getElementById('quickBookModal'));
-        editCourtModalObj = new bootstrap.Modal(document.getElementById('editCourtModal'));
-        changeCourtModalObj = new bootstrap.Modal(document.getElementById('changeCourtModal'));
+            serviceModalObj = new bootstrap.Modal(document.getElementById('serviceOrderModal'));
+            checkoutModalObj = new bootstrap.Modal(document.getElementById('checkoutModal'));
+            quickBookModalObj = new bootstrap.Modal(document.getElementById('quickBookModal'));
+            editCourtModalObj = new bootstrap.Modal(document.getElementById('editCourtModal'));
+            changeCourtModalObj = new bootstrap.Modal(document.getElementById('changeCourtModal'));
 
-        updateServiceUnitPrice();
-        loadDailyBookings();
+            updateServiceUnitPrice();
+            loadDailyBookings();
 
-        connection.start().then(function() {
-        console.log("SignalR connected successfully.");
-        }).catch(function(err) {
-        console.error("SignalR connection error: " + err.toString());
-        });
+            // Load base64 images from localStorage for courts
+            document.querySelectorAll('[id^="courtName-"]').forEach(el => {
+                const courtId = el.id.split('-')[1];
+                const base64 = localStorage.getItem(`court_img_${courtId}`);
+                if (base64) {
+                    const container = el.closest('.court-card').querySelector('.svg-court-container');
+                    if (container) {
+                        container.innerHTML = `<img src="${base64}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 4px;">`;
+                    }
+                }
+            });
+
+            // Load base64 images from localStorage for services pricing table
+            document.querySelectorAll('.service-image-preview-cell').forEach(el => {
+                const id = el.getAttribute('data-service-id');
+                const base64 = localStorage.getItem(`service_img_${id}`);
+                if (base64) {
+                    el.innerHTML = `<img src="${base64}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                }
+            });
+
+            connection.start().then(function() {
+                console.log("SignalR connected successfully.");
+            }).catch(function(err) {
+                console.error("SignalR connection error: " + err.toString());
+            });
         });
 
         function openQuickBookModal(courtId, courtName, startTime, endTime) {
