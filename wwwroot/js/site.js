@@ -12,6 +12,9 @@ function toggleSidebar() {
 
 // 2. Tab switching logic for Admin & Staff Views
 document.addEventListener('DOMContentLoaded', function() {
+    // Khởi tạo và áp dụng bảo vệ Route Guard/Trạng thái đăng nhập trên Frontend
+    initializeFrontendAuth();
+
     const sidebarLinks = document.querySelectorAll('.admin-sidebar-link');
     sidebarLinks.forEach(link => {
         link.addEventListener('click', function(e) {
@@ -268,3 +271,208 @@ function scrollToBottom() {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 }
+
+// ====== HỖ TRỢ ĐIỀU HƯỚNG VÀ KIỂM SOÁT TRUY CẬP TRÊN FRONTEND (RBAC) ======
+
+// Hiển thị màn hình Loading chuyển trang mượt mà
+function showLoadingScreen(callback) {
+    let loader = document.getElementById('frontend-loader');
+    if (!loader) {
+        loader = document.createElement('div');
+        loader.id = 'frontend-loader';
+        loader.innerHTML = `
+            <div class="loader-content">
+                <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem; margin-bottom: 15px;"></div>
+                <div style="font-weight: 600; font-size: 1.1rem; letter-spacing: 0.5px;">Đang xác thực quyền truy cập...</div>
+            </div>
+        `;
+        document.body.appendChild(loader);
+    }
+    loader.classList.add('show');
+    setTimeout(() => {
+        if (callback) callback();
+    }, 600); // Tạo độ trễ chuyển tiếp 600ms mượt mà
+}
+
+// Hàm chính khởi tạo xác thực và bảo vệ tuyến đường phía Frontend
+function initializeFrontendAuth() {
+    const config = window.authConfig || { isAuthenticated: false, role: '', username: 'Khách', position: 'Thành viên' };
+    
+    // 1. Đồng bộ hóa Session từ Server xuống LocalStorage
+    if (config.isAuthenticated && config.role) {
+        localStorage.setItem('role', config.role);
+        localStorage.setItem('token', 'mock_jwt_token_for_' + config.role);
+        localStorage.setItem('user', JSON.stringify({
+            username: config.username,
+            role: config.role,
+            position: config.position,
+            staffCode: config.staffCode
+        }));
+    } else {
+        // Nếu Server báo chưa đăng nhập, kiểm tra xem Frontend có session giả lập trước đó không
+        const hasLocalToken = !!localStorage.getItem('token');
+        if (!hasLocalToken) {
+            localStorage.removeItem('role');
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+        }
+    }
+
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    // 2. Thiết lập Giao diện Khách (Guest View) khi chưa đăng nhập
+    const isGuest = !token;
+    if (isGuest) {
+        document.documentElement.classList.add('guest-view');
+        
+        // Ẩn các khu vực cá nhân trên trang chủ của Customer
+        const activeSession = document.getElementById('active-session-section');
+        if (activeSession) activeSession.style.display = 'none';
+
+        const myBookings = document.getElementById('my-bookings-section');
+        if (myBookings) myBookings.style.display = 'none';
+
+        // Thay đổi nút Đăng xuất trên Header thành Đăng nhập / Đăng ký
+        const headerActionContainer = document.querySelector('.navbar-collapse .d-flex.align-items-center.gap-3');
+        if (headerActionContainer) {
+            headerActionContainer.innerHTML = `
+                <a class="btn btn-success btn-sm px-4 fw-bold" href="/Account/Login" id="btn-login-header" style="border-radius: 6px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Đăng nhập / Đăng ký
+                </a>
+            `;
+        }
+    }
+
+    // 3. Auth Guard - Chặn các hành động yêu cầu quyền khi ở chế độ Khách (Guest)
+    document.addEventListener('click', function(e) {
+        if (!isGuest) return; // Đã đăng nhập -> Cho qua bình thường
+
+        // Xác định các hành động của khách cần chặn
+        const targetEmptyCell = e.target.closest('.timetable-table td.empty');
+        const targetMatchingBtn = e.target.closest('#btn-toggle-matching-desktop, #btn-toggle-matching-mobile, [href*="matchmaking"]');
+        const targetOrderBtn = e.target.closest('#btn-toggle-order-desktop, #btn-toggle-order-mobile, [href*="order"]');
+        const targetVideoAction = e.target.closest('[onclick*="simulateVideoPlay"], [onclick*="alert"], [onclick*="openRegisterMatchmakingModal"]');
+        const targetChatInput = e.target.closest('#chat-input, .chat-send-btn, .chat-chip');
+
+        if (targetEmptyCell || targetMatchingBtn || targetOrderBtn || targetVideoAction || targetChatInput) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            showLoadingScreen(() => {
+                const currentPath = window.location.pathname + window.location.search;
+                window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(currentPath)}`;
+            });
+        }
+    }, true);
+
+    // 4. Đánh chặn việc nộp Form Đăng nhập để lưu trạng thái cục bộ ngay lập tức (Post-Login Handling)
+    document.addEventListener('submit', function(e) {
+        const loginForm = e.target.closest('form[action*="Login"]');
+        if (loginForm) {
+            const usernameInput = loginForm.querySelector('input[name="username"]');
+            if (usernameInput) {
+                const username = usernameInput.value.trim().toLowerCase();
+                let mockRole = '1'; // Mặc định là Khách Hàng
+                let position = 'Khách Hàng';
+                
+                // Dự đoán vai trò trước khi Backend chuyển hướng
+                if (username === 'manager' || username.includes('admin')) {
+                    mockRole = '3';
+                    position = 'Quản lý';
+                } else if (username === 'staff' || username.includes('receptionist') || username === 'nv001') {
+                    mockRole = '2';
+                    position = 'Lễ tân';
+                }
+
+                localStorage.setItem('role', mockRole);
+                localStorage.setItem('token', 'mock_jwt_token_' + Date.now());
+                localStorage.setItem('user', JSON.stringify({
+                    username: usernameInput.value,
+                    role: mockRole,
+                    position: position
+                }));
+            }
+        }
+    });
+}
+
+// ==========================================
+// SCROLL & RANDOM ANIMATION OBSERVERS (CHIBI SVG)
+// ==========================================
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Scroll Observer (Fade-in-up / Bounce-in when scrolling)
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+    };
+
+    const scrollObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('scroll-show');
+                // observer.unobserve(entry.target); // Optional: if we want to animate only once
+            } else {
+                entry.target.classList.remove('scroll-show');
+            }
+        });
+    }, observerOptions);
+
+    const hiddenElements = document.querySelectorAll('.scroll-hidden');
+    hiddenElements.forEach((el) => scrollObserver.observe(el));
+
+    // 2. Random Floating/Shooting Effect for Shuttlecock
+    const shuttleSticker = document.getElementById('chibi-shuttlecock-sticker');
+    if (shuttleSticker) {
+        setInterval(() => {
+            // Trigger random shoot every 10-15s
+            if (Math.random() > 0.5) {
+                shuttleSticker.classList.add('random-shoot');
+                setTimeout(() => {
+                    shuttleSticker.classList.remove('random-shoot');
+                }, 1500); // Wait for animation to finish before removing
+            }
+        }, 8000); // Checks every 8 seconds
+    }
+});
+
+// ==========================================
+// RIPPLE EFFECT FOR SYSTEM BUTTONS
+// ==========================================
+document.addEventListener("click", function (e) {
+    try {
+        // Tìm button cha gần nhất có class .sys-btn
+        if (!e.target || typeof e.target.closest !== 'function') return;
+        const btn = e.target.closest('.sys-btn');
+        if (!btn || btn.disabled) return;
+
+        // Lấy tọa độ click tương đối với button
+        const rect = btn.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = e.clientX - rect.left - size / 2;
+        const y = e.clientY - rect.top - size / 2;
+
+        // Tạo span chứa hiệu ứng gợn sóng
+        const ripple = document.createElement("span");
+        ripple.className = "sys-ripple";
+        ripple.style.width = ripple.style.height = size + "px";
+        ripple.style.left = x + "px";
+        ripple.style.top = y + "px";
+
+        // Xóa ripple cũ nếu người dùng click liên tục nhanh
+        const existingRipple = btn.querySelector('.sys-ripple');
+        if (existingRipple) {
+            existingRipple.remove();
+        }
+
+        btn.appendChild(ripple);
+
+        // Dọn dẹp DOM sau khi hiệu ứng kết thúc
+        setTimeout(() => {
+            if (ripple && ripple.parentNode) ripple.remove();
+        }, 600);
+    } catch (err) {
+        console.error("Ripple effect error:", err);
+    }
+});

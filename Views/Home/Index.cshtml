@@ -746,44 +746,68 @@
         </div>
 
         <!-- Right Column: Affiliate & Info -->
-        <div class="col-xl-4 col-lg-4">
-            <div class="glass-card p-4 glow-card">
-                <h4 class="mb-1 fw-bold"><i class="bi bi-shop me-2 text-primary"></i>Cửa Hàng Phụ Kiện Liên Kết</h4>
+        <div class="col-xl-4 col-lg-5 d-flex flex-column">
+            <div class="glass-card p-4 glow-card flex-grow-1 d-flex flex-column" style="min-height: 500px;">
+                <h4 class="mb-1 fw-bold position-relative">
+                    <i class="bi bi-shop me-2 text-primary"></i>Cửa Hàng Phụ Kiện Liên Kết
+                    <!-- Floating Inline SVG Shuttlecock (Redrawn v2 - Flat Design) -->
+                    <div class="sticker-floating-corner sticker-float-glow scroll-hidden" style="top: -70px; right: 0px; width: 75px;">
+                        <svg id="chibi-shuttlecock-sticker" class="svg-chibi" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <radialGradient id="glowBg" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#bfdbfe" stop-opacity="0.5"/>
+                                    <stop offset="100%" stop-color="#bfdbfe" stop-opacity="0"/>
+                                </radialGradient>
+                            </defs>
+                            <!-- Ambient glow -->
+                            <circle cx="100" cy="100" r="90" fill="url(#glowBg)"/>
+
+                            <!-- g: Feathers (fan shape, pointing upward) -->
+                            <g id="feathers">
+                                <!-- Feather left-far -->
+                                <path d="M100 130 L 68 30" stroke="#94a3b8" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <path d="M100 130 L 80 25" stroke="#94a3b8" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <!-- Feather center-left -->
+                                <path d="M100 130 L 92 22" stroke="#64748b" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <!-- Feather center -->
+                                <path d="M100 130 L 100 20" stroke="#64748b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                                <!-- Feather center-right -->
+                                <path d="M100 130 L 108 22" stroke="#64748b" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <path d="M100 130 L 120 25" stroke="#94a3b8" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                <!-- Feather right-far -->
+                                <path d="M100 130 L 132 30" stroke="#94a3b8" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+                                <!-- Feather web (connecting arc) -->
+                                <path d="M 68 30 Q 100 10 132 30" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5"/>
+                                <path d="M 72 42 Q 100 24 128 42" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="2,3"/>
+                            </g>
+
+                            <!-- g: Cork (base) -->
+                            <g id="cork">
+                                <ellipse cx="100" cy="143" rx="18" ry="10" fill="#fb923c"/>
+                                <path d="M82 143 Q100 168 118 143" fill="#f97316"/>
+                                <ellipse cx="100" cy="143" rx="18" ry="10" fill="none" stroke="#ea580c" stroke-width="1"/>
+                            </g>
+
+                            <!-- g: Face (cute expression on cork) -->
+                            <g id="face">
+                                <circle cx="93" cy="140" r="3" fill="#1e293b"/>
+                                <circle cx="107" cy="140" r="3" fill="#1e293b"/>
+                                <path d="M94 148 Q100 153 106 148" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round"/>
+                                <!-- Blush -->
+                                <ellipse cx="86" cy="145" rx="4" ry="2.5" fill="#fca5a5" opacity="0.8"/>
+                                <ellipse cx="114" cy="145" rx="4" ry="2.5" fill="#fca5a5" opacity="0.8"/>
+                            </g>
+                        </svg>
+                    </div>
+                </h4>
                 <p class="text-secondary small mb-4">Trang thiết bị cầu lông chính hãng từ các đối tác phân phối chính thức.</p>
 
-                <div class="vstack gap-3">
-                    <div class="card border-0 shadow-sm rounded-4 affiliate-card bg-white p-3">
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="bg-light p-3 rounded-3 d-flex align-items-center justify-content-center position-relative" style="width: 80px; height: 80px;">
-                                <span class="badge bg-danger position-absolute top-0 start-0 m-1" style="font-size: 0.6rem; font-family: 'Outfit';">HOT</span>
-                                <i class="bi bi-lightning-charge text-primary" style="font-size: 2.2rem;"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.92rem;">Vợt Cầu Lông Yonex Astrox 88D Pro</h6>
-                                <p class="card-text text-secondary mb-2" style="font-size: 0.78rem; line-height: 1.3;">Dòng vợt cao cấp hỗ trợ những cú đập smash uy lực mạnh mẽ.</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-primary fw-extrabold" style="font-weight: 800;">3.990.000đ</span>
-                                    <a href="https://shopvnb.com/" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 py-1" style="font-size: 0.78rem;"><i class="bi bi-box-arrow-up-right me-1"></i>Mua Ngay</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card border-0 shadow-sm rounded-4 affiliate-card bg-white p-3">
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="bg-light p-3 rounded-3 d-flex align-items-center justify-content-center position-relative" style="width: 80px; height: 80px;">
-                                <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-1" style="font-size: 0.6rem; font-family: 'Outfit';">-15%</span>
-                                <i class="bi bi-shield-shaded text-success" style="font-size: 2.2rem;"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.92rem;">Giày Cầu Lông Victor P9200</h6>
-                                <p class="card-text text-secondary mb-2" style="font-size: 0.78rem; line-height: 1.3;">Chống lật cổ chân, đệm lót êm ái, bám sân hoàn hảo.</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-primary fw-extrabold" style="font-weight: 800;">2.150.000đ</span>
-                                    <a href="https://shopvnb.com/" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 py-1" style="font-size: 0.78rem;"><i class="bi bi-box-arrow-up-right me-1"></i>Mua Ngay</a>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Scrollable container for accessory products -->
+                <div id="affiliate-products-container" class="vstack gap-3 custom-scrollbar flex-grow-1" style="overflow-y: auto; padding-right: 5px; height: 0; min-height: 350px;">
+                    <div class="text-center py-3 text-secondary small">
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                        Đang tải danh sách sản phẩm...
                     </div>
                 </div>
             </div>
@@ -793,9 +817,84 @@
 
     <!-- Customer Matchmaking Main View -->
     <div id="customer-matchmaking-view" style="display: none;" class="p-4">
-        <div class="pb-3 mb-4" style="border-bottom: 2px solid; border-image: linear-gradient(to right, var(--court-green), var(--energy-blue)) 1;">
+        <div class="pb-3 mb-4 position-relative" style="border-bottom: 2px solid; border-image: linear-gradient(to right, var(--court-green), var(--energy-blue)) 1;">
             <h2 class="fw-black text-dark mb-1"><i class="bi bi-people-fill text-success me-2"></i>BẮT CẶP & GHÉP SÂN CHƠI</h2>
             <p class="text-secondary mb-0">Hội tụ quần hùng, giao lưu học hỏi trình độ và cùng san sẻ chi phí thuê sân</p>
+            
+            <!-- Chibi Boy with Racket (Redrawn v2 - Flat Design) -->
+            <div class="sticker-floating-corner sticker-bounce d-none d-sm-block scroll-hidden" style="top: -75px; right: 20px; width: 120px;">
+                <svg class="svg-chibi" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+
+                    <!-- g: Racket -->
+                    <g id="racket" transform="translate(130, 20) rotate(35)">
+                        <!-- Handle -->
+                        <rect x="-4" y="60" width="8" height="55" rx="4" fill="#475569"/>
+                        <!-- Grip wrap -->
+                        <rect x="-4" y="85" width="8" height="20" rx="3" fill="#10b981"/>
+                        <!-- Shaft -->
+                        <rect x="-2.5" y="22" width="5" height="42" rx="2.5" fill="#64748b"/>
+                        <!-- Head frame (oval) -->
+                        <ellipse cx="0" cy="0" rx="22" ry="28" fill="none" stroke="#ef4444" stroke-width="4"/>
+                        <!-- String grid - horizontal -->
+                        <line x1="-21" y1="-10" x2="21" y2="-10" stroke="#fca5a5" stroke-width="1" opacity="0.8"/>
+                        <line x1="-22" y1="0" x2="22" y2="0" stroke="#fca5a5" stroke-width="1" opacity="0.8"/>
+                        <line x1="-21" y1="10" x2="21" y2="10" stroke="#fca5a5" stroke-width="1" opacity="0.8"/>
+                        <!-- String grid - vertical -->
+                        <line x1="-10" y1="-27" x2="-10" y2="27" stroke="#fca5a5" stroke-width="1" opacity="0.8"/>
+                        <line x1="0" y1="-28" x2="0" y2="28" stroke="#fca5a5" stroke-width="1" opacity="0.8"/>
+                        <line x1="10" y1="-27" x2="10" y2="27" stroke="#fca5a5" stroke-width="1" opacity="0.8"/>
+                    </g>
+
+                    <!-- g: Body -->
+                    <g id="body">
+                        <!-- Torso -->
+                        <rect x="62" y="120" width="56" height="55" rx="16" fill="#3b82f6"/>
+                        <!-- Jersey stripe -->
+                        <rect x="82" y="120" width="16" height="55" rx="4" fill="#60a5fa" opacity="0.5"/>
+                        <!-- Left arm (relaxed) -->
+                        <path d="M62 128 Q38 135 36 155" fill="none" stroke="#fbbf24" stroke-width="13" stroke-linecap="round"/>
+                        <!-- Right arm (raised, holding racket) -->
+                        <path d="M118 125 Q138 110 140 88" fill="none" stroke="#fbbf24" stroke-width="13" stroke-linecap="round"/>
+                        <!-- Legs -->
+                        <rect x="68" y="168" width="22" height="28" rx="10" fill="#1d4ed8"/>
+                        <rect x="92" y="168" width="22" height="28" rx="10" fill="#1d4ed8"/>
+                        <!-- Shoes -->
+                        <ellipse cx="79" cy="196" rx="14" ry="7" fill="#0f172a"/>
+                        <ellipse cx="103" cy="196" rx="14" ry="7" fill="#0f172a"/>
+                    </g>
+
+                    <!-- g: Head -->
+                    <g id="head">
+                        <!-- Neck -->
+                        <rect x="82" y="100" width="16" height="24" rx="6" fill="#fbbf24"/>
+                        <!-- Head shape -->
+                        <ellipse cx="90" cy="75" rx="38" ry="36" fill="#fbbf24"/>
+                        <!-- Hair -->
+                        <path d="M52 72 Q54 38 90 36 Q126 38 128 72 Q118 48 90 46 Q62 48 52 72Z" fill="#1e293b"/>
+                        <!-- Hair tuft -->
+                        <path d="M78 38 Q90 24 102 38" fill="none" stroke="#1e293b" stroke-width="8" stroke-linecap="round"/>
+                    </g>
+
+                    <!-- g: Face -->
+                    <g id="face">
+                        <!-- Determined angled eyebrows -->
+                        <path d="M68 64 L80 68" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M112 64 L100 68" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round"/>
+                        <!-- Eyes -->
+                        <ellipse cx="76" cy="76" rx="7" ry="7" fill="#1e293b"/>
+                        <ellipse cx="104" cy="76" rx="7" ry="7" fill="#1e293b"/>
+                        <!-- Eye shine -->
+                        <circle cx="79" cy="73" r="2.5" fill="#ffffff"/>
+                        <circle cx="107" cy="73" r="2.5" fill="#ffffff"/>
+                        <!-- Mouth (determined straight) -->
+                        <path d="M80 92 L100 92" stroke="#92400e" stroke-width="2.5" stroke-linecap="round"/>
+                        <!-- Blush -->
+                        <ellipse cx="62" cy="84" rx="7" ry="4" fill="#fca5a5" opacity="0.7"/>
+                        <ellipse cx="118" cy="84" rx="7" ry="4" fill="#fca5a5" opacity="0.7"/>
+                        <!-- Sweat drop -->
+                        <path d="M122 56 Q126 62 122 68 Q118 62 122 56Z" fill="#93c5fd" opacity="0.9"/>
+                    </g>
+                </svg>
         </div>
 
         <div class="alert alert-success rounded-4 border-0 p-4 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: linear-gradient(135deg, rgba(240, 253, 250, 0.9) 0%, rgba(204, 251, 241, 0.9) 100%); border-left: 5px solid var(--court-green) !important;">
@@ -1106,6 +1205,13 @@
 
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
+    <!-- Load mock products data module -->
+    <script type="module">
+        import { mockProducts } from '/js/mockProducts.js';
+        window.mockProductsData = mockProducts;
+    </script>
+
     <script>
         const CURRENT_USER_NAME = '@Html.Raw(User.Identity?.Name ?? "Khách Hàng")';
         const CURRENT_USER_PHONE = '@Html.Raw(User.FindFirst("PhoneNumber")?.Value ?? "0987654321")';
@@ -1134,6 +1240,7 @@
             registerMatchmakingModalObj = new bootstrap.Modal(document.getElementById('registerMatchmakingModal'));
             loadMatchmakingGroups();
             updateSessionProgress();
+            loadAffiliateProducts();
 
             // Load base64 images from localStorage for services pricing table / cards
             document.querySelectorAll('.service-image-container').forEach(el => {
@@ -1593,6 +1700,51 @@
                 error: function(xhr) {
                     alert('Lỗi order dịch vụ: ' + xhr.responseText);
                 }
+            });
+        }
+
+        // Tải danh sách phụ kiện cầu lông từ mockProducts.js và render ra giao diện
+        function loadAffiliateProducts() {
+            const container = document.getElementById('affiliate-products-container');
+            if (!container) return;
+
+            const products = window.mockProductsData || [];
+            if (products.length === 0) {
+                container.innerHTML = `<div class="text-center py-3 text-secondary small">Không có sản phẩm nào.</div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            products.forEach(prod => {
+                const badgeHtml = prod.badge 
+                    ? `<span class="badge ${prod.badge.includes('%') ? 'bg-warning text-dark' : 'bg-danger'} position-absolute top-0 start-0 m-1" style="font-size: 0.6rem; font-family: 'Outfit'; z-index: 2;">${prod.badge}</span>`
+                    : '';
+                
+                const imageHtml = prod.image_url 
+                    ? `<img src="${prod.image_url}" alt="${prod.name}" class="rounded-3 animate-fade-in" style="width: 100%; height: 100%; object-fit: cover;">`
+                    : `<i class="bi bi-lightning-charge text-primary" style="font-size: 2.2rem;"></i>`;
+
+                const formattedPrice = prod.price.toLocaleString('vi-VN') + 'đ';
+
+                const cardHtml = `
+                    <div class="card border-0 shadow-sm rounded-4 affiliate-card bg-white p-3">
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="bg-light p-0 rounded-3 d-flex align-items-center justify-content-center position-relative" style="width: 80px; height: 80px; overflow: hidden; border: 1px solid rgba(0,0,0,0.05); flex-shrink: 0;">
+                                ${badgeHtml}
+                                ${imageHtml}
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.92rem; text-transform: none; line-height: 1.25;">${prod.name}</h6>
+                                <p class="card-text text-secondary mb-2" style="font-size: 0.78rem; line-height: 1.35; text-transform: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${prod.description}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-primary fw-extrabold" style="font-weight: 800; font-size: 0.95rem;">${formattedPrice}</span>
+                                    <a href="https://shopvnb.com/" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 py-1" style="font-size: 0.78rem;"><i class="bi bi-box-arrow-up-right me-1"></i>Mua Ngay</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
             });
         }
     </script>

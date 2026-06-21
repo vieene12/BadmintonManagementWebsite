@@ -11,7 +11,7 @@
             <p class="text-secondary mb-0">Theo dõi doanh thu kinh doanh chuyên sâu, kiểm soát bảo mật nhân sự và cấu hình sân.</p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="alert('Đã xuất báo cáo tài chính thành công (Excel)!')">
+            <button id="btn-export-report" class="btn btn-export-report rounded-pill px-4 shadow-sm" onclick="handleExportExcel()">
                 <i class="bi bi-download me-1"></i> Xuất Báo Cáo
             </button>
             <button class="btn btn-outline-secondary rounded-pill px-3" onclick="location.reload()" style="background: white;">
@@ -168,9 +168,9 @@
                                 );
 
                                 string computedStatus = court.Status;
-                                if (court.Status != "Maintenance")
+                                if (court.Status == "Available" && activeBooking != null)
                                 {
-                                    computedStatus = activeBooking != null ? "InUse" : "Available";
+                                    computedStatus = "InUse";
                                 }
 
                                 string statusBadge = computedStatus.ToLower() switch
@@ -195,7 +195,7 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-outline-primary btn-sm py-1 px-3" onclick="openAdminEditCourtModal(@court.CourtId, '@court.CourtName', @((int)court.HourlyPrice))" style="border-radius: 2px !important; font-size: 0.8rem;"><i class="bi bi-pencil"></i> Sửa</button>
+                                            <button class="btn btn-outline-primary btn-sm py-1 px-3" onclick="openAdminEditCourtModal(@court.CourtId, '@court.CourtName', @((int)court.HourlyPrice), '@court.Status')" style="border-radius: 2px !important; font-size: 0.8rem;"><i class="bi bi-pencil"></i> Sửa</button>
                                             <button class="btn btn-outline-secondary btn-sm py-1 px-3" onclick="openUploadImageModal('court', @court.CourtId, '@court.CourtName')" style="border-radius: 2px !important; font-size: 0.8rem;"><i class="bi bi-image"></i> Ảnh</button>
                                             <button class="btn btn-outline-danger btn-sm py-1 px-3" onclick="deleteCourtItem(@court.CourtId, '@court.CourtName')" style="border-radius: 2px !important; font-size: 0.8rem;"><i class="bi bi-trash"></i> Xóa</button>
                                         </div>
@@ -379,7 +379,7 @@
 </div>
 
 <!-- Modal: Add New Staff -->
-<div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
+<div class="modal fade" id="addStaffModal" aria-labelledby="addStaffModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 4px; border: 1px solid #161616;">
             <div class="modal-header py-3" style="background-color: #161616 !important; color: #ffffff !important; border-bottom: 1px solid #161616; border-top-left-radius: 4px !important; border-top-right-radius: 4px !important;">
@@ -432,7 +432,7 @@
 </div>
 
 <!-- Modal: Promote User to Staff -->
-<div class="modal fade" id="promoteStaffModal" tabindex="-1" aria-labelledby="promoteStaffModalLabel" aria-hidden="true">
+<div class="modal fade" id="promoteStaffModal" aria-labelledby="promoteStaffModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 4px; border: 1px solid #161616;">
             <div class="modal-header py-3" style="background-color: #161616 !important; color: #ffffff !important; border-bottom: 1px solid #161616; border-top-left-radius: 4px !important; border-top-right-radius: 4px !important;">
@@ -479,7 +479,7 @@
 </div>
 
 <!-- Modal: Admin Edit Court -->
-<div class="modal fade" id="adminEditCourtModal" tabindex="-1" aria-labelledby="adminEditCourtModalLabel" aria-hidden="true">
+<div class="modal fade" id="adminEditCourtModal" aria-labelledby="adminEditCourtModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 4px; border: 1px solid #161616;">
             <div class="modal-header py-3" style="background-color: #161616 !important; color: #ffffff !important; border-bottom: 1px solid #161616; border-top-left-radius: 4px !important; border-top-right-radius: 4px !important;">
@@ -497,6 +497,14 @@
                         <label class="form-label small fw-semibold text-dark mb-1">Đơn giá thuê theo giờ (đ/h)</label>
                         <input type="number" class="form-control" id="adminEditCourtPrice" min="1000" step="1000" required style="border-radius: 3px !important;">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark mb-1">Trạng Thái Sân</label>
+                        <select class="form-select" id="adminEditCourtStatus" required style="border-radius: 3px !important;">
+                            <option value="Available">Đang trống (Available)</option>
+                            <option value="InUse">Đang sử dụng (InUse)</option>
+                            <option value="Maintenance">Bảo trì (Maintenance)</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer p-3" style="background-color: #fafafa; border-top: 1px solid #e0e0e0;">
                     <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Hủy Bỏ</button>
@@ -508,7 +516,7 @@
 </div>
 
 <!-- Modal: Admin Add Court -->
-<div class="modal fade" id="adminAddCourtModal" tabindex="-1" aria-labelledby="adminAddCourtModalLabel" aria-hidden="true">
+<div class="modal fade" id="adminAddCourtModal" aria-labelledby="adminAddCourtModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 4px; border: 1px solid #161616;">
             <div class="modal-header py-3" style="background-color: #161616 !important; color: #ffffff !important; border-bottom: 1px solid #161616; border-top-left-radius: 4px !important; border-top-right-radius: 4px !important;">
@@ -540,7 +548,7 @@
 </div>
 
 <!-- Modal: Admin Add Service Item -->
-<div class="modal fade" id="adminAddServiceModal" tabindex="-1" aria-labelledby="adminAddServiceModalLabel" aria-hidden="true">
+<div class="modal fade" id="adminAddServiceModal" aria-labelledby="adminAddServiceModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 4px; border: 1px solid #161616;">
             <div class="modal-header py-3" style="background-color: #161616 !important; color: #ffffff !important; border-bottom: 1px solid #161616; border-top-left-radius: 4px !important; border-top-right-radius: 4px !important;">
@@ -583,7 +591,7 @@
 </div>
 
 <!-- Modal: Admin Edit Service Item -->
-<div class="modal fade" id="adminEditServiceModal" tabindex="-1" aria-labelledby="adminEditServiceModalLabel" aria-hidden="true">
+<div class="modal fade" id="adminEditServiceModal" aria-labelledby="adminEditServiceModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 4px; border: 1px solid #161616;">
             <div class="modal-header py-3" style="background-color: #161616 !important; color: #ffffff !important; border-bottom: 1px solid #161616; border-top-left-radius: 4px !important; border-top-right-radius: 4px !important;">
@@ -627,7 +635,7 @@
 </div>
 
 <!-- Modal: Upload Image -->
-<div class="modal fade" id="uploadImageModal" tabindex="-1" aria-labelledby="uploadImageModalLabel" aria-hidden="true">
+<div class="modal fade" id="uploadImageModal" aria-labelledby="uploadImageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 4px; border: 1px solid #161616;">
             <div class="modal-header py-3" style="background-color: #161616 !important; color: #ffffff !important; border-bottom: 1px solid #161616; border-top-left-radius: 4px !important; border-top-right-radius: 4px !important;">
@@ -665,6 +673,15 @@
 </div>
 
 @section Scripts {
+    <!-- ExcelJS Library for exporting premium xlsx files from frontend -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+
+    <!-- Load weekly revenue mock data module -->
+    <script type="module">
+        import { weeklyRevenue } from '/js/mockData.js';
+        window.weeklyRevenueMock = weeklyRevenue;
+    </script>
+
     <script>
         let addStaffModalObj = null;
         let promoteStaffModalObj = null;
@@ -839,12 +856,13 @@
             });
         }
 
-        function openAdminEditCourtModal(id, currentName, fallbackPrice) {
+        function openAdminEditCourtModal(id, currentName, fallbackPrice, currentStatus) {
             document.getElementById('adminEditCourtId').value = id;
             const nameVal = document.querySelector(`#admin-court-row-${id} .court-name-val`).innerText;
             const priceVal = adminCourtPrices[id] || fallbackPrice;
             document.getElementById('adminEditCourtName').value = nameVal;
             document.getElementById('adminEditCourtPrice').value = priceVal;
+            document.getElementById('adminEditCourtStatus').value = currentStatus || 'Available';
             adminEditCourtModalObj.show();
         }
 
@@ -853,6 +871,7 @@
             const id = document.getElementById('adminEditCourtId').value;
             const newName = document.getElementById('adminEditCourtName').value;
             const newPrice = parseInt(document.getElementById('adminEditCourtPrice').value);
+            const newStatus = document.getElementById('adminEditCourtStatus').value;
             
             $.ajax({
                 url: `/api/CourtApi/${id}`,
@@ -861,14 +880,15 @@
                 data: JSON.stringify({
                     courtId: parseInt(id),
                     courtName: newName,
-                    hourlyPrice: newPrice
+                    hourlyPrice: newPrice,
+                    status: newStatus
                 }),
                 success: function() {
                     adminCourtPrices[id] = newPrice;
                     document.querySelector(`#admin-court-row-${id} .court-name-val`).innerText = newName;
                     document.querySelector(`#admin-court-row-${id} .court-price-val`).innerText = `${newPrice.toLocaleString('vi-VN')}đ`;
                     
-                    alert(`Cập nhật thông tin sân thành công!\nTên sân: ${newName}\nĐơn giá: ${newPrice.toLocaleString('vi-VN')}đ/giờ`);
+                    alert(`Cập nhật thông tin sân thành công!\nTên sân: ${newName}\nĐơn giá: ${newPrice.toLocaleString('vi-VN')}đ/giờ\nTrạng thái: ${newStatus}`);
                     adminEditCourtModalObj.hide();
                     location.reload();
                 },
@@ -1121,6 +1141,261 @@
                     row.style.display = 'none';
                 }
             });
+        }
+
+        // Xử lý xuất file báo cáo doanh thu tuần sang Excel (.xlsx) ở Frontend
+        function handleExportExcel() {
+            const btn = document.getElementById('btn-export-report');
+            if (!btn) return;
+
+            const originalContent = btn.innerHTML;
+            
+            // Chuyển nút sang trạng thái loading và tạm thời vô hiệu hóa
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang xuất file...`;
+
+            // Giả lập trễ nhẹ 1.2s tạo hiệu ứng xử lý thực tế cho UX mượt mà
+            setTimeout(async () => {
+                try {
+                    // Tạo file dạng Blob
+                    const blob = await generateExcelBlob();
+                    
+                    // Thực hiện tải file xuống trình duyệt
+                    downloadExcelBlob(blob, 'Bao_Cao_Doanh_Thu_Tuan_Manager.xlsx');
+                    
+                    // Hiển thị thông báo Toast xanh báo thành công
+                    showSuccessToast('Xuất Báo Cáo Thành Công', 'File Excel thống kê doanh thu tuần đã được tải xuống máy tính.');
+                } catch (error) {
+                    console.error('Lỗi trong quá trình xuất Excel:', error);
+                    alert('Lỗi: Không thể xuất file Excel báo cáo doanh thu tuần.');
+                } finally {
+                    // Phục hồi nút bấm
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                }
+            }, 1200);
+        }
+
+        // Tạo cấu trúc workbook và trả về dữ liệu nhị phân Blob dạng .xlsx
+        async function generateExcelBlob() {
+            /* 
+             * Cấu trúc kết nối API thực tế trong tương lai:
+             * const response = await fetch('/api/Reports/weekly-revenue/export', {
+             *     method: 'GET',
+             *     headers: {
+             *         'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+             *     }
+             * });
+             * if (!response.ok) throw new Error('Yêu cầu xuất file từ máy chủ thất bại.');
+             * return await response.blob();
+             */
+
+            if (typeof ExcelJS === 'undefined') {
+                throw new Error('Thư viện ExcelJS chưa được tải thành công.');
+            }
+
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Doanh Thu Tuần');
+
+            // 1. Dòng tiêu đề chính
+            worksheet.mergeCells('A1:D1');
+            const titleCell = worksheet.getCell('A1');
+            titleCell.value = 'BÁO CÁO DOANH THU TUẦN - AQUAR COURT';
+            titleCell.font = { name: 'Segoe UI', size: 15, bold: true, color: { argb: '4F46E5' } };
+            titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            worksheet.getRow(1).height = 40;
+
+            // 2. Dòng thông tin phụ (Metadata)
+            worksheet.mergeCells('A2:D2');
+            const subtitleCell = worksheet.getCell('A2');
+            const currentDatetime = new Date().toLocaleString('vi-VN');
+            subtitleCell.value = `Ngày lập báo cáo: ${currentDatetime} | Người lập: Admin/Manager`;
+            subtitleCell.font = { name: 'Segoe UI', size: 9, italic: true, color: { argb: '64748B' } };
+            subtitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            worksheet.getRow(2).height = 20;
+
+            // Chừa dòng 3 trống
+            worksheet.getRow(3).height = 12;
+
+            // 3. Header bảng biểu (Dòng 4)
+            const headerRow = worksheet.getRow(4);
+            headerRow.values = ['THỨ / NGÀY', 'DOANH THU SÂN', 'DOANH THU DỊCH VỤ', 'TỔNG DOANH THU'];
+            headerRow.height = 28;
+            headerRow.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFF' } };
+            
+            headerRow.eachCell((cell) => {
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: '4F46E5' }
+                };
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                cell.border = {
+                    top: { style: 'medium', color: { argb: '4F46E5' } },
+                    left: { style: 'thin', color: { argb: 'E2E8F0' } },
+                    bottom: { style: 'medium', color: { argb: '4F46E5' } },
+                    right: { style: 'thin', color: { argb: 'E2E8F0' } }
+                };
+            });
+
+            // Chiều rộng cột mặc định
+            worksheet.getColumn(1).width = 20; // Thứ / ngày
+            worksheet.getColumn(2).width = 24; // Doanh thu sân
+            worksheet.getColumn(3).width = 24; // Doanh thu dịch vụ
+            worksheet.getColumn(4).width = 24; // Tổng cộng
+
+            // 4. Đổ dữ liệu từ mockData vào bảng (Từ dòng 5)
+            const mockData = window.weeklyRevenueMock || [];
+            mockData.forEach((item, index) => {
+                const rowIndex = 5 + index;
+                const row = worksheet.getRow(rowIndex);
+                
+                row.values = [
+                    item.dayOfWeek || item.day_of_week || item.DayOfWeek,
+                    item.courtRevenue || 0,
+                    item.serviceRevenue || 0,
+                    item.totalRevenue || 0
+                ];
+                row.height = 24;
+                row.font = { name: 'Segoe UI', size: 10 };
+
+                // Định dạng ô văn bản đầu tiên
+                const cDay = row.getCell(1);
+                cDay.alignment = { horizontal: 'center', vertical: 'middle' };
+
+                // Căn phải cột số liệu và định dạng tiền tệ Việt Nam (đ)
+                const cCourt = row.getCell(2);
+                cCourt.numFmt = '#,##0"đ"';
+                cCourt.alignment = { horizontal: 'right', vertical: 'middle' };
+
+                const cService = row.getCell(3);
+                cService.numFmt = '#,##0"đ"';
+                cService.alignment = { horizontal: 'right', vertical: 'middle' };
+
+                const cTotal = row.getCell(4);
+                cTotal.numFmt = '#,##0"đ"';
+                cTotal.alignment = { horizontal: 'right', vertical: 'middle' };
+                cTotal.font = { name: 'Segoe UI', size: 10, bold: true };
+
+                // Thêm đường lưới viền nhẹ và màu nền so le
+                row.eachCell((cell) => {
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'E2E8F0' } },
+                        left: { style: 'thin', color: { argb: 'E2E8F0' } },
+                        bottom: { style: 'thin', color: { argb: 'E2E8F0' } },
+                        right: { style: 'thin', color: { argb: 'E2E8F0' } }
+                    };
+                    if (rowIndex % 2 === 0) {
+                        cell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'F8FAFC' }
+                        };
+                    }
+                });
+            });
+
+            // 5. Thêm dòng Tổng cộng ở dưới cùng
+            const totalRowIndex = 5 + mockData.length;
+            const totalRow = worksheet.getRow(totalRowIndex);
+            totalRow.height = 26;
+            totalRow.values = [
+                'TỔNG CỘNG',
+                { formula: `=SUM(B5:B${totalRowIndex - 1})` },
+                { formula: `=SUM(C5:C${totalRowIndex - 1})` },
+                { formula: `=SUM(D5:D${totalRowIndex - 1})` }
+            ];
+            totalRow.font = { name: 'Segoe UI', size: 10, bold: true };
+
+            const tcDay = totalRow.getCell(1);
+            tcDay.alignment = { horizontal: 'center', vertical: 'middle' };
+
+            const tcCourt = totalRow.getCell(2);
+            tcCourt.numFmt = '#,##0"đ"';
+            tcCourt.alignment = { horizontal: 'right', vertical: 'middle' };
+
+            const tcService = totalRow.getCell(3);
+            tcService.numFmt = '#,##0"đ"';
+            tcService.alignment = { horizontal: 'right', vertical: 'middle' };
+
+            const tcTotal = totalRow.getCell(4);
+            tcTotal.numFmt = '#,##0"đ"';
+            tcTotal.alignment = { horizontal: 'right', vertical: 'middle' };
+
+            totalRow.eachCell((cell) => {
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'F1F5F9' }
+                };
+                cell.border = {
+                    top: { style: 'medium', color: { argb: '94A3B8' } },
+                    left: { style: 'thin', color: { argb: 'E2E8F0' } },
+                    bottom: { style: 'double', color: { argb: '4F46E5' } },
+                    right: { style: 'thin', color: { argb: 'E2E8F0' } }
+                };
+            });
+
+            // Xuất workbook sang mảng đệm byte
+            const buffer = await workbook.xlsx.writeBuffer();
+            return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        }
+
+        // Tải xuống file Excel từ đối tượng Blob chuẩn
+        function downloadExcelBlob(blob, fileName) {
+            if (!(blob instanceof Blob)) {
+                console.error('Dữ liệu xuất không đúng định dạng Blob.');
+                return;
+            }
+            const blobUrl = window.URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = blobUrl;
+            anchor.download = fileName;
+            
+            document.body.appendChild(anchor);
+            anchor.click();
+            
+            document.body.removeChild(anchor);
+            window.URL.revokeObjectURL(blobUrl);
+        }
+
+        // Hiển thị thông báo Toast xanh lục dạng Success ở góc màn hình
+        function showSuccessToast(title, message) {
+            let container = document.getElementById('toast-container-global');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container-global';
+                container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                container.style.zIndex = '99999';
+                document.body.appendChild(container);
+            }
+
+            const id = 'toast-' + Date.now();
+            const toastHtml = `
+                <div id="${id}" class="toast align-items-center text-white bg-success border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius: 8px; min-width: 300px; display: flex; opacity: 1; transition: opacity 0.5s ease-out;">
+                    <div class="d-flex w-100">
+                        <div class="toast-body p-3 flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <i class="bi bi-check-circle-fill fs-5 text-white"></i>
+                                <strong class="me-auto text-white">${title}</strong>
+                            </div>
+                            <div class="small text-white" style="opacity: 0.95; font-size: 0.82rem;">${message}</div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close" onclick="this.closest('.toast').remove()"></button>
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', toastHtml);
+            const toastEl = document.getElementById(id);
+            
+            // Xóa tự động sau 4.5 giây
+            setTimeout(() => {
+                if (toastEl) {
+                    toastEl.style.opacity = '0';
+                    setTimeout(() => toastEl.remove(), 500);
+                }
+            }, 4500);
         }
     </script>
 }

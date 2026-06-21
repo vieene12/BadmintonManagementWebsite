@@ -8,7 +8,6 @@ using System.Linq;
 
 namespace AquarSmartCourt.Controllers;
 
-[Authorize]
 public class HomeController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -29,7 +28,9 @@ public class HomeController : Controller
         {
             return RedirectToAction("Index", "Manager");
         }
-        if (roleClaim != "1")
+        
+        // Cho phép Khách hàng (role 1) hoặc Khách vãng lai chưa đăng nhập (null) truy cập trang chủ
+        if (roleClaim != "1" && roleClaim != null)
         {
             return RedirectToAction("AccessDenied", "Account");
         }
