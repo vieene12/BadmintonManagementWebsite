@@ -117,9 +117,35 @@ public class CourtApiController : ControllerBase
             return NotFound();
         }
 
+        // Delete associated service orders
+        var serviceOrders = await _context.ServiceOrders.Where(so => so.CourtId == id).ToListAsync();
+        _context.ServiceOrders.RemoveRange(serviceOrders);
+
+        // Delete associated matchmaking groups & participants
+        var matchmakingGroups = await _context.MatchmakingGroups.Where(mg => mg.CourtId == id).ToListAsync();
+        foreach (var group in matchmakingGroups)
+        {
+            var participants = await _context.MatchmakingParticipants.Where(mp => mp.MatchmakingGroupId == group.MatchmakingGroupId).ToListAsync();
+            _context.MatchmakingParticipants.RemoveRange(participants);
+        }
+        _context.MatchmakingGroups.RemoveRange(matchmakingGroups);
+
+        // Delete associated surveillance videos
+        var videos = await _context.SurveillanceVideos.Where(v => v.CourtId == id).ToListAsync();
+        _context.SurveillanceVideos.RemoveRange(videos);
+
+        // Delete associated invoices
+        var invoices = await _context.Invoices.Where(i => i.CourtId == id).ToListAsync();
+        _context.Invoices.RemoveRange(invoices);
+
+        // Delete associated bookings
+        var bookings = await _context.Bookings.Where(b => b.CourtId == id).ToListAsync();
+        _context.Bookings.RemoveRange(bookings);
+
         _context.Courts.Remove(court);
         await _context.SaveChangesAsync();
 
+        await _hubContext.Clients.All.SendAsync("ReceiveUpdate");
         return NoContent();
     }
 
@@ -183,6 +209,10 @@ public class CourtApiController : ControllerBase
         {
             return NotFound();
         }
+
+        // Delete associated service orders
+        var serviceOrders = await _context.ServiceOrders.Where(so => so.ServiceItemId == id).ToListAsync();
+        _context.ServiceOrders.RemoveRange(serviceOrders);
 
         _context.ServiceItems.Remove(item);
         await _context.SaveChangesAsync();
