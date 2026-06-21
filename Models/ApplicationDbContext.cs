@@ -18,6 +18,14 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<Court>()
+            .Property(court => court.HourlyPrice)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<ServiceItem>()
+            .Property(item => item.UnitPrice)
+            .HasPrecision(18, 2);
+
         // Seed initial courts
         modelBuilder.Entity<Court>().HasData(
             new Court { CourtId = 1, CourtCode = "S01", CourtName = "Sân Con 01", HourlyPrice = 80000, Status = "InUse" },
