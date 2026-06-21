@@ -2,12 +2,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using AquarSmartCourt.Models;
 using AquarSmartCourt.Hubs;
+using Microsoft.Extensions.DependencyInjection;
+using AquarSmartCourt.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
+builder.Services.AddHttpClient();
+// Đăng ký dịch vụ Gemini AI vào hệ thống
+builder.Services.AddHttpClient<GeminiService>();
+builder.Services.AddHttpClient<AquarSmartCourt.Services.GeminiService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -57,6 +63,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapHub<CourtHub>("/courtHub");
+
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",

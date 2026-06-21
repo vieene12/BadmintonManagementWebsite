@@ -36,9 +36,13 @@ public class ReportsApiController : ControllerBase
         if (todayRevenue == 0) todayRevenue = 4850000; // fallback if no checkout occurred yet
 
         // 2. Play Hours Today
-        double todayHours = await _context.Bookings
+        // FIX LỖI TẠI ĐÂY: Kéo dữ liệu về bộ nhớ bằng ToListAsync() trước khi tính toán .TotalHours
+        var todayBookings = await _context.Bookings
             .Where(b => b.StartTime.Date == today && b.Status == "Confirmed")
-            .SumAsync(b => (b.EndTime - b.StartTime).TotalHours);
+            .ToListAsync();
+
+        double todayHours = todayBookings
+            .Sum(b => (b.EndTime - b.StartTime).TotalHours);
 
         if (todayHours == 0) todayHours = 26.5; // fallback
 
@@ -50,7 +54,8 @@ public class ReportsApiController : ControllerBase
         // 4. Staff Count
         int staffCount = await _context.Users.CountAsync(u => u.Role == 2 && u.IsActive);
 
-        return Ok(new {
+        return Ok(new
+        {
             todayRevenue = (double)todayRevenue,
             todayHours,
             utilization = Math.Round(utilization, 1),
@@ -69,7 +74,7 @@ public class ReportsApiController : ControllerBase
         for (int i = 7; i >= 0; i--)
         {
             var targetDate = DateTime.Today.AddDays(-i);
-            
+
             decimal dailyRevenue = await _context.Invoices
                 .Where(inv => inv.PaymentTime.Date == targetDate)
                 .SumAsync(inv => inv.TotalAmount);
@@ -96,7 +101,8 @@ public class ReportsApiController : ControllerBase
                 };
             }
 
-            result.Add(new {
+            result.Add(new
+            {
                 date = targetDate.ToString("yyyy-MM-dd"),
                 label = label,
                 amount = (double)dailyRevenue

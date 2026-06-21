@@ -2,9 +2,7 @@
     ViewData["Title"] = "Quầy Lễ Tân - Nghiệp Vụ Tại Quầy";
     ViewData["ActivePage"] = "Receptionist";
 }
-
 <div class="container-fluid px-0">
-    <!-- Header Page Description -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
             <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -1px;"><i class="bi bi-laptop me-2 text-primary"></i>Quầy Lễ Tân (Receptionist Hub)</h2>
@@ -19,32 +17,28 @@
             </button>
         </div>
     </div>
-
     <div class="row g-4">
-        <!-- Left Column: Real-time Court Cards -->
         <div class="col-xl-8 col-lg-7">
             <div class="glass-card p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold text-dark mb-0"><i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Trạng Thái Sân Thời Gian Thực</h5>
                     <small class="text-muted">Ca trực hiện tại: Hoạt động ổn định</small>
                 </div>
-                
+
                 <div class="row g-3" id="court-status-container">
                     @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
                     {
                         var now = DateTime.Now;
-                        var activeBooking = (ViewBag.TodayBookings as List<AquarSmartCourt.Models.Booking>)?.FirstOrDefault(b => 
-                            b.CourtId == court.CourtId && 
-                            b.StartTime <= now && 
+                        var activeBooking = (ViewBag.TodayBookings as List<AquarSmartCourt.Models.Booking>)?.FirstOrDefault(b =>
+                            b.CourtId == court.CourtId &&
+                            b.StartTime <= now &&
                             now <= b.EndTime
                         );
-
                         string computedStatus = court.Status;
                         if (court.Status != "Maintenance")
                         {
                             computedStatus = activeBooking != null ? "InUse" : "Available";
                         }
-
                         string statusClass = computedStatus.ToLower() switch
                         {
                             "inuse" => "status-in-use",
@@ -52,18 +46,17 @@
                             "maintenance" => "status-maintenance",
                             _ => "status-available"
                         };
-
                         <div class="col-md-6" id="court-card-col-@court.CourtId">
                             <div class="card border-0 glass-card court-card @statusClass p-3 glow-card">
                                 <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
                                     <div class="d-flex align-items-center gap-2">
                                         <h5 class="fw-bold text-dark mb-0" id="courtName-@court.CourtId" style="font-weight: 800;">@court.CourtName</h5>
-                                        <button class="btn btn-link p-0 text-muted btn-edit-court" 
-                                                data-id="@court.CourtId" 
-                                                data-name="@court.CourtName" 
-                                                data-price="@((int)court.HourlyPrice)" 
-                                                data-status="@court.Status" 
-                                                onclick="openEditCourtModal(this)" 
+                                        <button class="btn btn-link p-0 text-muted btn-edit-court"
+                                                data-id="@court.CourtId"
+                                                data-name="@court.CourtName"
+                                                data-price="@((int)court.HourlyPrice)"
+                                                data-status="@court.Status"
+                                                onclick="openEditCourtModal(this)"
                                                 title="Cấu hình giá sân">
                                             <i class="bi bi-gear-fill"></i>
                                         </button>
@@ -81,7 +74,6 @@
                                         <span class="status-badge available"><i class="bi bi-check-circle-fill"></i> Đang Trống</span>
                                     }
                                 </div>
-                                <!-- Interactive SVG Court Illustration with dynamic status floor -->
                                 <div class="svg-court-container">
                                     <svg width="240" height="80" viewBox="0 0 240 80">
                                         @{
@@ -98,19 +90,22 @@
                                         <line x1="10" y1="40" x2="85" y2="40" class="svg-court-lines" />
                                         <line x1="155" y1="40" x2="230" y2="40" class="svg-court-lines" />
                                     </svg>
-                                    
-                                    <!-- Dynamic overlay details for SVGs -->
+
                                     <div class="position-absolute top-0 end-0 m-2 small font-monospace text-muted" style="font-size: 0.65rem;">
-                                        @if (computedStatus == "InUse") {
+                                        @if (computedStatus == "InUse")
+                                        {
                                             <span class="text-primary fw-bold"><i class="bi bi-camera-video"></i> REC</span>
-                                        } else if (computedStatus == "Maintenance") {
+                                        }
+                                        else if (computedStatus == "Maintenance")
+                                        {
                                             <span class="text-danger fw-bold"><i class="bi bi-shield-slash"></i> OFF</span>
-                                        } else {
+                                        }
+                                        else
+                                        {
                                             <span class="text-success fw-bold"><i class="bi bi-check-circle"></i> RDY</span>
                                         }
                                     </div>
                                 </div>
-
                                 @if (computedStatus == "InUse" && activeBooking != null)
                                 {
                                     var customerName = activeBooking.CustomerName;
@@ -119,7 +114,6 @@
                                     var hours = (activeBooking.EndTime - activeBooking.StartTime).TotalHours;
                                     if (hours <= 0) hours = 1.0;
                                     var svcMultiplier = court.CourtId == 1 ? 0.5 : 1.0;
-
                                     <table class="table table-sm table-borderless mb-3 small text-secondary">
                                         <tbody>
                                             <tr>
@@ -184,8 +178,6 @@
                     }
                 </div>
             </div>
-
-            <!-- Daily Timetable Grid (Visual Schedule) -->
             <div class="glass-card p-4 mt-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -198,7 +190,6 @@
                         <span class="status-badge in-use" style="font-size: 0.65rem; background: rgba(99, 102, 241, 0.1); color: var(--primary-color); border-color: rgba(99, 102, 241, 0.2);"><i class="bi bi-lock-fill"></i> Đã đặt</span>
                     </div>
                 </div>
-
                 <div class="timetable-container">
                     <table class="timetable-table">
                         <thead>
@@ -210,7 +201,7 @@
                                         @court.CourtName
                                         @if (court.Status == "Maintenance")
                                         {
-                                            <br/><small class="text-danger" style="font-size: 0.65rem; text-transform: none;"><i class="bi bi-wrench"></i> Bảo trì</small>
+                                            <br /><small class="text-danger" style="font-size: 0.65rem; text-transform: none;"><i class="bi bi-wrench"></i> Bảo trì</small>
                                         }
                                     </th>
                                 }
@@ -220,23 +211,12 @@
                             @{
                                 var slots = new List<(string Start, string End)>
                                 {
-                                    ("05:00", "06:00"),
-                                    ("06:00", "07:00"),
-                                    ("07:00", "08:00"),
-                                    ("08:00", "09:00"),
-                                    ("09:00", "10:00"),
-                                    ("10:00", "11:00"),
-                                    ("11:00", "12:00"),
-                                    ("12:00", "13:00"),
-                                    ("13:00", "14:00"),
-                                    ("14:00", "15:00"),
-                                    ("15:00", "16:00"),
-                                    ("16:00", "17:00"),
-                                    ("17:00", "18:00"),
-                                    ("18:00", "19:00"),
-                                    ("19:00", "20:00"),
-                                    ("20:00", "21:00"),
-                                    ("21:00", "22:00")
+                                    ("05:00", "06:00"), ("06:00", "07:00"), ("07:00", "08:00"),
+                                    ("08:00", "09:00"), ("09:00", "10:00"), ("10:00", "11:00"),
+                                    ("11:00", "12:00"), ("12:00", "13:00"), ("13:00", "14:00"),
+                                    ("14:00", "15:00"), ("15:00", "16:00"), ("16:00", "17:00"),
+                                    ("17:00", "18:00"), ("18:00", "19:00"), ("19:00", "20:00"),
+                                    ("20:00", "21:00"), ("21:00", "22:00")
                                 };
                                 var courts = ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>();
                                 var todayBookings = ViewBag.TodayBookings as List<AquarSmartCourt.Models.Booking> ?? new List<AquarSmartCourt.Models.Booking>();
@@ -251,13 +231,11 @@
                                         var endParts = slot.End.Split(':');
                                         var slotStart = DateTime.Today.AddHours(int.Parse(startParts[0])).AddMinutes(int.Parse(startParts[1]));
                                         var slotEnd = DateTime.Today.AddHours(int.Parse(endParts[0])).AddMinutes(int.Parse(endParts[1]));
-
-                                        var booking = todayBookings.FirstOrDefault(b => 
-                                            b.CourtId == court.CourtId && 
-                                            b.StartTime < slotEnd && 
+                                        var booking = todayBookings.FirstOrDefault(b =>
+                                            b.CourtId == court.CourtId &&
+                                            b.StartTime < slotEnd &&
                                             slotStart < b.EndTime
                                         );
-
                                         if (court.Status == "Maintenance")
                                         {
                                             <td class="maintenance text-danger text-center bg-danger-subtle fw-semibold" style="cursor: not-allowed;" onclick="alert('Sân này đang trong thời gian bảo trì!')">
@@ -283,8 +261,6 @@
                     </table>
                 </div>
             </div>
-
-            <!-- Daily Bookings List Card -->
             <div class="glass-card p-4 mt-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold text-dark mb-0"><i class="bi bi-calendar3 me-2 text-primary"></i>Lịch Đặt Sân Trong Ngày</h5>
@@ -310,17 +286,14 @@
                 </div>
             </div>
         </div>
-
-        <!-- Right Column: Customer Search & Service Catalog -->
         <div class="col-xl-4 col-lg-5">
-            <!-- Customer search card -->
             <div class="glass-card p-4 mb-4">
                 <h5 class="fw-bold text-dark mb-3"><i class="bi bi-search me-2 text-primary"></i>Tra Cứu Khách Hàng</h5>
                 <div class="input-group mb-3">
                     <input type="text" class="form-control rounded-start-pill" id="custSearchPhone" placeholder="Nhập số điện thoại (0987...)" value="0987654321">
                     <button class="btn btn-primary rounded-end-pill px-3" type="button" onclick="searchCustomerInfo()"><i class="bi bi-search"></i></button>
                 </div>
-                
+
                 <div class="border rounded-4 p-3 bg-light" id="customer-info-box" style="border-left: 4px solid var(--accent-warning) !important;">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="fw-bold text-dark mb-0" id="infoCustName"><i class="bi bi-person-fill me-1"></i> Nguyễn Văn A</h6>
@@ -343,8 +316,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Daily Shift Revenue Audit Card -->
             <div class="glass-card p-4 mb-4 border-start border-4 border-success bg-white glow-card">
                 <h5 class="fw-bold text-dark mb-3"><i class="bi bi-wallet2 me-2 text-success"></i>Kiểm Kê Doanh Thu Ca</h5>
                 <p class="text-secondary small mb-3">Đối chiếu tổng tiền thuê sân và dịch vụ phát sinh thực tế tại quầy.</p>
@@ -366,8 +337,6 @@
                     <i class="bi bi-printer-fill me-1"></i> Chốt Ca & In Bàn Giao
                 </button>
             </div>
-
-            <!-- List of services price catalog -->
             <div class="glass-card p-4">
                 <h5 class="fw-bold text-dark mb-3"><i class="bi bi-tags me-2 text-primary"></i>Bảng Giá Dịch Vụ</h5>
                 <div class="table-responsive">
@@ -396,7 +365,6 @@
     </div>
 </div>
 
-<!-- Modal: Service Order at counter -->
 <div class="modal fade" id="serviceOrderModal" tabindex="-1" aria-labelledby="serviceOrderModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -456,7 +424,6 @@
     </div>
 </div>
 
-<!-- Modal: Checkout and Invoice billing -->
 <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -483,7 +450,6 @@
                         <strong class="text-dark" id="receiptDuration">2.0 giờ</strong>
                     </div>
                 </div>
-
                 <h6 class="fw-bold text-dark mb-2">Chi tiết thanh toán</h6>
                 <div class="table-responsive border rounded-3 overflow-hidden">
                     <table class="table table-hover align-middle small mb-0">
@@ -500,8 +466,6 @@
                                 <td class="text-center" id="billCourtHours">2.0h</td>
                                 <td class="text-end fw-bold text-dark" id="billCourtFee">160.000đ</td>
                             </tr>
-                            <!-- Service orders from database will be appended here via JS -->
-                            
                             <tr class="table-light fw-bold fs-6 text-dark" id="checkout-total-row">
                                 <td>TỔNG CỘNG:</td>
                                 <td></td>
@@ -510,7 +474,6 @@
                         </tbody>
                     </table>
                 </div>
-
                 <div class="alert alert-warning py-2 rounded-3 small mt-3 mb-0">
                     <i class="bi bi-gift-fill me-1"></i> Điểm thưởng hội viên tích lũy: <strong>+24 điểm</strong>.
                 </div>
@@ -523,7 +486,6 @@
     </div>
 </div>
 
-<!-- Modal: Quick Booking at Counter -->
 <div class="modal fade" id="quickBookModal" tabindex="-1" aria-labelledby="quickBookModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -576,7 +538,6 @@
     </div>
 </div>
 
-<!-- Modal: Edit Court Details -->
 <div class="modal fade" id="editCourtModal" tabindex="-1" aria-labelledby="editCourtModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -612,7 +573,6 @@
     </div>
 </div>
 
-<!-- Modal: Change Court for Booking -->
 <div class="modal fade" id="changeCourtModal" tabindex="-1" aria-labelledby="changeCourtModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -634,7 +594,6 @@
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-dark mb-1">Chọn sân mới muốn chuyển đến</label>
                         <select class="form-select rounded-3" id="changeNewCourtSelect" required>
-                            <!-- Dynamically populated via JS -->
                         </select>
                     </div>
                 </div>
@@ -655,479 +614,158 @@
         let quickBookModalObj = null;
         let editCourtModalObj = null;
         let changeCourtModalObj = null;
+
         let courtHourlyPrices = {
-            @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
-            {
-                @:@court.CourtId: @((int)court.HourlyPrice),
-            }
+        @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
+        {
+            @:@court.CourtId: @((int)court.HourlyPrice),
+        }
         };
 
         // SignalR Connection
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/courtHub")
-            .build();
+        .withUrl("/courtHub")
+        .build();
 
         connection.on("ReceiveUpdate", function() {
-            const openModals = $('.modal.show').length;
-            if (openModals === 0) {
-                location.reload();
-            } else {
-                console.log("Dữ liệu sân đã thay đổi. Sẽ cập nhật sau.");
-            }
+        const openModals = $('.modal.show').length;
+        if (openModals === 0) {
+        location.reload();
+        } else {
+        console.log("Dữ liệu sân đã thay đổi. Sẽ cập nhật sau.");
+        }
         });
 
         $(document).ready(function() {
-            serviceModalObj = new bootstrap.Modal(document.getElementById('serviceOrderModal'));
-            checkoutModalObj = new bootstrap.Modal(document.getElementById('checkoutModal'));
-            quickBookModalObj = new bootstrap.Modal(document.getElementById('quickBookModal'));
-            editCourtModalObj = new bootstrap.Modal(document.getElementById('editCourtModal'));
-            changeCourtModalObj = new bootstrap.Modal(document.getElementById('changeCourtModal'));
-            updateServiceUnitPrice();
-            loadDailyBookings();
+        serviceModalObj = new bootstrap.Modal(document.getElementById('serviceOrderModal'));
+        checkoutModalObj = new bootstrap.Modal(document.getElementById('checkoutModal'));
+        quickBookModalObj = new bootstrap.Modal(document.getElementById('quickBookModal'));
+        editCourtModalObj = new bootstrap.Modal(document.getElementById('editCourtModal'));
+        changeCourtModalObj = new bootstrap.Modal(document.getElementById('changeCourtModal'));
 
-            connection.start().then(function() {
-                console.log("SignalR connected successfully.");
-            }).catch(function(err) {
-                console.error("SignalR connection error: " + err.toString());
-            });
+        updateServiceUnitPrice();
+        loadDailyBookings();
+
+        connection.start().then(function() {
+        console.log("SignalR connected successfully.");
+        }).catch(function(err) {
+        console.error("SignalR connection error: " + err.toString());
+        });
         });
 
         function openQuickBookModal(courtId, courtName, startTime, endTime) {
-            if (courtId) {
-                document.getElementById('quickBookCourt').value = courtId;
-            } else {
-                document.getElementById('quickBookCourt').selectedIndex = 0;
-            }
-            if (startTime) {
-                document.getElementById('quickBookStart').value = startTime;
-            } else {
-                document.getElementById('quickBookStart').value = "17:00";
-            }
-            if (endTime) {
-                document.getElementById('quickBookEnd').value = endTime;
-            } else {
-                document.getElementById('quickBookEnd').value = "19:00";
-            }
-            // Reset customer inputs
-            document.getElementById('quickBookName').value = "";
-            document.getElementById('quickBookPhone').value = "";
-            document.getElementById('quickBookNotes').value = "";
+        if (courtId) {
+        document.getElementById('quickBookCourt').value = courtId;
+        } else {
+        document.getElementById('quickBookCourt').selectedIndex = 0;
+        }
+        if (startTime) {
+        document.getElementById('quickBookStart').value = startTime;
+        } else {
+        document.getElementById('quickBookStart').value = "17:00";
+        }
+        if (endTime) {
+        document.getElementById('quickBookEnd').value = endTime;
+        } else {
+        document.getElementById('quickBookEnd').value = "19:00";
+        }
+        // Reset customer inputs
+        document.getElementById('quickBookName').value = "";
+        document.getElementById('quickBookPhone').value = "";
+        document.getElementById('quickBookNotes').value = "";
 
-            quickBookModalObj.show();
+        quickBookModalObj.show();
         }
 
         function processQuickBook(e) {
-            e.preventDefault();
-            const courtId = parseInt(document.getElementById('quickBookCourt').value);
-            const selectEl = document.getElementById('quickBookCourt');
-            const courtName = selectEl.options[selectEl.selectedIndex].getAttribute('data-name');
-            const start = document.getElementById('quickBookStart').value;
-            const end = document.getElementById('quickBookEnd').value;
-            const name = document.getElementById('quickBookName').value;
-            const phone = document.getElementById('quickBookPhone').value;
+        e.preventDefault();
+        const courtId = parseInt(document.getElementById('quickBookCourt').value);
+        const selectEl = document.getElementById('quickBookCourt');
+        const courtName = selectEl.options[selectEl.selectedIndex].getAttribute('data-name');
+        const start = document.getElementById('quickBookStart').value;
+        const end = document.getElementById('quickBookEnd').value;
+        const name = document.getElementById('quickBookName').value;
+        const phone = document.getElementById('quickBookPhone').value;
 
-            $.ajax({
-                url: '/api/CourtApi/book',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    courtId: courtId,
-                    customerName: name,
-                    customerPhone: phone,
-                    startTime: start,
-                    endTime: end
-                }),
-                success: function() {
-                    alert(`Đăng ký đặt sân thành công!\nSân: ${courtName}\nThời gian: ${start} - ${end}\nKhách hàng: ${name}`);
-                    quickBookModalObj.hide();
-                    location.reload();
-                },
-                error: function(xhr) {
-                    alert('Lỗi đặt sân: ' + xhr.responseText);
-                }
-            });
+        $.ajax({
+        url: '/api/CourtApi/book',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+        courtId: courtId,
+        customerName: name,
+        customerPhone: phone,
+        startTime: start,
+        endTime: end
+        }),
+        success: function() {
+        alert(`Đăng ký đặt sân thành công!\nSân: ${courtName}\nThời gian: ${start} - ${end}\nKhách hàng: ${name}`);
+        quickBookModalObj.hide();
+        location.reload();
+        },
+        error: function(xhr) {
+        alert('Lỗi đặt sân: ' + xhr.responseText);
+        }
+        });
         }
 
         function quickCheckIn(id, courtName) {
-            const clientName = prompt("Nhập tên khách hàng muốn vào chơi:");
-            if (clientName) {
-                $.ajax({
-                    url: `/api/CourtApi/${id}`,
-                    type: 'PUT',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        courtId: parseInt(id),
-                        courtName: courtName,
-                        hourlyPrice: courtHourlyPrices[id],
-                        status: "InUse"
-                    }),
-                    success: function() {
-                        alert(`Đã nhận sân và bắt đầu tính giờ!\nSân: ${courtName}\nKhách chơi: ${clientName}\nCamera sân đã kích hoạt chế độ ghi hình.`);
-                        location.reload();
-                    },
-                    error: function(xhr) {
-                        alert('Lỗi: ' + xhr.responseText);
-                    }
-                });
-            }
+        const clientName = prompt("Nhập tên khách hàng muốn vào chơi:");
+        if (clientName) {
+        $.ajax({
+        url: `/api/CourtApi/${id}`,
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+        courtId: parseInt(id),
+        courtName: courtName,
+        hourlyPrice: courtHourlyPrices[id],
+        status: "InUse"
+        }),
+        success: function() {
+        alert(`Đã nhận sân và bắt đầu tính giờ!\nSân: ${courtName}\nKhách chơi: ${clientName}\nCamera sân đã kích hoạt chế độ ghi hình.`);
+        location.reload();
+        },
+        error: function(xhr) {
+        alert('Lỗi: ' + xhr.responseText);
+        }
+        });
+        }
         }
 
         function completeMaintenance(id) {
-            const courtName = document.getElementById(`courtName-${id}`).innerText;
-            $.ajax({
-                url: `/api/CourtApi/${id}`,
-                type: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    courtId: parseInt(id),
-                    courtName: courtName,
-                    hourlyPrice: courtHourlyPrices[id],
-                    status: "Available"
-                }),
-                success: function() {
-                    alert('Đã hoàn tất sửa chữa sân. Trạng thái chuyển về Đang Trống!');
-                    location.reload();
-                },
-                error: function(xhr) {
-                    alert('Lỗi: ' + xhr.responseText);
-                }
-            });
+        const courtName = document.getElementById(`courtName-${id}`).innerText;
+        $.ajax({
+        url: `/api/CourtApi/${id}`,
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+        courtId: parseInt(id),
+        courtName: courtName,
+        hourlyPrice: courtHourlyPrices[id],
+        status: "Available"
+        }),
+        success: function() {
+        alert('Đã hoàn tất sửa chữa sân. Trạng thái chuyển về Đang Trống!');
+        location.reload();
+        },
+        error: function(xhr) {
+        alert('Lỗi: ' + xhr.responseText);
+        }
+        });
         }
 
         function openServiceOrderModal(court, cust, serviceFactor) {
-            document.getElementById('serviceCourt').value = court;
-            document.getElementById('serviceCust').value = cust;
-            serviceModalObj.show();
+        document.getElementById('serviceCourt').value = court;
+        document.getElementById('serviceCust').value = cust;
+        serviceModalObj.show();
         }
 
         function updateServiceUnitPrice() {
-            const select = document.getElementById('orderServiceSelect');
-            if (select && select.value) {
-                document.getElementById('orderServicePrice').value = parseInt(select.value).toLocaleString('vi-VN') + 'đ';
-            } else {
-                document.getElementById('orderServicePrice').value = '0đ';
-            }
+        const select = document.getElementById('orderServiceSelect');
+        if (select && select.value) {
+        document.getElementById('orderServicePrice').value = parseInt(select.value).toLocaleString('vi-VN') + 'đ';
         }
-
-        function filterOrderServices() {
-            const selectedCategory = document.getElementById('orderServiceCategorySelect').value;
-            const serviceSelect = document.getElementById('orderServiceSelect');
-            const options = serviceSelect.querySelectorAll('option');
-
-            let firstVisibleIndex = -1;
-            options.forEach((opt, idx) => {
-                const cat = opt.getAttribute('data-category');
-                if (selectedCategory === "All" || cat === selectedCategory) {
-                    opt.style.display = '';
-                    if (firstVisibleIndex === -1) {
-                        firstVisibleIndex = idx;
-                    }
-                } else {
-                    opt.style.display = 'none';
-                }
-            });
-
-            if (firstVisibleIndex !== -1) {
-                serviceSelect.selectedIndex = firstVisibleIndex;
-            } else {
-                serviceSelect.selectedIndex = -1;
-            }
-            updateServiceUnitPrice();
-        }
-
-        function addServiceToBill(e) {
-            e.preventDefault();
-            const courtName = document.getElementById('serviceCourt').value;
-            const selectEl = document.getElementById('orderServiceSelect');
-            const itemId = parseInt(selectEl.options[selectEl.selectedIndex].getAttribute('data-id'));
-            const qty = parseInt(document.getElementById('orderServiceQty').value);
-            const itemName = selectEl.options[selectEl.selectedIndex].text;
-
-            // Map court name to ID
-            let courtId = 1;
-            if (courtName.includes("2")) courtId = 2;
-            else if (courtName.includes("3")) courtId = 3;
-            else if (courtName.includes("4")) courtId = 4;
-
-            $.ajax({
-                url: '/api/CourtApi/order',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    courtId: courtId,
-                    serviceItemId: itemId,
-                    quantity: qty
-                }),
-                success: function() {
-                    alert(`Đã thêm dịch vụ thành công vào cơ sở dữ liệu!\n${itemName}\nSố lượng: ${qty}`);
-                    serviceModalObj.hide();
-                    location.reload();
-                },
-                error: function(xhr) {
-                    alert('Lỗi thêm dịch vụ: ' + xhr.responseText);
-                }
-            });
-        }
-
-        function openCheckoutModal(id, court, cust, hourlyPrice, hours, serviceFeeMultiplier) {
-            document.getElementById('receiptCourt').innerText = court;
-            document.getElementById('receiptCust').innerText = cust;
-            document.getElementById('receiptDuration').innerText = `${hours} giờ`;
-            document.getElementById('billCourtHours').innerText = `${hours}h`;
-            
-            const currentPrice = courtHourlyPrices[id] || hourlyPrice;
-            const calculatedCourtFee = hours * currentPrice;
-            document.getElementById('billCourtFee').innerText = `${calculatedCourtFee.toLocaleString('vi-VN')}đ`;
-
-            // Call API to fetch actual ordered services from database
-            $.ajax({
-                url: `/api/CourtApi/orders/${id}`,
-                type: 'GET',
-                success: function(orders) {
-                    let servicesHtml = '';
-                    let serviceTotal = 0;
-                    
-                    orders.forEach(ord => {
-                        servicesHtml += `
-                            <tr class="service-bill-row">
-                                <td class="text-dark fw-medium">${ord.itemName} (${ord.unitPrice.toLocaleString('vi-VN')}đ/${ord.unit.toLowerCase()})</td>
-                                <td class="text-center">x ${ord.quantity}</td>
-                                <td class="text-end fw-bold text-dark">${ord.total.toLocaleString('vi-VN')}đ</td>
-                            </tr>
-                        `;
-                        serviceTotal += ord.total;
-                    });
-                    
-                    // Remove any existing dynamic service rows
-                    document.querySelectorAll('.service-bill-row').forEach(el => el.remove());
-                    
-                    // Insert before the total row (last row)
-                    const totalRow = document.querySelector('#checkout-total-row');
-                    $(servicesHtml).insertBefore(totalRow);
-                    
-                    const grandTotal = calculatedCourtFee + serviceTotal;
-                    document.getElementById('billTotalAmount').innerText = `${grandTotal.toLocaleString('vi-VN')}đ`;
-                    
-                    // Store checkout details on modal
-                    document.getElementById('checkoutModal').setAttribute('data-checkout-id', id);
-                    document.getElementById('checkoutModal').setAttribute('data-court-name', court);
-                    
-                    checkoutModalObj.show();
-                },
-                error: function(xhr) {
-                    alert('Lỗi tải danh sách dịch vụ: ' + xhr.responseText);
-                }
-            });
-        }
-
-        function confirmPaymentAndPrint() {
-            const id = document.getElementById('checkoutModal').getAttribute('data-checkout-id');
-            const courtName = document.getElementById('checkoutModal').getAttribute('data-court-name');
-            
-            // 1. Clear database active service orders for this court
-            $.ajax({
-                url: `/api/CourtApi/orders/${id}`,
-                type: 'DELETE',
-                success: function() {
-                    // 2. Set court back to Available
-                    $.ajax({
-                        url: `/api/CourtApi/${id}`,
-                        type: 'PUT',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            courtId: parseInt(id),
-                            courtName: courtName,
-                            hourlyPrice: courtHourlyPrices[id],
-                            status: "Available"
-                        }),
-                        success: function() {
-                            alert("Thanh toán thành công! Hóa đơn đã chuyển sang trạng thái [ĐÃ THANH TOÁN] và dịch vụ đã được ghi nhận ca.");
-                            checkoutModalObj.hide();
-                            location.reload();
-                        },
-                        error: function(xhr) {
-                            alert('Lỗi cập nhật trạng thái sân: ' + xhr.responseText);
-                        }
-                    });
-                },
-                error: function(xhr) {
-                    alert('Lỗi xóa dịch vụ hóa đơn: ' + xhr.responseText);
-                }
-            });
-        }
-
-        function searchCustomerInfo() {
-            const phone = document.getElementById('custSearchPhone').value;
-            if (phone === "0987654321") {
-                document.getElementById('infoCustName').innerText = "Nguyễn Văn A";
-                document.getElementById('infoCustPoints').innerText = "120 điểm";
-                alert("Đã tìm thấy thông tin khách hàng thành viên!");
-            } else {
-                document.getElementById('infoCustName').innerText = "Khách vãng lai mới";
-                document.getElementById('infoCustPoints').innerText = "0 điểm";
-                alert("Số điện thoại chưa đăng ký thành viên. Hệ thống tự động tạo hồ sơ khách hàng vãng lai mới.");
-            }
-        }
-        
-        function openEditCourtModal(btn) {
-            const id = btn.getAttribute('data-id');
-            const name = btn.getAttribute('data-name');
-            const price = btn.getAttribute('data-price');
-            const status = btn.getAttribute('data-status');
-
-            document.getElementById('editCourtId').value = id;
-            document.getElementById('editCourtName').value = name;
-            document.getElementById('editCourtPrice').value = price;
-            document.getElementById('editCourtStatus').value = status;
-            editCourtModalObj.show();
-        }
-
-        function saveCourtConfig(e) {
-            e.preventDefault();
-            const id = document.getElementById('editCourtId').value;
-            const newName = document.getElementById('editCourtName').value;
-            const newPrice = parseInt(document.getElementById('editCourtPrice').value);
-            const status = document.getElementById('editCourtStatus').value;
-            
-            $.ajax({
-                url: `/api/CourtApi/${id}`,
-                type: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    courtId: parseInt(id),
-                    courtName: newName,
-                    hourlyPrice: newPrice,
-                    status: status
-                }),
-                success: function() {
-                    courtHourlyPrices[id] = newPrice;
-                    alert('Cập nhật cấu hình thành công!');
-                    editCourtModalObj.hide();
-                    location.reload();
-                },
-                error: function(xhr) {
-                    alert('Lỗi: ' + xhr.responseText);
-                }
-            });
-        }
-
-        function loadDailyBookings() {
-            $.ajax({
-                url: '/api/CourtApi/schedule',
-                type: 'GET',
-                success: function(bookings) {
-                    const tbody = document.getElementById('bookings-list-body');
-                    const countBadge = document.getElementById('booking-count-badge');
-                    if (!tbody) return;
-                    
-                    if (bookings.length === 0) {
-                        tbody.innerHTML = `
-                            <tr>
-                                <td colspan="5" class="text-center text-muted py-3">Không có lịch đặt nào trong ngày hôm nay.</td>
-                            </tr>
-                        `;
-                        if (countBadge) countBadge.innerText = '0 lịch đặt';
-                        return;
-                    }
-                    
-                    if (countBadge) countBadge.innerText = `${bookings.length} lịch đặt`;
-                    
-                    let html = '';
-                    bookings.forEach(b => {
-                        const courtNameEl = document.getElementById(`courtName-${b.courtId}`);
-                        const courtName = courtNameEl ? courtNameEl.innerText : `Sân ${b.courtId}`;
-                        
-                        html += `
-                            <tr>
-                                <td class="fw-semibold text-dark">${b.customerName}</td>
-                                <td class="text-secondary">${b.customerPhone}</td>
-                                <td><span class="badge bg-light text-dark border px-2 py-1">${courtName}</span></td>
-                                <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1">${b.startTime} - ${b.endTime}</span></td>
-                                <td class="text-end">
-                                    <button class="btn btn-sm btn-outline-primary rounded-pill me-1" onclick="openChangeCourtModal(${b.bookingId}, '${b.customerName}', '${b.startTime} - ${b.endTime}', ${b.courtId})">
-                                        <i class="bi bi-arrow-left-right me-1"></i>Chuyển sân
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="cancelBooking(${b.bookingId})">
-                                        <i class="bi bi-trash me-1"></i>Hủy
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                    tbody.innerHTML = html;
-                },
-                error: function(xhr) {
-                    console.error('Lỗi tải lịch đặt sân: ', xhr.responseText);
-                }
-            });
-        }
-
-        function openChangeCourtModal(bookingId, customerName, timeRange, currentCourtId) {
-            document.getElementById('changeBookingId').value = bookingId;
-            document.getElementById('changeCustName').value = customerName;
-            document.getElementById('changeTimeRange').value = timeRange;
-            
-            const select = document.getElementById('changeNewCourtSelect');
-            select.innerHTML = '';
-            
-            const courts = [
-                @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
-                {
-                    @:{ id: @court.CourtId, name: '@Html.Raw(court.CourtName)' },
-                }
-            ];
-            
-            courts.forEach(c => {
-                const option = document.createElement('option');
-                option.value = c.id;
-                option.text = c.name + (c.id === currentCourtId ? ' (Hiện tại)' : '');
-                if (c.id === currentCourtId) {
-                    option.disabled = true;
-                }
-                select.appendChild(option);
-            });
-            
-            changeCourtModalObj.show();
-        }
-
-        function processChangeCourt(e) {
-            e.preventDefault();
-            const bookingId = parseInt(document.getElementById('changeBookingId').value);
-            const newCourtId = parseInt(document.getElementById('changeNewCourtSelect').value);
-            
-            $.ajax({
-                url: '/api/CourtApi/bookings/change-court',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    bookingId: bookingId,
-                    newCourtId: newCourtId
-                }),
-                success: function() {
-                    alert('Chuyển sân thành công!');
-                    changeCourtModalObj.hide();
-                    location.reload();
-                },
-                error: function(xhr) {
-                    alert('Lỗi chuyển sân: ' + xhr.responseText);
-                }
-            });
-        }
-
-        function cancelBooking(bookingId) {
-            if (confirm('Bạn có chắc chắn muốn hủy lịch đặt sân này không?')) {
-                $.ajax({
-                    url: `/api/CourtApi/bookings/cancel/${bookingId}`,
-                    type: 'POST',
-                    success: function() {
-                        alert('Đã hủy lịch đặt sân thành công!');
-                        location.reload();
-                    },
-                    error: function(xhr) {
-                        alert('Lỗi hủy lịch đặt sân: ' + xhr.responseText);
-                    }
-                });
-            }
         }
     </script>
 }

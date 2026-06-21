@@ -1,191 +1,209 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
 using AquarSmartCourt.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
-namespace AquarSmartCourt.Controllers;
-
-[Authorize]
-[ApiController]
-[Route("api/[controller]")]
-public class ChatbotApiController : ControllerBase
+namespace AquarSmartCourt.Controllers
 {
-    private readonly ApplicationDbContext _context;
-
-    public ChatbotApiController(ApplicationDbContext context)
+    [ApiController]
+    [Route("Chatbot")]
+    public class ChatbotApiController : ControllerBase
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
+        private readonly string _geminiApiKey;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-    [HttpPost("chat")]
-    public async Task<IActionResult> Chat([FromBody] ChatRequestDto request)
-    {
-        if (string.IsNullOrEmpty(request.Message))
+        public ChatbotApiController(ApplicationDbContext context, IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
-            return BadRequest("Message is empty");
+            _context = context;
+            _httpClientFactory = httpClientFactory;
+            _geminiApiKey = configuration["Gemini:ApiKey"]?.Trim() ?? "";
         }
 
-        var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-        bool isManager = userRole == "3";
-
-        var query = request.Message.ToLower();
-        string reply = "";
-
-        if (isManager)
+        [HttpPost("Ask")]
+        public async Task<IActionResult> Ask([FromBody] ChatRequestDto request)
         {
-            // Manager Chatbot Responses
-            if (query.Contains("doanh thu") || query.Contains("tiền") || query.Contains("báo cáo") || query.Contains("báo cáo tài chính"))
+            // Kiểm tra dữ liệu đầu vào từ JavaScript gửi lên
+            if (request == null || string.IsNullOrWhiteSpace(request.Message))
             {
-                var today = DateTime.Today;
-                var todayInvoices = await _context.Invoices
-                    .Where(i => i.PaymentTime.Date == today)
-                    .ToListAsync();
-
-                decimal total = todayInvoices.Sum(i => i.TotalAmount);
-                decimal courtFee = todayInvoices.Sum(i => i.CourtFee);
-                decimal serviceFee = todayInvoices.Sum(i => i.ServiceFee);
-                int count = todayInvoices.Count;
-
-                reply = $"<strong>[Trợ Lý Admin]</strong> Báo cáo tài chính hôm nay ({today:dd/MM/yyyy}):<br>" +
-                        $"- Tổng doanh thu thực tế: <strong>{total.ToString("N0")}đ</strong><br>" +
-                        $"- Tiền thuê sân: {courtFee.ToString("N0")}đ<br>" +
-                        $"- Tiền dịch vụ phát sinh: {serviceFee.ToString("N0")}đ<br>" +
-                        $"- Số lượng hóa đơn chốt ca: <strong>{count} hóa đơn</strong>.";
+                return Ok(new { reply = "<strong>[Aquar AI]</strong> Nội dung tin nhắn không được để trống." });
             }
-            else if (query.Contains("công suất") || query.Contains("tần suất") || query.Contains("sử dụng"))
+
+            // Lấy thông tin định danh và quyền hạn của User đang đăng nhập
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            bool isManager = userRole == "3";
+            bool isReceptionist = userRole == "2";
+            string systemPrompt = "";
+
+            try
             {
-                var today = DateTime.Today;
-                double todayHours = await _context.Bookings
-                    .Where(b => b.StartTime.Date == today && b.Status == "Confirmed")
-                    .SumAsync(b => (b.EndTime - b.StartTime).TotalHours);
-
-                double utilization = (todayHours / 32.0) * 100.0;
-                if (utilization > 100.0) utilization = 100.0;
-                if (utilization == 0) utilization = 82.5;
-
-                reply = $"<strong>[Trợ Lý Admin]</strong> Công suất khai thác sân hiện tại đạt <strong>{Math.Round(utilization, 1)}%</strong>. Khung giờ vàng từ 17:00 đến 21:00 đã đạt công suất tối đa.";
-            }
-            else if (query.Contains("nhân viên") || query.Contains("lễ tân") || query.Contains("nhân sự"))
-            {
-                var staffList = await _context.Users
-                    .Where(u => u.Role == 2 && u.IsActive)
-                    .ToListAsync();
-
-                reply = "<strong>[Trợ Lý Admin]</strong> Danh sách lễ tân đang trực hôm nay:<br>";
-                foreach (var staff in staffList)
+                // --- 1. LẤY DỮ LIỆU TỪ DATABASE (RAG SYSTEM) ---
+                if (isManager)
                 {
-                    reply += $"- Mã NV: <strong>{staff.StaffCode}</strong> | {staff.FullName} (SĐT: {staff.PhoneNumber})<br>";
+                    var today = DateTime.Today;
+                    var todayInvoices = await _context.Invoices.Where(i => i.PaymentTime.Date == today).ToListAsync();
+                    decimal total = todayInvoices.Sum(i => i.TotalAmount);
+                    decimal courtFee = todayInvoices.Sum(i => i.CourtFee);
+                    decimal serviceFee = todayInvoices.Sum(i => i.ServiceFee);
+                    int invoiceCount = todayInvoices.Count;
+
+                    var todayBookings = await _context.Bookings
+                        .Where(b => b.StartTime.Date == today && b.Status == "Confirmed")
+                        .ToListAsync();
+
+                    double todayHours = todayBookings
+                        .AsEnumerable()
+                        .Sum(b => (b.EndTime - b.StartTime).TotalHours);
+
+                    double utilization = (todayHours / 32.0) * 100.0;
+                    if (utilization > 100.0) utilization = 100.0;
+                    if (utilization == 0) utilization = 82.5;
+
+                    var staffList = await _context.Users.Where(u => u.Role == 2 && u.IsActive).ToListAsync();
+                    string staffText = staffList.Any()
+                        ? string.Join(", ", staffList.Select(s => $"Mã NV: {s.StaffCode} - {s.FullName} (SĐT: {s.PhoneNumber})"))
+                        : "Không có lễ tân nào đang trực.";
+
+                    systemPrompt = $"Bạn là Trợ Lý Admin của Aquar SmashCourt. Dữ liệu hôm nay ({today:dd/MM/yyyy}):\n" +
+                                   $"- Doanh thu: {total:N0}đ (Sân: {courtFee:N0}đ, Dịch vụ: {serviceFee:N0}đ). Số hóa đơn: {invoiceCount}.\n" +
+                                   $"- Công suất sân: {Math.Round(utilization, 1)}%.\n" +
+                                   $"- Lễ tân trực: {staffText}.\n" +
+                                   $"Trả lời ngắn gọn, chuyên nghiệp bằng tiếng Việt. Có thể dùng thẻ HTML cơ bản (<strong>, <br>).";
                 }
-                if (!staffList.Any())
+                else if (isReceptionist)
                 {
-                    reply += "- Không có lễ tân nào trực trên hệ thống.";
+                    var today = DateTime.Today;
+                    var todayBookings = await _context.Bookings
+                        .Include(b => b.Court)
+                        .Where(b => b.StartTime.Date == today && b.Status == "Confirmed")
+                        .ToListAsync();
+                    string bookingsText = todayBookings.Any()
+                        ? string.Join(", ", todayBookings.Select(b => $"{b.CustomerName} ({b.CustomerPhone}) đặt sân {(b.Court != null ? b.Court.CourtName : $"ID {b.CourtId}")} lúc {b.StartTime:HH:mm}-{b.EndTime:HH:mm}"))
+                        : "Hôm nay chưa có lượt đặt sân nào được xác nhận.";
+
+                    var courts = await _context.Courts.ToListAsync();
+                    string courtsText = string.Join(", ", courts.Select(c => $"{c.CourtName} ({c.Status})"));
+
+                    var services = await _context.ServiceItems.ToListAsync();
+                    string servicesText = string.Join(", ", services.Select(s => $"{s.ItemName}: {s.UnitPrice:N0}đ/{s.Unit}"));
+
+                    systemPrompt = $"Bạn là Trợ lý Lễ tân của Aquar SmashCourt. Dữ liệu thực tế hôm nay ({today:dd/MM/yyyy}):\n" +
+                                   $"- Lịch đặt sân: {bookingsText}.\n" +
+                                   $"- Trạng thái các sân: {courtsText}.\n" +
+                                   $"- Bảng giá dịch vụ: {servicesText}.\n" +
+                                   $"Hỗ trợ lễ tân giải đáp thắc mắc về ca trực, lịch đặt sân của khách, giá dịch vụ. Trả lời chuyên nghiệp, ngắn gọn bằng tiếng Việt. Có thể dùng thẻ HTML cơ bản (<strong>, <br>).";
                 }
-            }
-            else
-            {
-                reply = "<strong>[Trợ Lý Admin]</strong> Chào Quản lý! Hệ thống quản trị của bạn đã sẵn sàng. Tôi có thể hỗ trợ các lệnh:<br>" +
-                        "- <em>\"Báo cáo doanh thu hôm nay\"</em><br>" +
-                        "- <em>\"Công suất sử dụng sân\"</em><br>" +
-                        "- <em>\"Danh sách nhân viên lễ tân ca trực\"</em>";
-            }
-        }
-        else
-        {
-            // Customer Chatbot Responses
-            if (query.Contains("sân trống") || query.Contains("lịch trống") || query.Contains("đặt sân") || query.Contains("giờ trống"))
-            {
-                var today = DateTime.Today;
-                var courts = await _context.Courts.Where(c => c.Status != "Maintenance").ToListAsync();
-                var bookings = await _context.Bookings
-                    .Where(b => b.StartTime.Date == today && b.Status == "Confirmed")
-                    .ToListAsync();
-
-                // Define standard hours: 17:00, 18:00, 19:00, 20:00, 21:00
-                int[] hours = { 17, 18, 19, 20, 21 };
-                var freeSlots = new List<string>();
-
-                foreach (var court in courts)
+                else
                 {
-                    foreach (var h in hours)
+                    var today = DateTime.Today;
+                    var courts = await _context.Courts.Where(c => c.Status != "Maintenance").ToListAsync();
+                    var bookings = await _context.Bookings.Where(b => b.StartTime.Date == today && b.Status == "Confirmed").ToListAsync();
+                    int[] hours = { 17, 18, 19, 20, 21 };
+                    var freeSlots = new List<string>();
+
+                    foreach (var court in courts)
                     {
-                        var start = today.AddHours(h);
-                        var end = today.AddHours(h + 1);
-
-                        bool isBooked = bookings.Any(b =>
-                            b.CourtId == court.CourtId &&
-                            b.StartTime < end &&
-                            start < b.EndTime
-                        );
-
-                        if (!isBooked)
+                        foreach (var h in hours)
                         {
-                            freeSlots.Add($"{court.CourtName} ({h:D2}:00 - {h + 1:D2}:00)");
+                            var start = today.AddHours(h);
+                            var end = today.AddHours(h + 1);
+                            bool isBooked = bookings.Any(b => b.CourtId == court.CourtId && b.StartTime < end && start < b.EndTime);
+                            if (!isBooked) freeSlots.Add($"{court.CourtName} ({h:D2}:00 - {h + 1:D2}:00)");
                         }
                     }
+                    string freeSlotsText = freeSlots.Any() ? string.Join(", ", freeSlots.Take(4)) : "Tất cả các sân đã kín lịch tối nay.";
+
+                    var openGroups = await _context.MatchmakingGroups.Where(g => g.Status == "Open").Take(2).ToListAsync();
+                    string matchmakingText = openGroups.Any()
+                        ? string.Join("; ", openGroups.Select(g => $"Nhóm #{g.MatchmakingGroupId}: Trình độ {g.SkillLevel}, cần thêm {g.PlayersNeeded - g.PlayersJoined} người, chơi lúc {g.StartTime:HH:mm}"))
+                        : "Hiện không có nhóm nào đang tìm người chơi.";
+
+                    systemPrompt = $"Bạn là Trợ lý Khách hàng của Aquar SmashCourt. Dữ liệu thực tế tối nay:\n" +
+                                   $"- Sân trống: {freeSlotsText}. (Nhắc khách click lưới đặt sân ở trang chủ để đặt).\n" +
+                                   $"- Nhóm ghép: {matchmakingText}. (Nhắc khách bấm 'Tham gia ngay' ở màn hình chính).\n" +
+                                   $"- Vợt Yonex Astrox 88D Pro đang giảm 10%, giày Victor P9200 tốt (ở mục 'Liên Kết Tiếp Thị').\n" +
+                                   $"Trả lời thân thiện, dùng HTML (<strong>, <br>, <span class='text-success fw-bold'>) để làm nổi bật.";
                 }
 
-                reply = "<strong>[Trợ lý Khách hàng]</strong> Lịch sân trống còn lại trong tối nay:<br>";
-                if (freeSlots.Any())
+                // --- 2. KIỂM TRA ĐIỀU KIỆN API KEY ---
+                if (string.IsNullOrEmpty(_geminiApiKey) || _geminiApiKey.Contains("YOUR_API_KEY"))
                 {
-                    // return top 4 free slots
-                    foreach (var slot in freeSlots.Take(4))
+                    return Ok(new { reply = "<strong>[Aquar AI]</strong> Chưa cấu hình Google Gemini API Key hợp lệ trong file appsettings.json!" });
+                }
+
+                // --- 3. ĐÓNG GÓI PAYLOAD VÀ GỌI GOOGLE GEMINI API ---
+                var client = _httpClientFactory.CreateClient();
+
+                // FIXED CHỖ NÀY: Cấu hình đúng chuẩn cặp đôi v1beta và gemini-2.0-flash để chạy mượt API Key đầu AQ...
+                var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_geminiApiKey}";
+
+                var payload = new
+                {
+                    contents = new[]
                     {
-                        reply += $"- <span class='text-success fw-bold'>{slot}</span> đang trống.<br>";
+                        new {
+                            role = "user",
+                            parts = new[] {
+                                new { text = $"{systemPrompt}\n\nCâu hỏi của khách hàng: {request.Message}" }
+                            }
+                        }
+                    },
+                    generationConfig = new
+                    {
+                        temperature = 0.3,
+                        maxOutputTokens = 800
                     }
-                    reply += "Bạn có thể nhấp chuột trực tiếp trên lưới đặt sân ở trang chủ để đăng ký ngay!";
-                }
-                else
-                {
-                    reply += "Tất cả các sân đã kín lịch tối nay. Bạn có thể đăng ký tìm nhóm ghép để chơi chung.";
-                }
-            }
-            else if (query.Contains("phụ kiện") || query.Contains("vợt") || query.Contains("giày") || query.Contains("áo") || query.Contains("mua sắm"))
-            {
-                reply = "<strong>[Trợ lý Khách hàng]</strong> Gợi ý trang bị và phụ kiện thi đấu cầu lông cho bạn:<br>" +
-                        "- <strong>Vợt tấn công chuyên nghiệp:</strong> Yonex Astrox 88D Pro đang có khuyến mãi giảm 10% ở mục mua sắm bên dưới.<br>" +
-                        "- <strong>Giày bám sân tốt:</strong> Victor P9200 độ bền cao.<br>" +
-                        "- Bạn hãy tham khảo phân hệ <strong>\"Liên Kết Tiếp Thị\"</strong> bên dưới để mua hàng chính hãng từ các đối tác uy tín!";
-            }
-            else if (query.Contains("ghép") || query.Contains("tìm bạn") || query.Contains("đánh chung"))
-            {
-                var openGroups = await _context.MatchmakingGroups
-                    .Where(g => g.Status == "Open")
-                    .Take(2)
-                    .ToListAsync();
+                };
 
-                reply = "<strong>[Trợ lý Khách hàng]</strong> Danh sách nhóm ghép sân đang tìm người chơi tối nay:<br>";
-                foreach (var g in openGroups)
+                var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                var jsonPayload = JsonSerializer.Serialize(payload, options);
+                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync(url, content);
+                if (!response.IsSuccessStatusCode)
                 {
-                    reply += $"- <strong>Nhóm #{g.MatchmakingGroupId}</strong>: Trình độ {g.SkillLevel}, cần thêm {g.PlayersNeeded - g.PlayersJoined} người, chơi lúc {g.StartTime:HH:mm} - {g.EndTime:HH:mm}.<br>";
+                    var errContent = await response.Content.ReadAsStringAsync();
+                    return Ok(new { reply = $"<span class='text-danger'>⚠️ Lỗi kết nối AI Gateway (Mã lỗi HTTP: {response.StatusCode}). Chi tiết: {errContent}</span>" });
                 }
-                if (!openGroups.Any())
+
+                // --- 4. BÓC TÁCH DỮ LIỆU AN TOÀN TRÁNH CRASH 500 ---
+                var responseString = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(responseString);
+
+                if (doc.RootElement.TryGetProperty("candidates", out var candidates) &&
+                    candidates.GetArrayLength() > 0 &&
+                    candidates[0].TryGetProperty("content", out var resContent) &&
+                    resContent.TryGetProperty("parts", out var parts) &&
+                    parts.GetArrayLength() > 0)
                 {
-                    reply += "- Hiện không có nhóm nào đang tìm người. Bạn có thể tự tạo yêu cầu ghép sân ở mục Bắt cặp trên trang chủ!";
+                    var replyText = parts[0].GetProperty("text").GetString();
+                    return Ok(new { reply = replyText?.Trim() ?? "Không có phản hồi từ trí tuệ nhân tạo." });
                 }
-                else
-                {
-                    reply += "Hãy click nút <strong>\"Tham gia ngay\"</strong> trên màn hình chính để kết nối.";
-                }
+
+                return Ok(new { reply = "<strong>[Aquar AI]</strong> Cấu trúc phản hồi từ AI không hợp lệ hoặc bị chặn nội dung." });
             }
-            else
+            catch (Exception ex)
             {
-                reply = "<strong>[Trợ lý Khách hàng]</strong> Xin chào! Tôi là trợ lý ảo Aquar SmashCourt. Tôi có thể hỗ trợ bạn:<br>" +
-                        "1. Tra cứu sân trống: Gõ <em>\"sân trống tối nay\"</em><br>" +
-                        "2. Tìm nhóm ghép sân: Gõ <em>\"tìm bạn chơi ghép sân\"</em><br>" +
-                        "3. Tư vấn trang thiết bị: Gõ <em>\"vợt cầu lông nào tốt\"</em>";
+                // Trả về lỗi chi tiết thay vì để sập hệ thống web
+                return Ok(new { reply = $"<span class='text-danger'>⚠️ Lỗi xử lý hệ thống Backend: {ex.Message}</span>" });
             }
         }
-
-        return Ok(new { reply });
     }
-}
 
-public class ChatRequestDto
-{
-    public string Message { get; set; } = string.Empty;
+    // Lớp nhận dữ liệu từ Client gửi lên
+    public class ChatRequestDto
+    {
+        [JsonPropertyName("message")]
+        public string Message { get; set; } = string.Empty;
+    }
 }

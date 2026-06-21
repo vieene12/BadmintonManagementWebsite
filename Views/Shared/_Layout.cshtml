@@ -19,13 +19,13 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/AquarSmartCourt.styles.css" asp-append-version="true" />
     <script>
-        // Init theme immediately to prevent flashing
-        (function() {
-            var currentTheme = localStorage.getItem('theme') || 'light';
-            if (currentTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            }
-        })();
+            // Init theme immediately to prevent flashing
+            (function() {
+                var currentTheme = localStorage.getItem('theme') || 'light';
+                if (currentTheme === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+            })();
     </script>
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
@@ -66,7 +66,6 @@
                         }
                     </ul>
                     <div class="d-flex align-items-center gap-3">
-                        <!-- Theme Toggle Button -->
                         <button class="btn btn-link text-secondary p-0 border-0" id="theme-toggle" title="Đổi giao diện (Sáng/Tối)">
                             <i class="bi bi-moon-stars-fill fs-5" id="theme-icon"></i>
                         </button>
@@ -94,7 +93,6 @@
         </div>
     </div>
 
-    <!-- Premium Footer Section -->
     <footer class="mt-5 border-top" style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
         <div class="container-fluid px-4 py-4">
             <div class="row g-4 justify-content-between align-items-center">
@@ -107,7 +105,7 @@
                 <div class="col-md-4 text-center">
                     <div class="d-flex justify-content-center gap-3">
                         <a href="#" class="text-secondary text-decoration-none custom-hover"><i class="bi bi-facebook fs-5"></i></a>
-                        <a href="#" class="text-secondary text-decoration-none custom-hover"><i class="bi bi-instagram fs-5"></i></a>
+                        <a href="#" class="text-secondary text-decoration-none custom-hover"><i class="bi bi-indigo fs-5"></i></a>
                         <a href="#" class="text-secondary text-decoration-none custom-hover"><i class="bi bi-youtube fs-5"></i></a>
                         <a href="#" class="text-secondary text-decoration-none custom-hover"><i class="bi bi-tiktok fs-5"></i></a>
                     </div>
@@ -120,17 +118,23 @@
             </div>
         </div>
     </footer>
-    
+
     <style>
-        .custom-hover:hover { color: var(--primary-color) !important; transform: scale(1.1); transition: all 0.2s ease; display: inline-block; }
+            .custom-hover:hover {
+                color: var(--primary-color) !important;
+                transform: scale(1.1);
+                transition: all 0.2s ease;
+                display: inline-block;
+            }
+
+
     </style>
 
-    <!-- Nút Chatbot Toggler & Cửa sổ Chatbot chung -->
-    <button class="chatbot-toggler" onclick="toggleChatbot()">
-        <i class="bi bi-chat-dots-fill fs-4"></i>
+    <button class="chatbot-toggler" type="button" onclick="toggleChatbot()">
+        <i class="bi bi-chat-dots-fill fs-4" style="pointer-events: none;"></i>
     </button>
 
-    <div class="chatbot-window glass-card" id="chatbot-window">
+    <div class="chatbot-window" id="chatbot-window">
         <div class="chat-header">
             <div class="d-flex align-items-center gap-2">
                 <div class="position-relative">
@@ -149,15 +153,11 @@
                 Xin chào! Tôi là trợ lý ảo Aquar SmashCourt. Tôi có thể giúp bạn kiểm tra lịch sân trống, tư vấn phụ kiện thể thao phù hợp, gợi ý nhóm ghép sân.
             </div>
         </div>
-        <!-- Quick Action Suggestion Chips -->
         <div class="chat-chips-container" id="chat-chips-container">
-            <span class="chat-chip" onclick="clickChatChip('Sân trống tối nay')"><i class="bi bi-calendar3 me-1 text-primary"></i>Sân trống</span>
-            <span class="chat-chip" onclick="clickChatChip('Tìm nhóm ghép sân')"><i class="bi bi-people me-1 text-success"></i>Tìm bạn ghép</span>
-            <span class="chat-chip" onclick="clickChatChip('Tư vấn mua vợt')"><i class="bi bi-bag me-1 text-warning"></i>Vợt khuyên dùng</span>
         </div>
         <div class="chat-input-area">
             <input type="text" class="chat-input" id="chat-input" placeholder="Nhập câu hỏi của bạn..." onkeypress="handleChatKeyPress(event)">
-            <button class="chat-send-btn" onclick="sendChatMessage()">
+            <button class="chat-send-btn" type="button" onclick="sendChatMessage()">
                 <i class="bi bi-send-fill"></i>
             </button>
         </div>
@@ -166,101 +166,122 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
     <script>
         function clickChatChip(query) {
-            document.getElementById('chat-input').value = query;
-            sendChatMessage();
+        const inputField = document.getElementById('chat-input');
+        if(inputField) {
+        inputField.value = query;
+        sendChatMessage();
+        }
         }
 
         function switchRole(role, name) {
-            document.getElementById('current-user-tag').innerText = name;
-            // Cập nhật phân hệ chatbot
-            const contextText = role === 'Manager' ? 'Phân hệ: Quản trị (Admin)' : 'Phân hệ: Khách hàng';
-            document.getElementById('chatbot-context').innerText = contextText;
-            
-            // Cập nhật các chip gợi ý của chatbot phù hợp với vai trò
+            const userTag = document.getElementById('current-user-tag');
+            const chatbotContext = document.getElementById('chatbot-context');
             const chipsContainer = document.getElementById('chat-chips-container');
-            if (role === 'Manager') {
-                chipsContainer.innerHTML = `
-                    <span class="chat-chip" onclick="clickChatChip('Báo cáo doanh thu')"><i class="bi bi-cash-coin me-1"></i>Xem doanh thu</span>
-                    <span class="chat-chip" onclick="clickChatChip('Công suất sử dụng sân')"><i class="bi bi-percent me-1"></i>Công suất sân</span>
-                    <span class="chat-chip" onclick="clickChatChip('Nhân viên ca trực')"><i class="bi bi-people me-1"></i>Ca trực lễ tân</span>
-                `;
-            } else {
-                chipsContainer.innerHTML = `
-                    <span class="chat-chip" onclick="clickChatChip('Sân trống tối nay')"><i class="bi bi-calendar3 me-1"></i>Sân trống</span>
-                    <span class="chat-chip" onclick="clickChatChip('Tìm nhóm ghép sân')"><i class="bi bi-people me-1"></i>Tìm bạn ghép</span>
-                    <span class="chat-chip" onclick="clickChatChip('Tư vấn mua vợt')"><i class="bi bi-bag me-1"></i>Vợt khuyên dùng</span>
-                `;
+            const chatMessages = document.getElementById('chat-messages');
+
+            if (userTag && name) userTag.innerText = name;
+            if (chatbotContext) {
+                if (role === 'Manager') {
+                    chatbotContext.innerText = 'Phân hệ: Quản trị (Admin)';
+                } else if (role === 'Receptionist') {
+                    chatbotContext.innerText = 'Phân hệ: Lễ tân (Receptionist)';
+                } else {
+                    chatbotContext.innerText = 'Phân hệ: Khách hàng';
+                }
             }
 
-            // Xóa tin nhắn cũ và chào lại phù hợp với vai trò
-            const chatMessages = document.getElementById('chat-messages');
-            chatMessages.innerHTML = '';
-            if (role === 'Manager') {
-                chatMessages.innerHTML = `
-                    <div class="chat-message bot">
-                        Xin chào Quản lý! Hệ thống đã xác thực tài khoản Admin. Tôi có thể hỗ trợ tra cứu báo cáo doanh thu, công suất khai thác sân, lịch sử vận hành nhanh qua ngôn ngữ tự nhiên.
-                    </div>
-                `;
-            } else {
-                chatMessages.innerHTML = `
-                    <div class="chat-message bot">
-                        Xin chào! Tôi là trợ lý ảo Aquar SmashCourt. Tôi có thể giúp bạn kiểm tra lịch sân trống, tư vấn phụ kiện thể thao phù hợp, gợi ý nhóm ghép sân.
-                    </div>
-                `;
+            if (chipsContainer) {
+                if (role === 'Manager') {
+                    chipsContainer.innerHTML = `
+                        <span class="chat-chip" onclick="clickChatChip('Báo cáo doanh thu')"><i class="bi bi-cash-coin me-1 text-danger"></i>Xem doanh thu</span>
+                        <span class="chat-chip" onclick="clickChatChip('Công suất sử dụng sân')"><i class="bi bi-percent me-1 text-primary"></i>Công suất sân</span>
+                        <span class="chat-chip" onclick="clickChatChip('Nhân viên ca trực')"><i class="bi bi-people me-1 text-success"></i>Ca trực lễ tân</span>
+                    `;
+                } else if (role === 'Receptionist') {
+                    chipsContainer.innerHTML = `
+                        <span class="chat-chip" onclick="clickChatChip('Danh sách đặt sân hôm nay')"><i class="bi bi-calendar-check me-1 text-primary"></i>Lịch đặt hôm nay</span>
+                        <span class="chat-chip" onclick="clickChatChip('Trạng thái các sân')"><i class="bi bi-hdd-stack me-1 text-success"></i>Trạng thái sân</span>
+                        <span class="chat-chip" onclick="clickChatChip('Các dịch vụ đang bán')"><i class="bi bi-cart me-1 text-warning"></i>Bảng giá dịch vụ</span>
+                    `;
+                } else {
+                    chipsContainer.innerHTML = `
+                        <span class="chat-chip" onclick="clickChatChip('Sân trống tối nay')"><i class="bi bi-calendar3 me-1 text-primary"></i>Sân trống</span>
+                        <span class="chat-chip" onclick="clickChatChip('Tìm nhóm ghép sân')"><i class="bi bi-people me-1 text-success"></i>Tìm bạn ghép</span>
+                        <span class="chat-chip" onclick="clickChatChip('Tư vấn mua vợt')"><i class="bi bi-bag me-1 text-warning"></i>Vợt khuyên dùng</span>
+                    `;
+                }
+            }
+
+            if (chatMessages) {
+                chatMessages.innerHTML = '';
+                if (role === 'Manager') {
+                    chatMessages.innerHTML = `
+                        <div class="chat-message bot">
+                            Xin chào Quản lý! Hệ thống đã xác thực tài khoản Admin. Tôi có thể hỗ trợ tra cứu báo cáo doanh thu, công suất khai thác sân, lịch sử vận hành nhanh qua ngôn ngữ tự nhiên.
+                        </div>
+                    `;
+                } else if (role === 'Receptionist') {
+                    chatMessages.innerHTML = `
+                        <div class="chat-message bot">
+                            Xin chào Lễ tân! Tôi là trợ lý ảo hỗ trợ vận hành. Tôi có thể giúp bạn kiểm tra nhanh các lịch đặt sân hôm nay, trạng thái hoạt động của các sân, bảng giá dịch vụ để phục vụ khách hàng.
+                        </div>
+                    `;
+                } else {
+                    chatMessages.innerHTML = `
+                        <div class="chat-message bot">
+                            Xin chào! Tôi là trợ lý ảo Aquar SmashCourt. Tôi có thể giúp bạn kiểm tra lịch sân trống, tư vấn phụ kiện thể thao phù hợp, gợi ý nhóm ghép sân.
+                        </div>
+                    `;
+                }
             }
         }
 
         $(document).ready(function() {
-            // Initialize chatbot state based on current role on load
+            // Đã fix: Trích xuất an toàn giá trị từ Razor bảo vệ cú pháp JS
             const currentRole = '@userRole';
+            const currentName = `@Html.Raw(userName)`;
+
             if (currentRole === '3') {
-                switchRole('Manager', '@Html.Raw(userName)');
+                switchRole('Manager', currentName);
+            } else if (currentRole === '2') {
+                switchRole('Receptionist', currentName);
             } else {
-                switchRole('Customer', '@Html.Raw(userName)');
+                switchRole('Customer', currentName);
             }
         });
-    </script>
-    <script>
-        // Theme toggle logic
+
+        // Đổi giao diện sáng/tối
         document.addEventListener('DOMContentLoaded', function() {
-            var themeToggleBtn = document.getElementById('theme-toggle');
-            var themeIcon = document.getElementById('theme-icon');
-            
-            function updateIcon(theme) {
-                if(theme === 'dark') {
-                    themeIcon.classList.remove('bi-moon-stars-fill');
-                    themeIcon.classList.add('bi-sun-fill');
-                    themeIcon.classList.add('text-warning');
-                } else {
-                    themeIcon.classList.remove('bi-sun-fill', 'text-warning');
-                    themeIcon.classList.add('bi-moon-stars-fill');
-                }
-            }
+        var themeToggleBtn = document.getElementById('theme-toggle');
+        var themeIcon = document.getElementById('theme-icon');
 
-            var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-            updateIcon(currentTheme);
-
-            themeToggleBtn.addEventListener('click', function() {
-                var currentTheme = document.documentElement.getAttribute('data-theme');
-                var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                updateIcon(newTheme);
-            });
-        });
-
-        // Toggle Chatbot Window
-        function toggleChatbot() {
-            const chatWindow = document.getElementById('chatbotWindow');
-            if (chatWindow.style.display === 'none' || chatWindow.style.display === '') {
-                chatWindow.style.display = 'flex';
-            } else {
-                chatWindow.style.display = 'none';
-            }
+        if(themeToggleBtn && themeIcon) {
+        function updateIcon(theme) {
+        if(theme === 'dark') {
+        themeIcon.classList.remove('bi-moon-stars-fill');
+        themeIcon.classList.add('bi-sun-fill', 'text-warning');
+        } else {
+        themeIcon.classList.remove('bi-sun-fill', 'text-warning');
+        themeIcon.classList.add('bi-moon-stars-fill');
         }
+        }
+
+        var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        updateIcon(currentTheme);
+
+        themeToggleBtn.addEventListener('click', function() {
+        var currentTheme = document.documentElement.getAttribute('data-theme');
+        var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateIcon(newTheme);
+        });
+        }
+        });
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

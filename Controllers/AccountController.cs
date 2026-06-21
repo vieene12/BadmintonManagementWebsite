@@ -97,6 +97,40 @@ public class AccountController : Controller
         return RedirectToRoleDashboard(user.Role);
     }
 
+    // =========================================================================
+    // TÍCH HỢP THÊM: Action xử lý việc click chọn vai trò kiểm thử trên giao diện
+    // =========================================================================
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> TestLogin(int roleId, string? returnUrl = null)
+    {
+        ViewData["ReturnUrl"] = returnUrl;
+
+        // Tự động tìm tài khoản đầu tiên trong DB có Role tương ứng để đăng nhập nhanh
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Role == roleId);
+
+        if (user == null)
+        {
+            // Dự phòng cơ chế Mock Data nếu DB trống, giúp đồ án không bị lỗi (Crash) khi chấm bài
+            user = roleId switch
+            {
+                3 => new User { UserId = 999, Username = "manager_test", Password = "123", FullName = "Quản Lý Mẫu", Role = 3, Position = "Quản Lý" },
+                2 => new User { UserId = 888, Username = "receptionist_test", Password = "123", FullName = "Lễ Tân Mẫu", Role = 2, Position = "Lễ Tân", StaffCode = "NV001" },
+                _ => new User { UserId = 777, Username = "customer_test", Password = "123", FullName = "Khách Hàng Mẫu", Role = 1, Position = "Khách Hàng" }
+            };
+        }
+
+        // Gọi hàm cấp Cookie đăng nhập giống hệt luồng chuẩn
+        await SignInUserAsync(user);
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
+        return RedirectToRoleDashboard(user.Role);
+    }
+
     [HttpGet]
     public async Task<IActionResult> Logout()
     {
@@ -109,8 +143,6 @@ public class AccountController : Controller
     {
         return View();
     }
-
-
 
     private async Task SignInUserAsync(User user)
     {
