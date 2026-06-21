@@ -15,4 +15,8 @@ public class User
     public DateTime? DateOfBirth { get; set; }
     public string? PhoneNumber { get; set; }
     public string? Position { get; set; } // "Lễ Tân", "Quản Lý", "Khách Hàng"
+    
+    // Membership & Status
+    public int LoyaltyPoints { get; set; } = 0;
+    public bool IsActive { get; set; } = true;
 }

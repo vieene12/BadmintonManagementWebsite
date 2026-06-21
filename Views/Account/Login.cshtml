@@ -15,300 +15,303 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <style>
-        :root {
-            --primary-hsl: 238, 77%, 62%;
-            --primary-color: hsl(var(--primary-hsl));
-            --primary-hover: hsl(238, 77%, 52%);
-            --bg-gradient: radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-                           radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
-                           linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(226, 232, 240, 0.8);
-        }
+            :root {
+                --primary-hsl: 238, 77%, 62%;
+                --primary-color: hsl(var(--primary-hsl));
+                --primary-hover: hsl(238, 77%, 52%);
+                --bg-gradient: radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.12) 0%, transparent 50%), linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+                --glass-bg: rgba(255, 255, 255, 0.7);
+                --glass-border: rgba(226, 232, 240, 0.8);
+            }
 
-        body {
-            font-family: 'Be Vietnam Pro', sans-serif;
-            background: var(--bg-gradient);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            padding: 20px;
-        }
+            body {
+                font-family: 'Be Vietnam Pro', sans-serif;
+                background: var(--bg-gradient);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0;
+                padding: 20px;
+            }
 
-        .login-wrapper {
-            width: 100%;
-            max-width: 1050px;
-            display: grid;
-            grid-template-columns: 1.2f 1fr;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.1);
-            overflow: hidden;
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        @@media (max-width: 991px) {
             .login-wrapper {
-                grid-template-columns: 1fr;
+                width: 100%;
+                max-width: 1050px;
+                display: grid;
+                grid-template-columns: 1.2fr 1fr; /* Sửa lỗi hiển thị: đổi 1.2f thành 1.2fr */
+                background: var(--glass-bg);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid var(--glass-border);
+                border-radius: 24px;
+                box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.1);
+                overflow: hidden;
+                animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             }
+
+            @@media (max-width: 991px) {
+                .login-wrapper {
+                    grid-template-columns: 1fr;
+                }
+
+                .brand-showcase {
+                    display: none !important;
+                }
+            }
+
+            @@keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
             .brand-showcase {
-                display: none !important;
+                background: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);
+                padding: 48px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                color: #ffffff;
+                position: relative;
+                overflow: hidden;
             }
-        }
 
-        @@keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
+                .brand-showcase::after {
+                    content: '';
+                    position: absolute;
+                    width: 300px;
+                    height: 300px;
+                    border-radius: 50%;
+                    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+                    bottom: -50px;
+                    right: -50px;
+                }
+
+            .brand-logo {
+                font-family: 'Outfit', sans-serif;
+                font-size: 1.8rem;
+                font-weight: 800;
+                letter-spacing: -0.5px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+
+                .brand-logo i {
+                    color: #38bdf8;
+                    filter: drop-shadow(0 2px 8px rgba(56, 189, 248, 0.5));
+                }
+
+            .showcase-content h2 {
+                font-size: 2.2rem;
+                font-weight: 900;
+                line-height: 1.25;
+                margin-bottom: 16px;
+                letter-spacing: -1px;
             }
-        }
 
-        /* Left side branding banner */
-        .brand-showcase {
-            background: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);
-            padding: 48px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            color: #ffffff;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .brand-showcase::after {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-            bottom: -50px;
-            right: -50px;
-        }
-
-        .brand-logo {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .brand-logo i {
-            color: #38bdf8;
-            filter: drop-shadow(0 2px 8px rgba(56, 189, 248, 0.5));
-        }
-
-        .showcase-content h2 {
-            font-size: 2.2rem;
-            font-weight: 900;
-            line-height: 1.25;
-            margin-bottom: 16px;
-            letter-spacing: -1px;
-        }
-
-        .showcase-content p {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-
-        /* Right side form card */
-        .login-card {
-            padding: 48px;
-            background: rgba(255, 255, 255, 0.4);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        @@media (max-width: 575px) {
-            .brand-showcase, .login-card {
-                padding: 30px 20px;
+            .showcase-content p {
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 0.95rem;
+                line-height: 1.6;
             }
-        }
 
-        .form-title {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
+            .login-card {
+                padding: 48px;
+                background: rgba(255, 255, 255, 0.4);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
 
-        .input-group-custom {
-            position: relative;
-            margin-bottom: 20px;
-        }
+            @@media (max-width: 575px) {
+                .brand-showcase, .login-card {
+                    padding: 30px 20px;
+                }
+            }
 
-        .input-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #64748b;
-            font-size: 1.1rem;
-            z-index: 10;
-        }
+            .form-title {
+                font-size: 1.75rem;
+                font-weight: 800;
+                color: #0f172a;
+                margin-bottom: 8px;
+                letter-spacing: -0.5px;
+            }
 
-        .form-control-custom {
-            width: 100%;
-            padding: 14px 16px 14px 46px;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 12px;
-            background: #ffffff;
-            font-size: 0.92rem;
-            font-weight: 500;
-            color: #0f172a;
-            transition: all 0.2s ease-in-out;
-        }
+            .input-group-custom {
+                position: relative;
+                margin-bottom: 20px;
+            }
 
-        .form-control-custom:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-            outline: none;
-        }
+            .input-icon {
+                position: absolute;
+                left: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #64748b;
+                font-size: 1.1rem;
+                z-index: 10;
+            }
 
-        .btn-login {
-            background: var(--primary-color);
-            color: #ffffff;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            width: 100%;
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
-        }
+            .form-control-custom {
+                width: 100%;
+                padding: 14px 16px 14px 46px;
+                border: 1.5px solid #cbd5e1;
+                border-radius: 12px;
+                background: #ffffff;
+                font-size: 0.92rem;
+                font-weight: 500;
+                color: #0f172a;
+                transition: all 0.2s ease-in-out;
+            }
 
-        .btn-login:hover {
-            background: var(--primary-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
-        }
+                .form-control-custom:focus {
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+                    outline: none;
+                }
 
-        /* Quick Roles Grid */
-        .quick-roles-title {
-            position: relative;
-            text-align: center;
-            margin: 32px 0 20px;
-        }
+            .btn-login {
+                background: var(--primary-color);
+                color: #ffffff;
+                border: none;
+                padding: 14px;
+                border-radius: 12px;
+                font-weight: 700;
+                font-size: 0.95rem;
+                width: 100%;
+                transition: all 0.2s ease-in-out;
+                box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+            }
 
-        .quick-roles-title::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            width: 100%;
-            height: 1px;
-            background: #cbd5e1;
-            z-index: 1;
-        }
+                .btn-login:hover {
+                    background: var(--primary-hover);
+                    transform: translateY(-1px);
+                    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+                }
 
-        .quick-roles-title span {
-            position: relative;
-            background: #f1f5f9;
-            padding: 0 12px;
-            color: #64748b;
-            font-size: 0.78rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            z-index: 2;
-        }
+            .quick-roles-title {
+                position: relative;
+                text-align: center;
+                margin: 32px 0 20px;
+            }
 
-        .quick-role-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
+                .quick-roles-title::before {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    top: 50%;
+                    width: 100%;
+                    height: 1px;
+                    background: #cbd5e1;
+                    z-index: 1;
+                }
 
-        .quick-role-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 12px 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+                .quick-roles-title span {
+                    position: relative;
+                    background: #f1f5f9;
+                    padding: 0 12px;
+                    color: #64748b;
+                    font-size: 0.78rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    z-index: 2;
+                }
 
-        .quick-role-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--primary-color);
-            box-shadow: 0 8px 20px -6px rgba(99, 102, 241, 0.15);
-        }
+            .quick-role-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
 
-        .quick-role-card i {
-            font-size: 1.4rem;
-            margin-bottom: 6px;
-        }
+            .quick-role-button {
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-radius: 14px;
+                padding: 12px 8px;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.2s ease-in-out;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+            }
 
-        .quick-role-card .role-name {
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: #0f172a;
-            display: block;
-        }
+                .quick-role-button:hover {
+                    transform: translateY(-2px);
+                    border-color: var(--primary-color);
+                    box-shadow: 0 8px 20px -6px rgba(99, 102, 241, 0.15);
+                }
 
-        .quick-role-card .role-desc {
-            font-size: 0.65rem;
-            color: #64748b;
-            display: block;
-        }
+                .quick-role-button i {
+                    font-size: 1.4rem;
+                    margin-bottom: 6px;
+                }
 
-        .role-customer i { color: #4f46e5; }
-        .role-staff i { color: #0284c7; }
-        .role-manager i { color: #0f172a; }
+                .quick-role-button .role-name {
+                    font-size: 0.78rem;
+                    font-weight: 700;
+                    color: #0f172a;
+                    display: block;
+                }
 
-        .text-danger-custom {
-            background: rgba(239, 68, 68, 0.1);
-            border-left: 4px solid #ef4444;
-            color: #b91c1c;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 0.82rem;
-            margin-bottom: 20px;
-        }
+                .quick-role-button .role-desc {
+                    font-size: 0.65rem;
+                    color: #64748b;
+                    display: block;
+                }
+
+            .role-customer i {
+                color: #4f46e5;
+            }
+
+            .role-staff i {
+                color: #0284c7;
+            }
+
+            .role-manager i {
+                color: #0f172a;
+            }
+
+            .text-danger-custom {
+                background: rgba(239, 68, 68, 0.1);
+                border-left: 4px solid #ef4444;
+                color: #b91c1c;
+                padding: 12px;
+                border-radius: 6px;
+                font-size: 0.82rem;
+                margin-bottom: 20px;
+            }
     </style>
 </head>
 <body>
 
     <div class="login-wrapper">
-        <!-- Brand Showcase Panel (Left) -->
         <div class="brand-showcase">
             <div class="brand-logo">
                 <i class="bi bi-lightning-charge-fill"></i> Aquar SmashCourt
             </div>
-            
+
             <div class="showcase-content">
                 <h2>Trải nghiệm dịch vụ cầu lông thông minh</h2>
                 <p>Đặt lịch trực tuyến thời gian thực, quản lý dịch vụ gọi sân hiện đại, camera AI tự động quay video thi đấu và tương tác trực tiếp với trợ lý ảo AI thông minh.</p>
             </div>
-            
+
             <div class="showcase-footer">
                 <small class="opacity-75">© 2026 Aquar SmashCourt. Premium Web Portal.</small>
             </div>
         </div>
 
-        <!-- Login Form Panel (Right) -->
         <div class="login-card">
             <h3 class="form-title">Đăng nhập</h3>
             <p class="text-secondary small mb-4">Vui lòng nhập tài khoản hoặc chọn vai trò kiểm thử bên dưới.</p>
@@ -322,7 +325,7 @@
 
             <form asp-action="Login" asp-controller="Account" method="post">
                 <input type="hidden" name="returnUrl" value="@returnUrl" />
-                
+
                 <div class="input-group-custom">
                     <i class="bi bi-person input-icon"></i>
                     <input type="text" name="username" class="form-control-custom" placeholder="Tên đăng nhập" required autocomplete="username" />
@@ -339,34 +342,38 @@
             </form>
 
             <p class="text-center text-secondary small mt-3 mb-0">
-                Chua co tai khoan?
-                <a class="fw-bold text-decoration-none" asp-action="Register" asp-route-returnUrl="@returnUrl">Dang ky ngay</a>
+                Chưa có tài khoản?
+                <a class="fw-bold text-decoration-none" asp-action="Register" asp-route-returnUrl="@returnUrl">Đăng ký ngay</a>
             </p>
 
-            <!-- Quick Roles Switcher Section -->
             <div class="quick-roles-title">
                 <span>Chọn nhanh vai trò kiểm thử</span>
             </div>
 
-            <div class="quick-role-grid">
-                <a class="quick-role-card role-customer" href="@Url.Action("SwitchRole", "Account", new { role = 1 })">
-                    <i class="bi bi-people-fill"></i>
-                    <span class="role-name">Khách Hàng</span>
-                    <span class="role-desc">Role: 1</span>
-                </a>
-                
-                <a class="quick-role-card role-staff" href="@Url.Action("SwitchRole", "Account", new { role = 2 })">
-                    <i class="bi bi-laptop"></i>
-                    <span class="role-name">Lễ Tân</span>
-                    <span class="role-desc">Role: 2</span>
-                </a>
-                
-                <a class="quick-role-card role-manager" href="@Url.Action("SwitchRole", "Account", new { role = 3 })">
-                    <i class="bi bi-shield-lock-fill"></i>
-                    <span class="role-name">Quản Lý</span>
-                    <span class="role-desc">Role: 3</span>
-                </a>
-            </div>
+            <form asp-action="TestLogin" asp-controller="Account" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+                <div class="quick-role-grid">
+                    <button type="submit" name="roleId" value="1" class="quick-role-button role-customer">
+                        <i class="bi bi-people-fill"></i>
+                        <span class="role-name">Khách Hàng</span>
+                        <span class="role-desc">Role: 1</span>
+                    </button>
+
+                    <button type="submit" name="roleId" value="2" class="quick-role-button role-staff">
+                        <i class="bi bi-laptop"></i>
+                        <span class="role-name">Lễ Tân</span>
+                        <span class="role-desc">Role: 2</span>
+                    </button>
+
+                    <button type="submit" name="roleId" value="3" class="quick-role-button role-manager">
+                        <i class="bi bi-shield-lock-fill"></i>
+                        <span class="role-name">Quản Lý</span>
+                        <span class="role-desc">Role: 3</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

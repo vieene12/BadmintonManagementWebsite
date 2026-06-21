@@ -2,6 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using AquarSmartCourt.Models;
+using AquarSmartCourt.Hubs;
+using Microsoft.AspNetCore.SignalR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace AquarSmartCourt.Controllers;
 
@@ -11,10 +17,12 @@ namespace AquarSmartCourt.Controllers;
 public class CourtApiController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IHubContext<CourtHub> _hubContext;
 
-    public CourtApiController(ApplicationDbContext context)
+    public CourtApiController(ApplicationDbContext context, IHubContext<CourtHub> hubContext)
     {
         _context = context;
+        _hubContext = hubContext;
     }
 
     // GET: api/CourtApi
@@ -37,7 +45,7 @@ public class CourtApiController : ControllerBase
     }
 
     // PUT: api/CourtApi/5
-    [Authorize(Roles = "3")]
+    [Authorize(Roles = "2,3")]
     [HttpPut("{id}")]
     public async Task<IActionResult> PutCourt(int id, Court court)
     {
@@ -77,6 +85,7 @@ public class CourtApiController : ControllerBase
             }
         }
 
+        await _hubContext.Clients.All.SendAsync("ReceiveUpdate");
         return NoContent();
     }
 
@@ -190,8 +199,16 @@ public class CourtApiController : ControllerBase
         var item = await _context.ServiceItems.FindAsync(request.ServiceItemId);
         if (item == null) return NotFound("Service item not found");
 
+        var today = DateTime.Today;
+        var activeBooking = await _context.Bookings
+            .Where(b => b.CourtId == request.CourtId && b.Status == "Confirmed" && b.StartTime.Date == today)
+            .OrderByDescending(b => b.StartTime)
+            .FirstOrDefaultAsync();
+
+        int? bookingId = activeBooking?.BookingId;
+
         var existing = await _context.ServiceOrders
-            .FirstOrDefaultAsync(so => so.CourtId == request.CourtId && so.ServiceItemId == request.ServiceItemId);
+            .FirstOrDefaultAsync(so => so.CourtId == request.CourtId && so.ServiceItemId == request.ServiceItemId && so.BookingId == bookingId);
 
         if (existing != null)
         {
@@ -205,6 +222,7 @@ public class CourtApiController : ControllerBase
                 CourtId = request.CourtId,
                 ServiceItemId = request.ServiceItemId,
                 Quantity = request.Quantity,
+                BookingId = bookingId,
                 OrderTime = DateTime.Now
             };
             _context.ServiceOrders.Add(order);
@@ -218,8 +236,16 @@ public class CourtApiController : ControllerBase
     [HttpGet("orders/{courtId}")]
     public async Task<IActionResult> GetCourtOrders(int courtId)
     {
+        var today = DateTime.Today;
+        var activeBooking = await _context.Bookings
+            .Where(b => b.CourtId == courtId && b.Status == "Confirmed" && b.StartTime.Date == today)
+            .OrderByDescending(b => b.StartTime)
+            .FirstOrDefaultAsync();
+
+        int? bookingId = activeBooking?.BookingId;
+
         var orders = await _context.ServiceOrders
-            .Where(so => so.CourtId == courtId)
+            .Where(so => so.CourtId == courtId && (bookingId == null || so.BookingId == bookingId))
             .Include(so => so.ServiceItem)
             .Select(so => new {
                 so.ServiceOrderId,
@@ -240,10 +266,71 @@ public class CourtApiController : ControllerBase
     [HttpDelete("orders/{courtId}")]
     public async Task<IActionResult> ClearCourtOrders(int courtId)
     {
-        var orders = await _context.ServiceOrders.Where(so => so.CourtId == courtId).ToListAsync();
+        var today = DateTime.Today;
+        var activeBooking = await _context.Bookings
+            .Where(b => b.CourtId == courtId && b.Status == "Confirmed" && b.StartTime.Date == today)
+            .OrderByDescending(b => b.StartTime)
+            .FirstOrDefaultAsync();
+
+        int? bookingId = activeBooking?.BookingId;
+
+        var orders = await _context.ServiceOrders.Where(so => so.CourtId == courtId && (bookingId == null || so.BookingId == bookingId)).ToListAsync();
         _context.ServiceOrders.RemoveRange(orders);
         await _context.SaveChangesAsync();
         return NoContent();
+    }
+
+    // GET: api/CourtApi/customer?phone=...
+    [HttpGet("customer")]
+    public async Task<IActionResult> GetCustomerByPhone([FromQuery] string phone)
+    {
+        var customer = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phone && u.Role == 1);
+        if (customer == null)
+        {
+            customer = new User
+            {
+                Username = phone,
+                Password = "123",
+                FullName = "Khách vãng lai mới",
+                Role = 1,
+                PhoneNumber = phone,
+                Position = "Khách Hàng",
+                LoyaltyPoints = 0,
+                IsActive = true
+            };
+            _context.Users.Add(customer);
+            await _context.SaveChangesAsync();
+            return Ok(new { customer.FullName, customer.LoyaltyPoints, message = "Created new profile" });
+        }
+        return Ok(new { customer.FullName, customer.LoyaltyPoints, message = "Found profile" });
+    }
+
+    // GET: api/CourtApi/schedule?date=...
+    [HttpGet("schedule")]
+    public async Task<IActionResult> GetSchedule([FromQuery] string? date)
+    {
+        DateTime targetDate = DateTime.Today;
+        if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out var parsedDate))
+        {
+            targetDate = parsedDate.Date;
+        }
+
+        var startOfDay = targetDate.Date;
+        var endOfDay = targetDate.Date.AddDays(1).AddTicks(-1);
+
+        var bookings = await _context.Bookings
+            .Where(b => b.StartTime >= startOfDay && b.EndTime <= endOfDay && b.Status == "Confirmed")
+            .Select(b => new {
+                b.BookingId,
+                b.CourtId,
+                StartTime = b.StartTime.ToString("HH:mm"),
+                EndTime = b.EndTime.ToString("HH:mm"),
+                b.CustomerName,
+                b.CustomerPhone
+            })
+            .ToListAsync();
+
+        return Ok(bookings);
     }
 
     // POST: api/CourtApi/book
@@ -252,9 +339,70 @@ public class CourtApiController : ControllerBase
     {
         var court = await _context.Courts.FindAsync(request.CourtId);
         if (court == null) return NotFound("Court not found");
+        if (court.Status == "Maintenance")
+        {
+            return BadRequest("Sân đang trong quá trình bảo trì, không thể đặt lịch.");
+        }
 
-        court.Status = "InUse"; // Transition to InUse to simulate instant active play
-        _context.Entry(court).State = EntityState.Modified;
+        DateTime today = DateTime.Today;
+        DateTime startDateTime;
+        DateTime endDateTime;
+
+        try
+        {
+            var startParts = request.StartTime.Split(':');
+            var endParts = request.EndTime.Split(':');
+            startDateTime = today.AddHours(int.Parse(startParts[0])).AddMinutes(int.Parse(startParts[1]));
+            endDateTime = today.AddHours(int.Parse(endParts[0])).AddMinutes(int.Parse(endParts[1]));
+        }
+        catch
+        {
+            return BadRequest("Thời gian bắt đầu hoặc kết thúc không hợp lệ.");
+        }
+
+        if (startDateTime >= endDateTime)
+        {
+            return BadRequest("Thời gian kết thúc phải sau thời gian bắt đầu.");
+        }
+
+        bool overlaps = await _context.Bookings.AnyAsync(b =>
+            b.CourtId == request.CourtId &&
+            b.Status == "Confirmed" &&
+            b.StartTime < endDateTime &&
+            startDateTime < b.EndTime
+        );
+
+        if (overlaps)
+        {
+            return BadRequest("Khung giờ này đã có người đặt trước!");
+        }
+
+        int? userId = null;
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == request.CustomerPhone && u.Role == 1);
+        if (user != null)
+        {
+            userId = user.UserId;
+        }
+
+        var booking = new Booking
+        {
+            CourtId = request.CourtId,
+            CustomerName = request.CustomerName,
+            CustomerPhone = request.CustomerPhone,
+            StartTime = startDateTime,
+            EndTime = endDateTime,
+            Status = "Confirmed",
+            UserId = userId
+        };
+        _context.Bookings.Add(booking);
+        await _context.SaveChangesAsync();
+
+        var now = DateTime.Now;
+        if (startDateTime <= now && now <= endDateTime)
+        {
+            court.Status = "InUse";
+            _context.Entry(court).State = EntityState.Modified;
+        }
 
         if (request.Services != null)
         {
@@ -267,6 +415,7 @@ public class CourtApiController : ControllerBase
                         CourtId = request.CourtId,
                         ServiceItemId = svc.ServiceItemId,
                         Quantity = svc.Quantity,
+                        BookingId = booking.BookingId,
                         OrderTime = DateTime.Now
                     };
                     _context.ServiceOrders.Add(order);
@@ -274,14 +423,225 @@ public class CourtApiController : ControllerBase
             }
         }
 
+        var randomCode = $"CAM_VID_{new Random().Next(1000, 9999)}";
+        var video = new SurveillanceVideo
+        {
+            VideoCode = randomCode,
+            CourtId = request.CourtId,
+            BookingId = booking.BookingId,
+            StartTime = startDateTime,
+            EndTime = endDateTime,
+            CustomerName = request.CustomerName,
+            CustomerPhone = request.CustomerPhone,
+            VideoUrl = $"/videos/sim_{court.CourtCode.ToLower()}.mp4",
+            FileSize = $"{new Random().Next(300, 990)}MB",
+            Status = "Pending"
+        };
+        _context.SurveillanceVideos.Add(video);
+
         await _context.SaveChangesAsync();
-        return Ok(new { message = "Booking successful", courtName = court.CourtName });
+        await _hubContext.Clients.All.SendAsync("ReceiveUpdate");
+        return Ok(new { message = "Booking successful", courtName = court.CourtName, bookingId = booking.BookingId });
+    }
+
+    // POST: api/CourtApi/checkout/{courtId}
+    [HttpPost("checkout/{courtId}")]
+    [Authorize(Roles = "2,3")]
+    public async Task<IActionResult> Checkout(int courtId)
+    {
+        var court = await _context.Courts.FindAsync(courtId);
+        if (court == null) return NotFound("Court not found");
+
+        var today = DateTime.Today;
+        var activeBooking = await _context.Bookings
+            .Where(b => b.CourtId == courtId && b.Status == "Confirmed" && b.StartTime.Date == today)
+            .OrderByDescending(b => b.StartTime)
+            .FirstOrDefaultAsync();
+
+        string custName = "Khách vãng lai";
+        string custPhone = "";
+        double playHours = 2.0;
+        int? bookingId = null;
+
+        if (activeBooking != null)
+        {
+            custName = activeBooking.CustomerName;
+            custPhone = activeBooking.CustomerPhone;
+
+            // FIX LỖI TẠI ĐÂY: Tính toán trực tiếp trên đối tượng C# cục bộ đã kéo từ DB về RAM
+            playHours = (activeBooking.EndTime - activeBooking.StartTime).TotalHours;
+            if (playHours <= 0) playHours = 1.0;
+
+            bookingId = activeBooking.BookingId;
+            activeBooking.Status = "Completed";
+            _context.Entry(activeBooking).State = EntityState.Modified;
+        }
+
+        decimal courtFee = (decimal)playHours * court.HourlyPrice;
+
+        var serviceOrders = await _context.ServiceOrders
+            .Where(so => so.CourtId == courtId && (bookingId == null || so.BookingId == bookingId))
+            .Include(so => so.ServiceItem)
+            .ToListAsync();
+
+        decimal serviceFee = 0;
+        foreach (var order in serviceOrders)
+        {
+            if (order.ServiceItem != null)
+            {
+                serviceFee += order.ServiceItem.UnitPrice * order.Quantity;
+            }
+        }
+
+        decimal totalAmount = courtFee + serviceFee;
+
+        var invoice = new Invoice
+        {
+            BookingId = bookingId,
+            CourtId = courtId,
+            CustomerName = custName,
+            CustomerPhone = custPhone,
+            PlayHours = playHours,
+            CourtFee = courtFee,
+            ServiceFee = serviceFee,
+            TotalAmount = totalAmount,
+            PaymentTime = DateTime.Now,
+            Status = "Paid"
+        };
+        _context.Invoices.Add(invoice);
+
+        if (!string.IsNullOrEmpty(custPhone))
+        {
+            var customer = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == custPhone && u.Role == 1);
+            if (customer != null)
+            {
+                int pointsAdded = (int)(totalAmount / 10000);
+                customer.LoyaltyPoints += pointsAdded;
+                _context.Entry(customer).State = EntityState.Modified;
+            }
+        }
+
+        _context.ServiceOrders.RemoveRange(serviceOrders);
+
+        court.Status = "Available";
+        _context.Entry(court).State = EntityState.Modified;
+
+        await _context.SaveChangesAsync();
+        await _hubContext.Clients.All.SendAsync("ReceiveUpdate");
+
+        return Ok(new
+        {
+            message = "Checkout successful",
+            invoiceId = invoice.InvoiceId,
+            courtFee = (double)courtFee,
+            serviceFee = (double)serviceFee,
+            totalAmount = (double)totalAmount,
+            pointsAdded = (int)(totalAmount / 10000)
+        });
+    }
+
+    // POST: api/CourtApi/bookings/cancel/{bookingId}
+    [HttpPost("bookings/cancel/{bookingId}")]
+    [Authorize(Roles = "2,3")]
+    public async Task<IActionResult> CancelBooking(int bookingId)
+    {
+        var booking = await _context.Bookings.FindAsync(bookingId);
+        if (booking == null) return NotFound("Không tìm thấy thông tin lịch đặt sân.");
+
+        booking.Status = "Cancelled";
+        _context.Entry(booking).State = EntityState.Modified;
+
+        var now = DateTime.Now;
+        if (booking.StartTime <= now && now <= booking.EndTime)
+        {
+            var court = await _context.Courts.FindAsync(booking.CourtId);
+            if (court != null && court.Status == "InUse")
+            {
+                court.Status = "Available";
+                _context.Entry(court).State = EntityState.Modified;
+            }
+        }
+
+        var matchingGroup = await _context.MatchmakingGroups
+            .FirstOrDefaultAsync(g => g.BookingId == bookingId && g.Status != "Cancelled");
+        if (matchingGroup != null)
+        {
+            matchingGroup.Status = "Cancelled";
+            _context.Entry(matchingGroup).State = EntityState.Modified;
+        }
+
+        await _context.SaveChangesAsync();
+        await _hubContext.Clients.All.SendAsync("ReceiveUpdate");
+
+        return Ok(new { message = "Hủy lịch đặt sân thành công!" });
+    }
+
+    // POST: api/CourtApi/bookings/change-court
+    [HttpPost("bookings/change-court")]
+    [Authorize(Roles = "2,3")]
+    public async Task<IActionResult> ChangeCourt([FromBody] ChangeCourtRequest request)
+    {
+        var booking = await _context.Bookings.FindAsync(request.BookingId);
+        if (booking == null) return NotFound("Không tìm thấy thông tin lịch đặt sân.");
+
+        var targetCourt = await _context.Courts.FindAsync(request.NewCourtId);
+        if (targetCourt == null) return NotFound("Không tìm thấy sân mới.");
+
+        bool overlaps = await _context.Bookings.AnyAsync(b =>
+            b.CourtId == request.NewCourtId &&
+            b.BookingId != request.BookingId &&
+            b.Status == "Confirmed" &&
+            b.StartTime < booking.EndTime &&
+            booking.StartTime < b.EndTime
+        );
+
+        if (overlaps)
+        {
+            return BadRequest("Sân mới đã có lịch đặt khác trùng khung giờ!");
+        }
+
+        var oldCourtId = booking.CourtId;
+        booking.CourtId = request.NewCourtId;
+        _context.Entry(booking).State = EntityState.Modified;
+
+        var now = DateTime.Now;
+        if (booking.StartTime <= now && now <= booking.EndTime)
+        {
+            var oldCourt = await _context.Courts.FindAsync(oldCourtId);
+            if (oldCourt != null && oldCourt.Status == "InUse")
+            {
+                oldCourt.Status = "Available";
+                _context.Entry(oldCourt).State = EntityState.Modified;
+            }
+
+            targetCourt.Status = "InUse";
+            _context.Entry(targetCourt).State = EntityState.Modified;
+        }
+
+        var matchingGroup = await _context.MatchmakingGroups
+            .FirstOrDefaultAsync(g => g.BookingId == request.BookingId && g.Status != "Cancelled");
+        if (matchingGroup != null)
+        {
+            matchingGroup.CourtId = request.NewCourtId;
+            _context.Entry(matchingGroup).State = EntityState.Modified;
+        }
+
+        await _context.SaveChangesAsync();
+        await _hubContext.Clients.All.SendAsync("ReceiveUpdate");
+
+        return Ok(new { message = "Chuyển sân thành công!" });
     }
 
     private bool CourtExists(int id)
     {
         return _context.Courts.Any(e => e.CourtId == id);
     }
+}
+
+public class ChangeCourtRequest
+{
+    public int BookingId { get; set; }
+    public int NewCourtId { get; set; }
 }
 
 public class OrderRequest
