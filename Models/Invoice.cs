@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace AquarSmartCourt.Models;
 
@@ -19,4 +20,5 @@ public class Invoice
     // Navigation properties
     public Booking? Booking { get; set; }
     public Court? Court { get; set; }
+    public ICollection<InvoiceDetail> Details { get; set; } = new List<InvoiceDetail>();
 }

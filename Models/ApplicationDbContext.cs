@@ -16,6 +16,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Booking> Bookings { get; set; } = null!;
     public DbSet<Invoice> Invoices { get; set; } = null!;
+    public DbSet<InvoiceDetail> InvoiceDetails { get; set; } = null!;
     public DbSet<MatchmakingGroup> MatchmakingGroups { get; set; } = null!;
     public DbSet<MatchmakingParticipant> MatchmakingParticipants { get; set; } = null!;
     public DbSet<SurveillanceVideo> SurveillanceVideos { get; set; } = null!;
@@ -38,6 +39,10 @@ public class ApplicationDbContext : DbContext
             .Property(item => item.UnitPrice)
             .HasColumnType("decimal(18,2)");
 
+        modelBuilder.Entity<Product>()
+            .Property(p => p.Price)
+            .HasPrecision(18, 2);
+
         modelBuilder.Entity<Invoice>()
             .Property(invoice => invoice.CourtFee)
             .HasColumnType("decimal(18,2)");
@@ -49,6 +54,24 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Invoice>()
             .Property(invoice => invoice.TotalAmount)
             .HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<InvoiceDetail>()
+            .Property(detail => detail.Quantity)
+            .HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<InvoiceDetail>()
+            .Property(detail => detail.UnitPrice)
+            .HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<InvoiceDetail>()
+            .Property(detail => detail.LineTotal)
+            .HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<Invoice>()
+            .HasMany(invoice => invoice.Details)
+            .WithOne(detail => detail.Invoice)
+            .HasForeignKey(detail => detail.InvoiceId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Seed initial courts
         modelBuilder.Entity<Court>().HasData(
@@ -304,6 +327,37 @@ public class ApplicationDbContext : DbContext
                 PaymentTime = new DateTime(2026, 6, 8, 17, 0, 0),
                 Status = "Paid"
             } // T2: 250,000đ
+        );
+
+        // Seed InvoiceDetails for receptionist invoice detail modal
+        modelBuilder.Entity<InvoiceDetail>().HasData(
+            new InvoiceDetail { InvoiceDetailId = 1, InvoiceId = 1, ItemName = "Tiền thuê Sân Con 02", Category = "Thuê sân", Quantity = 1.5m, UnitPrice = 80000, LineTotal = 120000, CreatedAt = new DateTime(2026, 6, 14, 10, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 2, InvoiceId = 1, ItemName = "Nước suối Aquafina", Category = "Nước uống", Quantity = 2, UnitPrice = 15000, LineTotal = 30000, CreatedAt = new DateTime(2026, 6, 14, 10, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 3, InvoiceId = 1, ItemName = "Quấn cán vợt cao su", Category = "Phụ kiện", Quantity = 1, UnitPrice = 5000, LineTotal = 5000, CreatedAt = new DateTime(2026, 6, 14, 10, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 4, InvoiceId = 2, ItemName = "Tiền thuê Sân Con 01", Category = "Thuê sân", Quantity = 2, UnitPrice = 80000, LineTotal = 160000, CreatedAt = new DateTime(2026, 6, 14, 11, 30, 0) },
+            new InvoiceDetail { InvoiceDetailId = 5, InvoiceId = 2, ItemName = "Nước tăng lực Sting", Category = "Nước uống", Quantity = 3, UnitPrice = 20000, LineTotal = 60000, CreatedAt = new DateTime(2026, 6, 14, 11, 30, 0) },
+            new InvoiceDetail { InvoiceDetailId = 6, InvoiceId = 3, ItemName = "Tiền thuê Sân Con 03", Category = "Thuê sân", Quantity = 3, UnitPrice = 80000, LineTotal = 240000, CreatedAt = new DateTime(2026, 6, 14, 14, 15, 0) },
+            new InvoiceDetail { InvoiceDetailId = 7, InvoiceId = 3, ItemName = "Thuê vợt Yonex chính hãng", Category = "Thuê vợt", Quantity = 10, UnitPrice = 50000, LineTotal = 500000, CreatedAt = new DateTime(2026, 6, 14, 14, 15, 0) },
+            new InvoiceDetail { InvoiceDetailId = 8, InvoiceId = 3, ItemName = "Ống cầu lông Hải Yến", Category = "Phụ kiện", Quantity = 2, UnitPrice = 250000, LineTotal = 500000, CreatedAt = new DateTime(2026, 6, 14, 14, 15, 0) },
+            new InvoiceDetail { InvoiceDetailId = 9, InvoiceId = 3, ItemName = "Nước uống đội nhóm", Category = "Nước uống", Quantity = 14, UnitPrice = 15000, LineTotal = 210000, CreatedAt = new DateTime(2026, 6, 14, 14, 15, 0) },
+            new InvoiceDetail { InvoiceDetailId = 10, InvoiceId = 4, ItemName = "Tiền thuê Sân Con 04", Category = "Thuê sân", Quantity = 2, UnitPrice = 80000, LineTotal = 160000, CreatedAt = new DateTime(2026, 6, 14, 15, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 11, InvoiceId = 4, ItemName = "Gói dịch vụ giải đấu nội bộ", Category = "Dịch vụ", Quantity = 1, UnitPrice = 2865000, LineTotal = 2865000, CreatedAt = new DateTime(2026, 6, 14, 15, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 12, InvoiceId = 5, ItemName = "Tiền thuê Sân Con 01", Category = "Thuê sân", Quantity = 2, UnitPrice = 80000, LineTotal = 160000, CreatedAt = new DateTime(2026, 6, 14, 9, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 13, InvoiceId = 5, ItemName = "Gói nước và phụ kiện hội viên", Category = "Dịch vụ", Quantity = 1, UnitPrice = 1290000, LineTotal = 1290000, CreatedAt = new DateTime(2026, 6, 14, 9, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 14, InvoiceId = 6, ItemName = "Tiền thuê Sân Con 02", Category = "Thuê sân", Quantity = 2, UnitPrice = 80000, LineTotal = 160000, CreatedAt = new DateTime(2026, 6, 13, 17, 30, 0) },
+            new InvoiceDetail { InvoiceDetailId = 15, InvoiceId = 6, ItemName = "Gói dịch vụ cuối tuần", Category = "Dịch vụ", Quantity = 1, UnitPrice = 940000, LineTotal = 940000, CreatedAt = new DateTime(2026, 6, 13, 17, 30, 0) },
+            new InvoiceDetail { InvoiceDetailId = 16, InvoiceId = 7, ItemName = "Tiền thuê Sân Con 01", Category = "Thuê sân", Quantity = 1, UnitPrice = 80000, LineTotal = 80000, CreatedAt = new DateTime(2026, 6, 13, 19, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 17, InvoiceId = 7, ItemName = "Nước uống và thuê vợt", Category = "Dịch vụ", Quantity = 1, UnitPrice = 70000, LineTotal = 70000, CreatedAt = new DateTime(2026, 6, 13, 19, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 18, InvoiceId = 8, ItemName = "Tiền thuê Sân Con 03", Category = "Thuê sân", Quantity = 2, UnitPrice = 80000, LineTotal = 160000, CreatedAt = new DateTime(2026, 6, 12, 18, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 19, InvoiceId = 8, ItemName = "Dịch vụ F&B nhóm", Category = "Dịch vụ", Quantity = 1, UnitPrice = 660000, LineTotal = 660000, CreatedAt = new DateTime(2026, 6, 12, 18, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 20, InvoiceId = 9, ItemName = "Tiền thuê Sân Con 02", Category = "Thuê sân", Quantity = 2, UnitPrice = 80000, LineTotal = 160000, CreatedAt = new DateTime(2026, 6, 11, 20, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 21, InvoiceId = 9, ItemName = "Dịch vụ khách đoàn", Category = "Dịch vụ", Quantity = 1, UnitPrice = 740000, LineTotal = 740000, CreatedAt = new DateTime(2026, 6, 11, 20, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 22, InvoiceId = 10, ItemName = "Tiền thuê Sân Con 01", Category = "Thuê sân", Quantity = 2, UnitPrice = 80000, LineTotal = 160000, CreatedAt = new DateTime(2026, 6, 10, 18, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 23, InvoiceId = 10, ItemName = "Dịch vụ phụ kiện", Category = "Dịch vụ", Quantity = 1, UnitPrice = 390000, LineTotal = 390000, CreatedAt = new DateTime(2026, 6, 10, 18, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 24, InvoiceId = 11, ItemName = "Tiền thuê Sân Con 03", Category = "Thuê sân", Quantity = 2, UnitPrice = 80000, LineTotal = 160000, CreatedAt = new DateTime(2026, 6, 9, 19, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 25, InvoiceId = 11, ItemName = "Dịch vụ sau trận", Category = "Dịch vụ", Quantity = 1, UnitPrice = 490000, LineTotal = 490000, CreatedAt = new DateTime(2026, 6, 9, 19, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 26, InvoiceId = 12, ItemName = "Tiền thuê Sân Con 04", Category = "Thuê sân", Quantity = 2, UnitPrice = 80000, LineTotal = 160000, CreatedAt = new DateTime(2026, 6, 8, 17, 0, 0) },
+            new InvoiceDetail { InvoiceDetailId = 27, InvoiceId = 12, ItemName = "Nước uống", Category = "Nước uống", Quantity = 6, UnitPrice = 15000, LineTotal = 90000, CreatedAt = new DateTime(2026, 6, 8, 17, 0, 0) }
         );
 
         // Seed MatchmakingGroups

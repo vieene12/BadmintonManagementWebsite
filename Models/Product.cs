@@ -1,5 +1,5 @@
-using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AquarSmartCourt.Models;
 
@@ -14,6 +14,7 @@ public class Product
 
     public string? Description { get; set; }
 
+    [Column(TypeName = "decimal(18,2)")]
     public decimal Price { get; set; }
 
     [StringLength(50)]

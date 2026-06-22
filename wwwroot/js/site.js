@@ -398,46 +398,6 @@ function initializeFrontendAuth() {
 }
 
 // ==========================================
-// SCROLL & RANDOM ANIMATION OBSERVERS (CHIBI SVG)
-// ==========================================
-document.addEventListener("DOMContentLoaded", function() {
-    // 1. Scroll Observer (Fade-in-up / Bounce-in when scrolling)
-    const observerOptions = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1
-    };
-
-    const scrollObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('scroll-show');
-                // observer.unobserve(entry.target); // Optional: if we want to animate only once
-            } else {
-                entry.target.classList.remove('scroll-show');
-            }
-        });
-    }, observerOptions);
-
-    const hiddenElements = document.querySelectorAll('.scroll-hidden');
-    hiddenElements.forEach((el) => scrollObserver.observe(el));
-
-    // 2. Random Floating/Shooting Effect for Shuttlecock
-    const shuttleSticker = document.getElementById('chibi-shuttlecock-sticker');
-    if (shuttleSticker) {
-        setInterval(() => {
-            // Trigger random shoot every 10-15s
-            if (Math.random() > 0.5) {
-                shuttleSticker.classList.add('random-shoot');
-                setTimeout(() => {
-                    shuttleSticker.classList.remove('random-shoot');
-                }, 1500); // Wait for animation to finish before removing
-            }
-        }, 8000); // Checks every 8 seconds
-    }
-});
-
-// ==========================================
 // RIPPLE EFFECT FOR SYSTEM BUTTONS
 // ==========================================
 document.addEventListener("click", function (e) {

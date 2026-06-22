@@ -1,6 +1,9 @@
+@using System.Text.Json
 @{
     ViewData["Title"] = "Quầy Lễ Tân - Nghiệp Vụ Tại Quầy";
     ViewData["ActivePage"] = "Receptionist";
+
+    var invoiceHistoryJson = JsonSerializer.Serialize(ViewBag.InvoiceHistory ?? System.Array.Empty<object>());
 }
 <div class="container-fluid px-0">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
@@ -11,9 +14,6 @@
         <div class="d-flex gap-2">
             <button class="btn btn-quick-book rounded-pill px-4" onclick="openQuickBookModal()">
                 <i class="bi bi-plus-circle me-1"></i> Đặt Sân Tại Quầy
-            </button>
-            <button class="btn btn-outline-warning rounded-pill px-3" onclick="switchToInvoiceTab()" style="background:white;">
-                <i class="bi bi-receipt me-1"></i> Quản lý Hóa Đơn
             </button>
             <button class="btn btn-outline-secondary rounded-pill px-3" onclick="location.reload()" style="background: white;">
                 <i class="bi bi-arrow-clockwise"></i> Đồng Bộ Lịch
@@ -141,7 +141,7 @@
                                         </tbody>
                                     </table>
                                     <div class="d-flex gap-2">
-                                        <button class="btn btn-outline-primary btn-sm flex-fill rounded-pill py-2" onclick="openServiceOrderModal('@court.CourtName', '@customerName', @svcMultiplier)"><i class="bi bi-cart-plus me-1"></i>Gọi Nước/Vợt</button>
+                                        <button class="btn btn-outline-primary btn-sm flex-fill rounded-pill py-2" onclick="openServiceOrderModal(@court.CourtId, '@court.CourtName', '@customerName', @svcMultiplier)"><i class="bi bi-cart-plus me-1"></i>Gọi Nước/Vợt</button>
                                         <button class="btn btn-primary btn-sm flex-fill rounded-pill py-2" onclick="openCheckoutModal(@court.CourtId, '@court.CourtName', '@customerName', @((int)court.HourlyPrice), @hours, @svcMultiplier)"><i class="bi bi-cash-coin me-1"></i>Tính Tiền</button>
                                     </div>
                                 }
@@ -339,20 +339,46 @@
                 <div class="vstack gap-2 mb-3 border rounded-3 p-3 audit-log-box">
                     <div class="d-flex justify-content-between border-bottom pb-1 mb-1 small">
                         <span class="text-secondary fw-medium">Tiền thuê sân đã thu:</span>
-                        <strong class="text-dark">2.400.000đ</strong>
+                        <strong class="text-dark" id="shift-court-fees">0đ</strong>
                     </div>
                     <div class="d-flex justify-content-between border-bottom pb-1 mb-1 small">
                         <span class="text-secondary fw-medium">Tiền nước & dịch vụ:</span>
-                        <strong class="text-dark">850.000đ</strong>
+                        <strong class="text-dark" id="shift-service-fees">0đ</strong>
                     </div>
                     <div class="d-flex justify-content-between pb-1">
                         <span class="text-secondary fw-bold text-dark">Tổng thu thực tế:</span>
-                        <strong class="text-success fs-5 fw-extrabold" style="font-weight: 800;">3.250.000đ</strong>
+                        <strong class="text-success fs-5 fw-extrabold" id="shift-total-revenue" style="font-weight: 800;">0đ</strong>
                     </div>
                 </div>
-                <button class="btn btn-success btn-sm w-100 rounded-pill py-2 fw-bold" onclick="alert('Báo cáo kiểm kê ca đã được ghi nhận vào hệ thống quản trị và in thành công!')">
-                    <i class="bi bi-printer-fill me-1"></i> Chốt Ca & In Bàn Giao
+                <button class="btn btn-success btn-sm w-100 rounded-pill py-2 fw-bold" onclick="printShiftReportPDF()">
+                    <i class="bi bi-file-earmark-pdf-fill me-1"></i> Xuất Báo Cáo Bàn Giao PDF
                 </button>
+        </div>
+
+        <!-- Chi tiết các hóa đơn trong ca -->
+        <div class="glass-card p-4 mt-0">
+            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-list-ul me-2 text-success"></i>Chi Tiết Doanh Thu Thuê Sân & Dịch Vụ</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle small mb-0">
+                    <thead>
+                        <tr class="table-light">
+                            <th>Mã HĐ</th>
+                            <th>Khách Hàng</th>
+                            <th>Sân</th>
+                            <th>Thời Gian</th>
+                            <th class="text-end">Tiền Sân</th>
+                            <th class="text-end">Tiền Dịch Vụ</th>
+                            <th class="text-end">Tổng Cộng</th>
+                            <th class="text-center" style="width: 85px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="shift-invoices-tbody">
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-3">Chưa có hóa đơn nào được thanh toán.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div> <!-- end tab-shift -->
 
@@ -991,79 +1017,130 @@ function selectPaymentMethod(method) {
     }
 }
 
-// ─── 7. Danh sách hóa đơn trong session (in-memory store) ───
-const invoiceHistory = [
-    // Pre-populated mock data để test giao diện
+// ─── 7. Danh sách hóa đơn trong session (ưu tiên dữ liệu database, fallback mock để test UI) ───
+const seededInvoiceHistory = @Html.Raw(invoiceHistoryJson);
+const fallbackInvoiceHistory = [
     {
         code: '#INV-001001', customerName: 'Nguyễn Văn An', courtName: 'Sân A1',
         timeRange: '08:00 – 09:30', hours: 1.5, courtTotal: 180000,
         fnbTotal: 55000, accTotal: 85000, discount: 0,
         grandTotal: 320000, method: 'cash', status: 'Paid',
-        createdAt: new Date(Date.now() - 3 * 3600000)
+        createdAt: new Date(Date.now() - 5 * 3600000),
+        details: [
+            { itemName: 'Tiền thuê Sân A1', category: 'Thuê sân', quantity: 1.5, unitPrice: 120000, lineTotal: 180000 },
+            { itemName: 'Nước Aquafina 500ml', category: 'Nước uống', quantity: 3, unitPrice: 10000, lineTotal: 30000 },
+            { itemName: 'Thuê vợt Victor NR10', category: 'Thuê vợt', quantity: 2, unitPrice: 27500, lineTotal: 55000 },
+            { itemName: 'Ống cầu Ba Sao', category: 'Phụ kiện', quantity: 1, unitPrice: 55000, lineTotal: 55000 }
+        ]
     },
     {
         code: '#INV-001002', customerName: 'Trần Thị Hương', courtName: 'Sân B2',
         timeRange: '09:30 – 11:00', hours: 1.5, courtTotal: 225000,
         fnbTotal: 30000, accTotal: 0, discount: 22500,
         grandTotal: 232500, method: 'bank', status: 'Paid',
-        createdAt: new Date(Date.now() - 2 * 3600000)
+        createdAt: new Date(Date.now() - 4 * 3600000),
+        details: [
+            { itemName: 'Tiền thuê Sân B2', category: 'Thuê sân', quantity: 1.5, unitPrice: 150000, lineTotal: 225000 },
+            { itemName: 'Pocari Sweat Ion', category: 'Nước uống', quantity: 2, unitPrice: 15000, lineTotal: 30000 },
+            { itemName: 'Voucher SMASH10', category: 'Giảm giá', quantity: 1, unitPrice: -22500, lineTotal: -22500 }
+        ]
     },
     {
         code: '#INV-001003', customerName: 'Lê Minh Tuấn', courtName: 'Sân A2',
         timeRange: '11:00 – 12:30', hours: 1.5, courtTotal: 180000,
         fnbTotal: 25000, accTotal: 55000, discount: 0,
         grandTotal: 260000, method: 'cash', status: 'Pending',
-        createdAt: new Date(Date.now() - 1 * 3600000)
+        createdAt: new Date(Date.now() - 3 * 3600000),
+        details: [
+            { itemName: 'Tiền thuê Sân A2', category: 'Thuê sân', quantity: 1.5, unitPrice: 120000, lineTotal: 180000 },
+            { itemName: 'Snack Lays', category: 'F&B', quantity: 1, unitPrice: 25000, lineTotal: 25000 },
+            { itemName: 'Ống cầu Ba Sao', category: 'Phụ kiện', quantity: 1, unitPrice: 55000, lineTotal: 55000 }
+        ]
+    },
+    {
+        code: '#INV-001004', customerName: 'Phạm Quốc Bảo', courtName: 'Sân A1',
+        timeRange: '13:00 – 15:00', hours: 2.0, courtTotal: 240000,
+        fnbTotal: 60000, accTotal: 30000, discount: 0,
+        grandTotal: 330000, method: 'cash', status: 'Paid',
+        createdAt: new Date(Date.now() - 2 * 3600000),
+        details: [
+            { itemName: 'Tiền thuê Sân A1', category: 'Thuê sân', quantity: 2, unitPrice: 120000, lineTotal: 240000 },
+            { itemName: 'Nước tăng lực Sting', category: 'Nước uống', quantity: 3, unitPrice: 20000, lineTotal: 60000 },
+            { itemName: 'Quấn cán vợt', category: 'Phụ kiện', quantity: 1, unitPrice: 30000, lineTotal: 30000 }
+        ]
+    },
+    {
+        code: '#INV-001005', customerName: 'Hoàng Thị Mai', courtName: 'Sân B1',
+        timeRange: '14:00 – 16:00', hours: 2.0, courtTotal: 300000,
+        fnbTotal: 40000, accTotal: 50000, discount: 30000,
+        grandTotal: 360000, method: 'bank', status: 'Paid',
+        createdAt: new Date(Date.now() - 1.5 * 3600000),
+        details: [
+            { itemName: 'Tiền thuê Sân B1', category: 'Thuê sân', quantity: 2, unitPrice: 150000, lineTotal: 300000 },
+            { itemName: 'Nước suối Aquafina', category: 'Nước uống', quantity: 2, unitPrice: 15000, lineTotal: 30000 },
+            { itemName: 'Thuê vợt Yonex', category: 'Thuê vợt', quantity: 1, unitPrice: 60000, lineTotal: 60000 },
+            { itemName: 'Voucher VIP', category: 'Giảm giá', quantity: 1, unitPrice: -30000, lineTotal: -30000 }
+        ]
+    },
+    {
+        code: '#INV-001006', customerName: 'Đặng Văn Khoa', courtName: 'Sân A2',
+        timeRange: '16:00 – 17:30', hours: 1.5, courtTotal: 180000,
+        fnbTotal: 20000, accTotal: 0, discount: 0,
+        grandTotal: 200000, method: 'cash', status: 'Pending',
+        createdAt: new Date(Date.now() - 0.5 * 3600000),
+        details: [
+            { itemName: 'Tiền thuê Sân A2', category: 'Thuê sân', quantity: 1.5, unitPrice: 120000, lineTotal: 180000 },
+            { itemName: 'Nước tăng lực Sting', category: 'Nước uống', quantity: 1, unitPrice: 20000, lineTotal: 20000 }
+        ]
     },
 ];
+
+function normalizeInvoice(inv) {
+    return {
+        ...inv,
+        courtTotal: Number(inv.courtTotal || 0),
+        fnbTotal: Number(inv.fnbTotal || 0),
+        accTotal: Number(inv.accTotal || 0),
+        discount: Number(inv.discount || 0),
+        grandTotal: Number(inv.grandTotal || 0),
+        hours: Number(inv.hours || 0),
+        createdAt: inv.createdAt instanceof Date ? inv.createdAt : new Date(inv.createdAt || Date.now()),
+        details: (inv.details || []).map(item => ({
+            ...item,
+            quantity: Number(item.quantity || 0),
+            unitPrice: Number(item.unitPrice || 0),
+            lineTotal: Number(item.lineTotal || 0)
+        }))
+    };
+}
+
+const invoiceHistory = (seededInvoiceHistory.length ? seededInvoiceHistory : fallbackInvoiceHistory).map(normalizeInvoice);
 
 // ─── 7b. Xác nhận thanh toán (có lưu vào invoiceHistory) ───
 function confirmInvoicePayment() {
     const method    = invoiceState.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản QR';
     const grandTotal = invoiceState.grandTotal || 0;
 
-    // ─── Tạo bản ghi hóa đơn mới ───
-    const courtTotal = invoiceState.hourlyPrice * invoiceState.hours;
-    const fnbTotal   = invoiceState.fnbItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
-    const accTotal   = invoiceState.accessoryItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
-    let   discountAmt = 0;
-    if (invoiceState.discountPercent > 0) {
-        discountAmt = (courtTotal + fnbTotal + accTotal) * invoiceState.discountPercent / 100;
-    } else {
-        discountAmt = invoiceState.discount;
-    }
+    $.ajax({
+        url: `/api/CourtApi/checkout/${invoiceState.courtId}`,
+        type: 'POST',
+        success: function(res) {
+            // Đóng modal
+            const modalEl = document.getElementById('invoicePaymentModal');
+            bootstrap.Modal.getInstance(modalEl)?.hide();
 
-    const newInvoice = {
-        code:         '#INV-' + Date.now().toString().slice(-6),
-        customerName: invoiceState.customerName || 'Khách vãng lai',
-        courtName:    invoiceState.courtName,
-        timeRange:    document.getElementById('inv-time-range')?.textContent || '',
-        hours:        invoiceState.hours,
-        courtTotal,
-        fnbTotal,
-        accTotal,
-        discount:     discountAmt,
-        grandTotal,
-        method:       invoiceState.paymentMethod,
-        status:       'Paid',
-        createdAt:    new Date()
-    };
+            // Hiển thị toast thông báo nhẹ nhàng
+            showInvoiceToast(`✅ Đã thanh toán <strong>${fmtVND(res.totalAmount)}</strong> thành công!`);
 
-    // Đẩy vào mảng lịch sử
-    invoiceHistory.unshift(newInvoice);
-
-    // Cập nhật bảng nếu đang hiện thị tab invoices
-    renderInvoiceTable();
-
-    // ─── TODO: Gắn API thật tại đây ───
-    // fetch('/api/Invoice/Confirm', { method:'POST', body: JSON.stringify(newInvoice) })
-
-    // Đóng modal (không reload để giữ UI mượt)
-    const modalEl = document.getElementById('invoicePaymentModal');
-    bootstrap.Modal.getInstance(modalEl)?.hide();
-
-    // Hiển thị toast thông báo nhẹ nhàng
-    showInvoiceToast(`✅ Đã thanh toán <strong>${fmtVND(grandTotal)}</strong> — ${newInvoice.customerName} (${newInvoice.courtName})`);
+            // Tự động reload sau 1.5s để đồng bộ trạng thái sân & database mới nhất
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        },
+        error: function(xhr) {
+            alert('Lỗi thanh toán: ' + xhr.responseText);
+        }
+    });
 }
 
 // ─── 8. Toast nhẹ nhàng thay thế alert ───
@@ -1103,11 +1180,53 @@ function renderInvoiceTable() {
     const allPaid    = invoiceHistory.filter(i => i.status === 'Paid');
     const allPending = invoiceHistory.filter(i => i.status === 'Pending');
     const revenue    = allPaid.reduce((s, i) => s + i.grandTotal, 0);
-    document.getElementById('inv-stat-total-count').textContent   = invoiceHistory.length;
-    document.getElementById('inv-stat-paid-count').textContent    = allPaid.length;
-    document.getElementById('inv-stat-pending-count').textContent = allPending.length;
-    document.getElementById('inv-stat-revenue').textContent       = fmtVND(revenue);
-    document.getElementById('inv-table-count').textContent        = `Hiển thị ${filtered.length} hóa đơn`;
+    const totalCountEl = document.getElementById('inv-stat-total-count');
+    const paidCountEl = document.getElementById('inv-stat-paid-count');
+    const pendingCountEl = document.getElementById('inv-stat-pending-count');
+    const statRevenueEl = document.getElementById('inv-stat-revenue');
+    const tableCountEl = document.getElementById('inv-table-count');
+
+    if (totalCountEl) totalCountEl.textContent   = invoiceHistory.length;
+    if (paidCountEl) paidCountEl.textContent    = allPaid.length;
+    if (pendingCountEl) pendingCountEl.textContent = allPending.length;
+    if (statRevenueEl) statRevenueEl.textContent       = fmtVND(revenue);
+    if (tableCountEl) tableCountEl.textContent        = `Hiển thị ${filtered.length} hóa đơn`;
+
+    // Cập nhật Kiểm Kê Doanh Thu Ca động
+    const auditCourtTotal = allPaid.reduce((s, i) => s + i.courtTotal, 0);
+    const auditServiceTotal = allPaid.reduce((s, i) => s + i.fnbTotal + i.accTotal, 0);
+
+    const shiftCourtEl = document.getElementById('shift-court-fees');
+    const shiftServiceEl = document.getElementById('shift-service-fees');
+    const shiftTotalEl = document.getElementById('shift-total-revenue');
+
+    if (shiftCourtEl) shiftCourtEl.textContent = fmtVND(auditCourtTotal);
+    if (shiftServiceEl) shiftServiceEl.textContent = fmtVND(auditServiceTotal);
+    if (shiftTotalEl) shiftTotalEl.textContent = fmtVND(revenue);
+
+    const shiftTbody = document.getElementById('shift-invoices-tbody');
+    if (shiftTbody) {
+        if (allPaid.length === 0) {
+            shiftTbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">Chưa có hóa đơn nào được thanh toán.</td></tr>`;
+        } else {
+            shiftTbody.innerHTML = allPaid.map(inv => `
+                <tr style="font-size:0.85rem;">
+                    <td><code class="text-primary fw-bold" style="font-size:0.78rem;">${inv.code}</code></td>
+                    <td><div class="fw-semibold text-dark">${inv.customerName}</div></td>
+                    <td><span class="badge rounded-pill" style="background:#eff6ff;color:#1d4ed8;">${inv.courtName}</span></td>
+                    <td class="text-muted small">${inv.timeRange}</td>
+                    <td class="text-end fw-medium text-dark">${fmtVND(inv.courtTotal)}</td>
+                    <td class="text-end fw-medium text-dark">${fmtVND(inv.fnbTotal + inv.accTotal)}</td>
+                    <td class="text-end fw-bold text-success">${fmtVND(inv.grandTotal)}</td>
+                    <td class="text-center">
+                        <button class="btn btn-outline-primary btn-sm rounded-2" style="padding:2px 6px;font-size:0.72rem;" onclick="viewInvoiceDetailByCode('${inv.code}')" title="Xem chi tiết">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    }
 
     const tbody = document.getElementById('inv-history-tbody');
     if (!tbody) return;
@@ -1161,40 +1280,207 @@ function renderInvoiceTable() {
         </tr>`).join('');
 }
 
+// ─── 9b. Hàm in báo cáo bàn giao ca dưới dạng PDF ───
+function printShiftReportPDF() {
+    const allPaid = invoiceHistory.filter(i => i.status === 'Paid');
+    const courtTotal = allPaid.reduce((s, i) => s + i.courtTotal, 0);
+    const serviceTotal = allPaid.reduce((s, i) => s + i.fnbTotal + i.accTotal, 0);
+    const grandTotal = allPaid.reduce((s, i) => s + i.grandTotal, 0);
+
+    const invoiceRowsHtml = allPaid.map(inv => `
+        <tr>
+            <td style="border: 1px solid #ddd; padding: 8px;">${inv.code}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${inv.customerName}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${inv.courtName}</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">${inv.timeRange}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${fmtVND(inv.courtTotal)}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${fmtVND(inv.fnbTotal + inv.accTotal)}</td>
+            <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${fmtVND(inv.grandTotal)}</td>
+        </tr>
+    `).join('');
+
+    const reportWindow = window.open('', '_blank');
+    if (!reportWindow) return;
+
+    reportWindow.document.title = "Báo cáo kiểm kê ca - Aquar SmashCourt";
+
+    const styleEl = reportWindow.document.createElement('style');
+    styleEl.textContent = `
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; color: #333; }
+        h2 { text-align: center; color: #1e3a8a; margin-bottom: 5px; }
+        .meta { text-align: center; font-size: 0.9rem; color: #666; margin-bottom: 30px; }
+        .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .summary-table th, .summary-table td { padding: 12px; border: 1px solid #ddd; }
+        .summary-table th { background-color: #f3f4f6; text-align: left; }
+        .total-row { font-weight: bold; font-size: 1.1rem; background-color: #eff6ff; }
+        .invoices-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
+        .invoices-table th { background-color: #f3f4f6; }
+        .footer { margin-top: 50px; display: flex; justify-content: space-between; }
+        .signature { text-align: center; width: 200px; }
+        @@media print {
+            .no-print { display: none; }
+        }
+    `;
+    reportWindow.document.head.appendChild(styleEl);
+
+    reportWindow.document.body.innerHTML = `
+        <h2>BÁO CÁO KIỂM KÊ VÀ BÀN GIAO CA</h2>
+        <div class="meta">
+            Ngày thực hiện: ${new Date().toLocaleString('vi-VN')} <br>
+            Nhân viên bàn giao: ${window.authConfig ? window.authConfig.username : 'Lê Hoàng Nam'}
+        </div>
+
+        <h3>I. TỔNG HỢP DOANH THU CA</h3>
+        <table class="summary-table">
+            <tr>
+                <th>Mục doanh thu</th>
+                <th style="text-align: right; width: 200px;">Thành tiền</th>
+            </tr>
+            <tr>
+                <td>Tiền thuê sân đã thu</td>
+                <td style="text-align: right;">${fmtVND(courtTotal)}</td>
+            </tr>
+            <tr>
+                <td>Tiền nước & dịch vụ phát sinh thực tế</td>
+                <td style="text-align: right;">${fmtVND(serviceTotal)}</td>
+            </tr>
+            <tr class="total-row">
+                <td>Tổng doanh thu thực tế</td>
+                <td style="text-align: right; color: #16a34a;">${fmtVND(grandTotal)}</td>
+            </tr>
+        </table>
+
+        <h3>II. DANH SÁCH HÓA ĐƠN ĐÃ THANH TOÁN</h3>
+        <table class="invoices-table">
+            <thead>
+                <tr>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Mã HĐ</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Khách hàng</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Sân</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Thời gian</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Tiền sân</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Tiền dịch vụ</th>
+                    <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Tổng cộng</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${invoiceRowsHtml || '<tr><td colspan="7" style="text-align:center; padding:12px; color:#888;">Chưa có hóa đơn nào được thanh toán trong ca.</td></tr>'}
+            </tbody>
+        </table>
+
+        <div class="footer">
+            <div class="signature">
+                <p><strong>Người bàn giao</strong></p>
+                <br><br><br>
+                <p>${window.authConfig ? window.authConfig.username : 'Lê Hoàng Nam'}</p>
+            </div>
+            <div class="signature">
+                <p><strong>Người nhận bàn giao / Quản lý</strong></p>
+                <br><br><br>
+                <p>.......................................</p>
+            </div>
+        </div>
+    `;
+
+    reportWindow.document.close();
+    reportWindow.onload = function() {
+        reportWindow.print();
+    };
+}
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function getInvoiceLineItems(inv) {
+    if (inv.details && inv.details.length) return inv.details;
+
+    const lines = [
+        {
+            itemName: `Tiền thuê ${inv.courtName}`,
+            category: 'Thuê sân',
+            quantity: inv.hours,
+            unitPrice: inv.hours ? inv.courtTotal / inv.hours : inv.courtTotal,
+            lineTotal: inv.courtTotal
+        }
+    ];
+
+    if (inv.fnbTotal > 0) {
+        lines.push({ itemName: 'Dịch vụ F&B', category: 'F&B', quantity: 1, unitPrice: inv.fnbTotal, lineTotal: inv.fnbTotal });
+    }
+    if (inv.accTotal > 0) {
+        lines.push({ itemName: 'Thuê phụ kiện', category: 'Phụ kiện', quantity: 1, unitPrice: inv.accTotal, lineTotal: inv.accTotal });
+    }
+    if (inv.discount > 0) {
+        lines.push({ itemName: 'Giảm giá / Voucher', category: 'Giảm giá', quantity: 1, unitPrice: -inv.discount, lineTotal: -inv.discount });
+    }
+
+    return lines;
+}
+
 // ─── 10. Xem chi tiết hóa đơn ───
-function viewInvoiceDetail(filteredIdx) {
-    // Lấy inv dựa trên filtered list hiện tại (ta render theo filtered)
-    const search  = (document.getElementById('inv-search-input')?.value || '').toLowerCase();
-    const fStatus = document.getElementById('inv-filter-status')?.value || '';
-    const fMethod = document.getElementById('inv-filter-method')?.value || '';
-    const filtered = invoiceHistory.filter(inv => {
-        const matchSearch = !search || inv.customerName.toLowerCase().includes(search) || inv.courtName.toLowerCase().includes(search) || inv.code.toLowerCase().includes(search);
-        return matchSearch && (!fStatus || inv.status === fStatus) && (!fMethod || inv.method === fMethod);
-    });
-    const inv = filtered[filteredIdx];
+function viewInvoiceDetailByCode(code) {
+    const inv = invoiceHistory.find(i => i.code === code);
     if (!inv) return;
 
     const statusLabel = { 'Paid': 'Hoàn tất', 'Pending': 'Chờ TT', 'Cancelled': 'Hủy' }[inv.status] || inv.status;
     const methodLabel = inv.method === 'cash' ? 'Tiền mặt' : 'Chuyển khoản';
+    const lineItems = getInvoiceLineItems(inv);
+    const serviceSubtotal = inv.fnbTotal + inv.accTotal;
+    const categoryStyle = (category) => {
+        if (category === 'Thuê sân') return 'background:#eff6ff;color:#1d4ed8;';
+        if (category === 'Giảm giá') return 'background:#dcfce7;color:#15803d;';
+        if (category === 'Nước uống' || category === 'F&B') return 'background:#ecfeff;color:#0e7490;';
+        return 'background:#fef3c7;color:#92400e;';
+    };
+
+    const detailRows = lineItems.map(item => `
+        <tr>
+            <td>
+                <div class="fw-semibold text-dark">${escapeHtml(item.itemName)}</div>
+                <span class="badge rounded-pill mt-1" style="${categoryStyle(item.category)}font-size:0.68rem;">${escapeHtml(item.category)}</span>
+            </td>
+            <td class="text-center text-muted">${Number(item.quantity).toLocaleString('vi-VN')}</td>
+            <td class="text-end text-muted">${fmtVND(item.unitPrice)}</td>
+            <td class="text-end fw-semibold ${item.lineTotal < 0 ? 'text-success' : 'text-dark'}">${item.lineTotal < 0 ? '-' : ''}${fmtVND(Math.abs(item.lineTotal))}</td>
+        </tr>
+    `).join('');
 
     const html = `
         <div class="mb-3 pb-2" style="border-bottom:1px solid #e2e8f0;">
             <div class="d-flex justify-content-between align-items-center">
-                <span class="fw-bold text-dark">${inv.code}</span>
+                <span class="fw-bold text-dark">${escapeHtml(inv.code)}</span>
                 <small class="text-muted">${inv.createdAt.toLocaleString('vi-VN')}</small>
             </div>
         </div>
         <div class="row g-2 small mb-3">
-            <div class="col-6"><span class="text-muted">Khách hàng:</span><div class="fw-semibold">${inv.customerName}</div></div>
-            <div class="col-6"><span class="text-muted">Sân:</span><div class="fw-semibold text-primary">${inv.courtName}</div></div>
-            <div class="col-6"><span class="text-muted">Giờ chơi:</span><div class="fw-semibold">${inv.timeRange}</div></div>
+            <div class="col-6"><span class="text-muted">Khách hàng:</span><div class="fw-semibold">${escapeHtml(inv.customerName)}</div></div>
+            <div class="col-6"><span class="text-muted">Sân:</span><div class="fw-semibold text-primary">${escapeHtml(inv.courtName)}</div></div>
+            <div class="col-6"><span class="text-muted">Giờ chơi:</span><div class="fw-semibold">${escapeHtml(inv.timeRange)}</div></div>
             <div class="col-6"><span class="text-muted">Hình thức:</span><div class="fw-semibold">${methodLabel}</div></div>
+        </div>
+        <div class="table-responsive border rounded-3 mb-3">
+            <table class="table table-sm align-middle small mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Khoản mục</th>
+                        <th class="text-center" style="width:70px;">SL/Giờ</th>
+                        <th class="text-end" style="width:100px;">Đơn giá</th>
+                        <th class="text-end" style="width:110px;">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>${detailRows}</tbody>
+            </table>
         </div>
         <table class="table table-sm small mb-3">
             <tbody>
                 <tr><td class="text-muted">Tiền thuê sân</td><td class="text-end fw-semibold">${fmtVND(inv.courtTotal)}</td></tr>
-                <tr><td class="text-muted">Dịch vụ F&B</td><td class="text-end fw-semibold">${fmtVND(inv.fnbTotal)}</td></tr>
-                <tr><td class="text-muted">Thuê phụ kiện</td><td class="text-end fw-semibold">${fmtVND(inv.accTotal)}</td></tr>
+                <tr><td class="text-muted">Tiền dịch vụ</td><td class="text-end fw-semibold">${fmtVND(serviceSubtotal)}</td></tr>
                 ${inv.discount > 0 ? `<tr><td class="text-success">Giảm giá / Voucher</td><td class="text-end text-success fw-semibold">-${fmtVND(inv.discount)}</td></tr>` : ''}
                 <tr style="border-top:2px solid #e2e8f0;"><td class="fw-bold text-dark">THÀNH TIỀN</td><td class="text-end fw-black text-primary" style="font-size:1.1rem;">${fmtVND(inv.grandTotal)}</td></tr>
             </tbody>
@@ -1206,6 +1492,20 @@ function viewInvoiceDetail(filteredIdx) {
     document.getElementById('inv-detail-body').innerHTML = html;
     new bootstrap.Modal(document.getElementById('invDetailModal')).show();
 }
+
+function viewInvoiceDetail(filteredIdx) {
+    const search  = (document.getElementById('inv-search-input')?.value || '').toLowerCase();
+    const fStatus = document.getElementById('inv-filter-status')?.value || '';
+    const fMethod = document.getElementById('inv-filter-method')?.value || '';
+    const filtered = invoiceHistory.filter(inv => {
+        const matchSearch = !search || inv.customerName.toLowerCase().includes(search) || inv.courtName.toLowerCase().includes(search) || inv.code.toLowerCase().includes(search);
+        return matchSearch && (!fStatus || inv.status === fStatus) && (!fMethod || inv.method === fMethod);
+    });
+    const inv = filtered[filteredIdx];
+    if (!inv) return;
+    viewInvoiceDetailByCode(inv.code);
+}
+
 
 // ─── 11. Đánh dấu đã thanh toán ───
 function markInvoicePaid(filteredIdx) {
@@ -1707,10 +2007,41 @@ document.addEventListener('DOMContentLoaded', renderInvoiceTable);
         });
         }
 
-        function openServiceOrderModal(court, cust, serviceFactor) {
-        document.getElementById('serviceCourt').value = court;
+        let currentServiceCourtId = null;
+        function openServiceOrderModal(courtId, courtName, cust, serviceFactor) {
+        currentServiceCourtId = courtId;
+        document.getElementById('serviceCourt').value = courtName;
         document.getElementById('serviceCust').value = cust;
         serviceModalObj.show();
+        }
+
+        function addServiceToBill(event) {
+            event.preventDefault();
+            if (!currentServiceCourtId) return;
+
+            const selectEl = document.getElementById('orderServiceSelect');
+            const selectedOption = selectEl.options[selectEl.selectedIndex];
+            const serviceItemId = parseInt(selectedOption.getAttribute('data-id'));
+            const quantity = parseInt(document.getElementById('orderServiceQty').value) || 1;
+
+            $.ajax({
+                url: '/api/CourtApi/order',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    courtId: currentServiceCourtId,
+                    serviceItemId: serviceItemId,
+                    quantity: quantity
+                }),
+                success: function() {
+                    alert('Đã thêm dịch vụ vào hóa đơn thành công!');
+                    serviceModalObj.hide();
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Lỗi thêm dịch vụ: ' + xhr.responseText);
+                }
+            });
         }
 
         function updateServiceUnitPrice() {

@@ -40,6 +40,7 @@ using (var scope = app.Services.CreateScope())
         db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('MatchmakingParticipants', RESEED)");
         db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Bookings', RESEED)");
         db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Invoices', RESEED)");
+        db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('InvoiceDetails', RESEED)");
         db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Users', RESEED)");
         db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Courts', RESEED)");
         db.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('ServiceItems', RESEED)");
