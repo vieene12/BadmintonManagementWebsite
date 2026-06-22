@@ -4,29 +4,31 @@
    DESIGN SYSTEM (MINIMAL, CLEAN, FLAT)
    ========================================== */
 :root {
-  /* ─── Base Colors (Layers) ─── */
-  --bg-primary: #f8fafc; /* Nền xám nhạt sáng hơn */
-  --bg-secondary: #ffffff; /* Nền Card/Modal */
-  --text-primary: #0f172a; /* Xanh navy siêu đậm (Đảm bảo độ đọc trên nền sáng) */
-  --text-secondary: #475569; /* Xám chì cho text phụ */
-  --text-muted: #94a3b8;
-  --border-color: #e2e8f0;
+  /* ─── Light Mode Base Colors (Layers) ─── */
+  --bg-primary: #f1f5f9; /* Soft light gray-blue background */
+  --bg-secondary: rgba(255, 255, 255, 0.85); /* Glass card background */
+  --text-primary: #0f172a; /* Deep dark navy for optimal contrast */
+  --text-secondary: #334155; /* Slate gray for secondary text */
+  --text-muted: #64748b; /* Muted text */
+  --border-color: rgba(226, 232, 240, 0.8); /* Light clean border */
   
-  /* ─── Thể Thao / Thống Nhất (Accent Colors) ─── */
-  --color-primary: #ea580c; /* Cam đậm (Đảm bảo tương phản WCAG với chữ trắng) */
-  --color-primary-hover: #c2410c;
-  --text-on-primary: #ffffff; /* Chữ TRẮNG trên nền đậm */
+  /* ─── Theme Colors ─── */
+  --color-primary: #10b981; /* Premium Emerald Sports Green */
+  --color-primary-hover: #059669;
+  --text-on-primary: #ffffff;
+  --accent-green: #10b981;
 
-  --color-secondary: #2563eb; /* Xanh dương đậm */
-  --color-secondary-hover: #1d4ed8;
+  --color-secondary: #3b82f6; /* Athletic Electric Blue */
+  --color-secondary-hover: #2563eb;
   --text-on-secondary: #ffffff;
+  --accent-blue: #3b82f6;
 
-  --color-success: #059669; /* Xanh lá đậm */
-  --color-success-hover: #047857;
+  --color-success: #10b981;
+  --color-success-hover: #059669;
   --text-on-success: #ffffff;
 
-  --color-danger: #dc2626; /* Đỏ đậm */
-  --color-danger-hover: #b91c1c;
+  --color-danger: #ef4444; /* Modern alert red */
+  --color-danger-hover: #dc2626;
   --text-on-danger: #ffffff;
   
   /* ─── Spacing ─── */
@@ -42,16 +44,45 @@
   --radius-pill: 9999px;
   
   /* ─── Shadows ─── */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 10px 25px -3px rgba(15, 23, 42, 0.06), 0 4px 6px -4px rgba(15, 23, 42, 0.06);
+  --shadow-hover: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
   
   /* ─── Fonts & Animations ─── */
-  --font-title: 'Inter', sans-serif;
+  --font-title: 'Outfit', 'Inter', sans-serif;
   --font-body: 'Be Vietnam Pro', sans-serif;
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-fast: all 0.15s ease-in-out;
+}
+
+[data-theme="dark"] {
+  /* ─── Dark Mode Base Colors (Layers) ─── */
+  --bg-primary: #0b0f19; /* Futuristic Dark Navy */
+  --bg-secondary: rgba(17, 24, 39, 0.8); /* Semi-transparent dark card */
+  --text-primary: #f8fafc; /* Pristine light text */
+  --text-secondary: #cbd5e1; /* Slate gray */
+  --text-muted: #64748b; /* Soft muted gray */
+  --border-color: rgba(31, 41, 55, 0.6); /* Dark clean border */
+  
+  /* ─── Layout Helper Variables ─── */
+  --bg-card: rgba(17, 24, 39, 0.85);
+  --text-color: #f8fafc;
+  --bg-input: #1f2937;
+  --table-hover-bg: #1f2937;
+  
+  /* ─── Theme Colors in Dark Mode ─── */
+  --color-primary: #10b981; 
+  --color-primary-hover: #059669;
+  
+  --color-secondary: #3b82f6;
+  --color-secondary-hover: #2563eb;
+
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+
+  --color-danger: #f87171;
+  --color-danger-hover: #ef4444;
 }
 
 /* Base resets */
@@ -386,7 +417,7 @@ h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 1.25rem;
-  color: #ffffff;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1525,7 +1556,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .header-customer-sporty .navbar-brand,
 .header-customer-sporty .nav-link,
-.header-customer-sporty .text-dark /* Ghi đè text cũ nếu có */ {
+.header-customer-sporty .text-dark {
   color: #ffffff !important;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
@@ -1537,4 +1568,225 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgba(255, 255, 255, 0.1) !important;
   border-color: #ffffff !important;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/* ==========================================
+   GLOBAL DARK MODE BOOTSTRAP UTILITY OVERRIDES
+   ========================================== */
+[data-theme="dark"] body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .text-dark {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .bg-white {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .bg-light {
+  background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .card {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .modal-content {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .modal-header {
+  background-color: var(--bg-primary) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .modal-footer {
+  background-color: var(--bg-primary) !important;
+  border-top-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .table {
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .table th {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .table td {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .table-light {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .list-group-item {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--color-secondary) !important;
+}
+
+[data-theme="dark"] .border {
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .border-bottom {
+  border-bottom-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .border-top {
+  border-top-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .dropdown-menu {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+  background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] footer {
+  background-color: var(--bg-secondary) !important;
+  border-top-color: var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] footer .text-secondary {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] footer .bg-white {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* Redefining admin sidebar and chatbot style variables for light/dark mode */
+.admin-sidebar {
+  background-color: var(--bg-primary);
+  border-right: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .admin-sidebar {
+  background-color: #0b0f19;
+  border-right-color: #1f2937;
+}
+
+.admin-header {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.admin-sidebar-menu .admin-sidebar-link {
+  color: var(--text-secondary);
+}
+
+.admin-sidebar-menu .admin-sidebar-link:hover {
+  color: var(--text-primary);
+  background-color: rgba(59, 130, 246, 0.08);
+}
+
+.admin-sidebar-menu .admin-sidebar-link.active {
+  color: var(--color-secondary);
+  background-color: rgba(59, 130, 246, 0.12);
+}
+
+.admin-sidebar-menu .admin-sidebar-link.active::before {
+  background-color: var(--color-secondary);
+}
+
+.admin-sidebar-footer {
+  border-top-color: var(--border-color);
+}
+
+/* ─── GENERAL BOOTSTRAP OVERRIDES FOR DARK MODE ─── */
+[data-theme="dark"] .text-dark {
+  color: var(--text-primary) !important;
+}
+[data-theme="dark"] .text-secondary {
+  color: var(--text-secondary) !important;
+}
+[data-theme="dark"] .text-muted {
+  color: var(--text-muted) !important;
+}
+[data-theme="dark"] .bg-light {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+[data-theme="dark"] .bg-white {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+[data-theme="dark"] .border,
+[data-theme="dark"] .border-top,
+[data-theme="dark"] .border-bottom,
+[data-theme="dark"] .border-start,
+[data-theme="dark"] .border-end {
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .table {
+  color: var(--text-primary) !important;
+}
+[data-theme="dark"] .table-light {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+[data-theme="dark"] .modal-content {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--color-secondary) !important;
+  box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+}
+[data-theme="dark"] .btn-close {
+  filter: invert(1) grayscale(1) brightness(2);
 }

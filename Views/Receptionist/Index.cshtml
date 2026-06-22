@@ -374,7 +374,7 @@
                     </thead>
                     <tbody id="shift-invoices-tbody">
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-3">Chưa có hóa đơn nào được thanh toán.</td>
+                            <td colspan="8" class="text-center text-muted py-3">Chưa có hóa đơn nào được thanh toán.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -2049,6 +2049,125 @@ document.addEventListener('DOMContentLoaded', renderInvoiceTable);
         if (select && select.value) {
         document.getElementById('orderServicePrice').value = parseInt(select.value).toLocaleString('vi-VN') + 'đ';
         }
+        }
+
+        function loadDailyBookings() {
+            $.ajax({
+                url: '/api/CourtApi/schedule',
+                type: 'GET',
+                success: function(bookings) {
+                    const tbody = document.getElementById('bookings-list-body');
+                    const countBadge = document.getElementById('booking-count-badge');
+                    if (!tbody) return;
+                    
+                    if (bookings.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-3">Không có lịch đặt nào trong ngày hôm nay.</td>
+                            </tr>
+                        `;
+                        if (countBadge) countBadge.innerText = '0 lịch đặt';
+                        return;
+                    }
+                    
+                    if (countBadge) countBadge.innerText = `${bookings.length} lịch đặt`;
+                    
+                    let html = '';
+                    bookings.forEach(b => {
+                        const courtNameEl = document.getElementById(`courtName-${b.courtId}`);
+                        const courtName = courtNameEl ? courtNameEl.innerText : `Sân ${b.courtId}`;
+                        
+                        html += `
+                            <tr>
+                                <td class="fw-semibold text-dark">${b.customerName}</td>
+                                <td class="text-secondary">${b.customerPhone}</td>
+                                <td><span class="badge bg-light text-dark border px-2 py-1">${courtName}</span></td>
+                                <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1">${b.startTime} - ${b.endTime}</span></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill me-1" onclick="openChangeCourtModal(${b.bookingId}, '${b.customerName}', '${b.startTime} - ${b.endTime}', ${b.courtId})">
+                                        <i class="bi bi-arrow-left-right me-1"></i>Chuyển sân
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="cancelBooking(${b.bookingId})">
+                                        <i class="bi bi-trash me-1"></i>Hủy
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = html;
+                },
+                error: function(xhr) {
+                    console.error('Lỗi tải lịch đặt sân: ', xhr.responseText);
+                }
+            });
+        }
+
+        function openChangeCourtModal(bookingId, customerName, timeRange, currentCourtId) {
+            document.getElementById('changeBookingId').value = bookingId;
+            document.getElementById('changeCustName').value = customerName;
+            document.getElementById('changeTimeRange').value = timeRange;
+            
+            const select = document.getElementById('changeNewCourtSelect');
+            select.innerHTML = '';
+            
+            const courts = [
+                @foreach (var court in ViewBag.Courts as List<AquarSmartCourt.Models.Court> ?? new List<AquarSmartCourt.Models.Court>())
+                {
+                    @:{ id: @court.CourtId, name: '@Html.Raw(court.CourtName)' },
+                }
+            ];
+            
+            courts.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.id;
+                option.text = c.name + (c.id === currentCourtId ? ' (Hiện tại)' : '');
+                if (c.id === currentCourtId) {
+                    option.disabled = true;
+                }
+                select.appendChild(option);
+            });
+            
+            changeCourtModalObj.show();
+        }
+
+        function processChangeCourt(e) {
+            e.preventDefault();
+            const bookingId = parseInt(document.getElementById('changeBookingId').value);
+            const newCourtId = parseInt(document.getElementById('changeNewCourtSelect').value);
+            
+            $.ajax({
+                url: '/api/CourtApi/bookings/change-court',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    bookingId: bookingId,
+                    newCourtId: newCourtId
+                }),
+                success: function() {
+                    alert('Chuyển sân thành công!');
+                    changeCourtModalObj.hide();
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert('Lỗi chuyển sân: ' + xhr.responseText);
+                }
+            });
+        }
+
+        function cancelBooking(bookingId) {
+            if (confirm('Bạn có chắc chắn muốn hủy lịch đặt sân này không?')) {
+                $.ajax({
+                    url: `/api/CourtApi/bookings/cancel/${bookingId}`,
+                    type: 'POST',
+                    success: function() {
+                        alert('Đã hủy lịch đặt sân thành công!');
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        alert('Lỗi hủy lịch đặt sân: ' + xhr.responseText);
+                    }
+                });
+            }
         }
     </script>
 }
