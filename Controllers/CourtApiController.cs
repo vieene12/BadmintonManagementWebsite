@@ -536,8 +536,38 @@ public class CourtApiController : ControllerBase
             ServiceFee = serviceFee,
             TotalAmount = totalAmount,
             PaymentTime = DateTime.Now,
-            Status = "Paid"
+            Status = "Paid",
+            Details = new List<InvoiceDetail>()
         };
+
+        // Thêm chi tiết tiền thuê sân
+        invoice.Details.Add(new InvoiceDetail
+        {
+            ItemName = $"Tiền thuê {court.CourtName}",
+            Category = "Thuê sân",
+            Quantity = (decimal)playHours,
+            UnitPrice = court.HourlyPrice,
+            LineTotal = courtFee,
+            CreatedAt = DateTime.Now
+        });
+
+        // Thêm chi tiết các dịch vụ đã gọi
+        foreach (var order in serviceOrders)
+        {
+            if (order.ServiceItem != null)
+            {
+                invoice.Details.Add(new InvoiceDetail
+                {
+                    ItemName = order.ServiceItem.ItemName,
+                    Category = order.ServiceItem.Category,
+                    Quantity = order.Quantity,
+                    UnitPrice = order.ServiceItem.UnitPrice,
+                    LineTotal = order.ServiceItem.UnitPrice * order.Quantity,
+                    CreatedAt = DateTime.Now
+                });
+            }
+        }
+
         _context.Invoices.Add(invoice);
 
         if (!string.IsNullOrEmpty(custPhone))
