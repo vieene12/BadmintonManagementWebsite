@@ -10,7 +10,7 @@
         --energy-blue: #3b82f6;
         --energy-blue-dark: #1d4ed8;
         --energy-blue-glow: rgba(59, 130, 246, 0.25);
-        --vibrant-bg: #f1f5f9;
+        --vibrant-bg: var(--bg-primary);
         --card-radius: 18px;
     }
 
@@ -99,42 +99,44 @@
     /* Glow-cards for sports vibe */
     .sporty-bg-wrapper .glass-card, 
     .sporty-bg-wrapper .card {
-        background: #ffffff !important;
-        border: 1px solid rgba(226, 232, 240, 0.9) !important;
+        background: var(--bg-secondary) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
         border-radius: var(--card-radius) !important;
-        box-shadow: 0 10px 30px rgba(148, 163, 184, 0.06) !important;
+        box-shadow: var(--shadow-sm) !important;
         transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
     
     .sporty-bg-wrapper .glass-card:hover, 
     .sporty-bg-wrapper .card:hover {
         transform: translateY(-5px) !important;
-        box-shadow: 0 18px 40px rgba(59, 130, 246, 0.12) !important;
+        box-shadow: var(--shadow-hover) !important;
         border-color: var(--energy-blue) !important;
     }
 
     .active-session-card {
-        background: linear-gradient(135deg, #ffffff 0%, rgba(240, 253, 250, 0.95) 100%) !important;
+        background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(16, 185, 129, 0.08) 100%) !important;
         border: 1px solid rgba(16, 185, 129, 0.25) !important;
     }
 
     .active-session-card:hover {
-        box-shadow: 0 18px 40px rgba(16, 185, 129, 0.14) !important;
+        box-shadow: var(--shadow-hover) !important;
         border-color: var(--court-green) !important;
     }
     
     /* Colorful metric block inside active session */
     .active-session-metric {
-        background: #f8fafc;
+        background: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
         padding: 16px;
         border-radius: 12px;
         border-left: 5px solid var(--energy-blue);
-        box-shadow: 0 4px 12px rgba(148, 163, 184, 0.04);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         transition: all 0.3s ease;
     }
     .active-session-metric:hover {
-        background: #f0fdf4;
-        border-left-color: var(--court-green);
+        background: rgba(16, 185, 129, 0.05) !important;
+        border-left-color: var(--court-green) !important;
         transform: scale(1.02);
     }
     
@@ -155,38 +157,39 @@
         letter-spacing: 0.8px;
     }
     .timetable-table td {
-        border: 1px solid rgba(226, 232, 240, 0.9) !important;
+        border: 1px solid var(--border-color) !important;
         border-radius: 8px;
         padding: 14px !important;
         transition: all 0.25s ease;
-        background: #ffffff;
+        background: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
     }
     .timetable-table td.empty {
         background-color: rgba(16, 185, 129, 0.07) !important;
-        color: var(--court-green-dark) !important;
+        color: var(--court-green) !important;
         font-weight: 700;
         border: 1.5px dashed rgba(16, 185, 129, 0.35) !important;
         cursor: pointer;
     }
     .timetable-table td.empty:hover {
         background-color: rgba(16, 185, 129, 0.15) !important;
-        color: #064e3b !important;
+        color: var(--court-green) !important;
         transform: scale(1.02);
         box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2) !important;
         border-style: solid !important;
         border-color: var(--court-green) !important;
     }
     .timetable-table td.booked {
-        background-color: #f8fafc !important;
-        color: #94a3b8 !important;
+        background-color: var(--bg-primary) !important;
+        color: var(--text-muted) !important;
         font-size: 0.82rem;
-        border: 1px solid #e2e8f0 !important;
+        border: 1px solid var(--border-color) !important;
     }
     .timetable-table td.maintenance {
-        background-color: #fff1f2 !important;
-        color: #e11d48 !important;
+        background-color: rgba(239, 68, 68, 0.1) !important;
+        color: #ef4444 !important;
         font-weight: 600;
-        border: 1px solid #fecdd3 !important;
+        border: 1px solid rgba(239, 68, 68, 0.2) !important;
     }
     
     /* Glowing active progress bar */
@@ -230,15 +233,16 @@
     /* Custom style for highlight carousel cards */
     .highlight-card {
         border-radius: 14px !important;
-        border: 1px solid rgba(226, 232, 240, 0.9) !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;
+        border: 1px solid var(--border-color) !important;
+        box-shadow: var(--shadow-sm) !important;
         overflow: hidden;
-        background: #ffffff;
+        background: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
         transition: all 0.3s ease;
     }
     .highlight-card:hover {
         transform: translateY(-5px) !important;
-        box-shadow: 0 12px 25px rgba(59, 130, 246, 0.12) !important;
+        box-shadow: var(--shadow-hover) !important;
         border-color: var(--energy-blue) !important;
     }
     
@@ -255,17 +259,19 @@
     /* Product and matchmaking styling upgrades (Replacing black/white blockiness) */
     .hub-service-card-wrapper .card {
         border-radius: var(--card-radius) !important;
-        border: 1px solid rgba(226, 232, 240, 0.9) !important;
-        box-shadow: 0 6px 18px rgba(148, 163, 184, 0.05) !important;
+        border: 1px solid var(--border-color) !important;
+        background: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+        box-shadow: var(--shadow-sm) !important;
         overflow: hidden;
     }
     .hub-service-card-wrapper .card:hover {
         border-color: var(--energy-blue) !important;
-        box-shadow: 0 12px 25px rgba(59, 130, 246, 0.12) !important;
+        box-shadow: var(--shadow-hover) !important;
     }
     .service-image-container {
         border-radius: 12px !important;
-        border: 1px solid rgba(226, 232, 240, 0.9) !important;
+        border: 1px solid var(--border-color) !important;
     }
 </style>
 

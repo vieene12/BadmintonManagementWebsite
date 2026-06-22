@@ -143,7 +143,7 @@
         <div class="glass-card p-4 bg-white mt-0 glow-card">
                 <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
                     <h5 class="fw-bold text-dark mb-0" style="font-weight: 800;"><i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i>Danh Mục Sân Con</h5>
-                    <button class="btn btn-primary btn-sm px-3 py-2" onclick="openAddCourtModal()" style="border-radius: 2px !important; background-color: #316143 !important; border-color: #316143 !important;"><i class="bi bi-plus-circle me-1"></i>Thêm Sân Mới</button>
+                    <button class="btn btn-primary btn-sm px-4 rounded-pill shadow-sm" onclick="openAddCourtModal()"><i class="bi bi-plus-circle me-1"></i>Thêm Sân Mới</button>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover table-custom align-middle small mb-0" id="admin-courts-table">
@@ -221,7 +221,7 @@
                             <option value="Thuê vợt">Thuê vợt</option>
                             <option value="Phụ kiện">Phụ kiện</option>
                         </select>
-                        <button class="btn btn-primary btn-sm px-3 py-2" onclick="openAddServiceModal()" style="border-radius: 2px !important; background-color: #316143 !important; border-color: #316143 !important;"><i class="bi bi-plus-circle me-1"></i>Thêm Dịch Vụ Mới</button>
+                        <button class="btn btn-primary btn-sm px-4 rounded-pill shadow-sm" onclick="openAddServiceModal()"><i class="bi bi-plus-circle me-1"></i>Thêm Dịch Vụ Mới</button>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -422,9 +422,9 @@
                         <input type="password" class="form-control" id="staffPass" required placeholder="Mật khẩu bảo mật" style="border-radius: 3px !important;">
                     </div>
                 </div>
-                <div class="modal-footer p-3" style="background-color: #fafafa; border-top: 1px solid #e0e0e0;">
-                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Hủy Bỏ</button>
-                    <button type="submit" class="btn btn-success px-4 py-2" style="background-color: #316143 !important; border-color: #316143 !important; border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Lưu Nhân Viên</button>
+                <div class="modal-footer p-3" style="background: transparent; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-pill" data-bs-dismiss="modal">Hủy Bỏ</button>
+                    <button type="submit" class="btn btn-success px-4 py-2 rounded-pill shadow-sm">Lưu Nhân Viên</button>
                 </div>
             </form>
         </div>
@@ -469,9 +469,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer p-3" style="background-color: #fafafa; border-top: 1px solid #e0e0e0;">
-                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Hủy Bỏ</button>
-                    <button type="submit" class="btn btn-success px-4 py-2" style="background-color: #316143 !important; border-color: #316143 !important; border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Cấp Quyền</button>
+                <div class="modal-footer p-3" style="background: transparent; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-pill" data-bs-dismiss="modal">Hủy Bỏ</button>
+                    <button type="submit" class="btn btn-success px-4 py-2 rounded-pill shadow-sm">Cấp Quyền</button>
                 </div>
             </form>
         </div>
@@ -506,9 +506,9 @@
                         </select>
                     </div>
                 </div>
-                <div class="modal-footer p-3" style="background-color: #fafafa; border-top: 1px solid #e0e0e0;">
-                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Hủy Bỏ</button>
-                    <button type="submit" class="btn btn-primary px-4 py-2" style="background-color: #4270be !important; border-color: #4270be !important; border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Lưu Thay Đổi</button>
+                <div class="modal-footer p-3" style="background: transparent; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-pill" data-bs-dismiss="modal">Hủy Bỏ</button>
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill shadow-sm">Lưu Thay Đổi</button>
                 </div>
             </form>
         </div>
@@ -538,9 +538,9 @@
                         <input type="number" class="form-control" id="adminAddCourtPrice" min="1000" step="5000" value="80000" required style="border-radius: 3px !important;">
                     </div>
                 </div>
-                <div class="modal-footer p-3" style="background-color: #fafafa; border-top: 1px solid #e0e0e0;">
-                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Hủy Bỏ</button>
-                    <button type="submit" class="btn btn-success px-4 py-2" style="background-color: #316143 !important; border-color: #316143 !important; border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Thêm Sân</button>
+                <div class="modal-footer p-3" style="background: transparent; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-pill" data-bs-dismiss="modal">Hủy Bỏ</button>
+                    <button type="submit" class="btn btn-success px-4 py-2 rounded-pill shadow-sm">Thêm Sân</button>
                 </div>
             </form>
         </div>
@@ -581,9 +581,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer p-3" style="background-color: #fafafa; border-top: 1px solid #e0e0e0;">
-                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Hủy Bỏ</button>
-                    <button type="submit" class="btn btn-success px-4 py-2" style="background-color: #316143 !important; border-color: #316143 !important; border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Thêm Dịch Vụ</button>
+                <div class="modal-footer p-3" style="background: transparent; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-pill" data-bs-dismiss="modal">Hủy Bỏ</button>
+                    <button type="submit" class="btn btn-success px-4 py-2 rounded-pill shadow-sm">Thêm Dịch Vụ</button>
                 </div>
             </form>
         </div>
@@ -625,9 +625,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer p-3" style="background-color: #fafafa; border-top: 1px solid #e0e0e0;">
-                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Hủy Bỏ</button>
-                    <button type="submit" class="btn btn-primary px-4 py-2" style="background-color: #4270be !important; border-color: #4270be !important; border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Lưu Thay Đổi</button>
+                <div class="modal-footer p-3" style="background: transparent; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-pill" data-bs-dismiss="modal">Hủy Bỏ</button>
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill shadow-sm">Lưu Thay Đổi</button>
                 </div>
             </form>
         </div>
@@ -663,9 +663,9 @@
                         <img id="imagePreview" src="" alt="Preview" style="max-height: 180px; max-width: 100%; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                     </div>
                 </div>
-                <div class="modal-footer p-3" style="background-color: #fafafa; border-top: 1px solid #e0e0e0;">
-                    <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Hủy Bỏ</button>
-                    <button type="submit" class="btn btn-primary px-4 py-2" style="background-color: #4270be !important; border-color: #4270be !important; border-radius: 2px !important; font-family: var(--font-title); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;">Lưu Hình Ảnh</button>
+                <div class="modal-footer p-3" style="background: transparent; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-pill" data-bs-dismiss="modal">Hủy Bỏ</button>
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill shadow-sm">Lưu Hình Ảnh</button>
                 </div>
             </form>
         </div>
